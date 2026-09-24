@@ -3,14 +3,22 @@
 **Not** a formal App launch. **Not** aurora-companions / healoa.com website work.
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- Version stamp: **预览 v2026-09-24-i** · **Scene Seed / 场景种子**
+- Version stamp: **预览 v2026-09-24-j** · **Scene Seed / 场景种子**
 - Single-file offline HTML demo + local place photos: pick a place → see/hear/operate a scene → solo create → optional **simulated** second person → save / restore → emit a **Scene Seed** (`#seed=` reopenable work URL) → friend opens **their own copy** and can add a stroke
 
 App social currency (Living Editions · App side) = **Scene Seed** — “我发现了一个美的地方，并把创作邀请给你”.
 
-## v2026-09-24-i UX (哈尔滨冰雪实景 + 武当 · share PNG)
+## v2026-09-24-j UX (武当三路径选择)
 
-- **Default hero place stays 武当**（「直接进 · 武当」）. Harbin is **additional**.
+- Pick **武当** or **直接进 · 武当** → **path chooser** (not body questionnaire, not auto one path).
+- Three photo paths: **疗愈民宿 · 慢住** (`wudang-homestay`) · **山中胜景 · 被山震住** (`wudang-vista`) · **热闹观景** (`wudang-bustle`, honesty badge **人多／热门打卡**).
+- Tap path → enter that playable scene immediately (matching `PLACE_PHOTOS` hero; 民宿 soft-cycles tea terrace).
+- Harbin intact; cabin photos may exist on disk but are **not wired** in this tip (parent next).
+- No medical claims; P0 seed honesty unchanged.
+
+## Prior v2026-09-24-i (哈尔滨冰雪实景 + 武当 · share PNG)
+
+- **Default CTA family stays 武当**. Harbin is **additional**.
 - **Real-photo places**: 武当 + **哈尔滨冰雪** under `assets/places/{wudang,harbin}/` (relative paths for GitHub Pages).
 - Harbin place card: photo thumb + cold / ~2-month / 雪乡奶茶／暖食 bullets (customer-readable in ~3s). Scene feel copy is honest (约零下28℃ · 并不适合每个人 · 年开约两月) — **not** a medical prescription.
 - Scene shell / Scene Seed live card / share PNG: `PLACE_PHOTOS` + `ensurePlacePhotoReady` cover-draw hero (same path as Wudang).

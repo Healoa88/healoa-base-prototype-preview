@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + Harbin/Wudang real photos + primary CTA skips body + short 发给朋友 share-tail (v2026-09-24-i)
+ * Scene Seed P0 + Wudang path chooser + Harbin + primary CTA skips body (v2026-09-24-j)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -108,6 +108,16 @@ async function main() {
     const wudangThumbFile = path.join(ROOT, "assets/places/wudang/01-cloud-sea-sun.jpg");
     record("wudang-asset-hero-exists", fs.existsSync(wudangHero) && fs.statSync(wudangHero).size > 1000, wudangHero);
     record("wudang-asset-thumb-exists", fs.existsSync(wudangThumbFile) && fs.statSync(wudangThumbFile).size > 1000, wudangThumbFile);
+    const pathAssets = [
+      ["wudang-path-homestay-courtyard", "assets/places/wudang/homestay/01-courtyard-house.jpg"],
+      ["wudang-path-homestay-tea", "assets/places/wudang/homestay/02-window-tea-terrace.jpg"],
+      ["wudang-path-vista-cliff", "assets/places/wudang/vista/01-cliff-pavilion.jpg"],
+      ["wudang-path-bustle-crowd", "assets/places/wudang/bustle/01-stairs-cable-crowd.jpg"],
+    ];
+    for (const [name, rel] of pathAssets) {
+      const fp = path.join(ROOT, rel);
+      record(name + "-exists", fs.existsSync(fp) && fs.statSync(fp).size > 1000, fp);
+    }
     const harbinHero = path.join(ROOT, "assets/places/harbin/01-night-snow-roofs.jpg");
     const harbinThumbFile = path.join(ROOT, "assets/places/harbin/03-day-milk-tea-village.jpg");
     const harbinFood = path.join(ROOT, "assets/places/harbin/03-day-milk-tea-village.jpg");
@@ -119,7 +129,7 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-i"), banner);
+    record("version-banner", banner.includes("v2026-09-24-j"), banner);
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
@@ -165,10 +175,121 @@ async function main() {
       };
     });
     record("wudang-place-card-photo", wudangThumb.ok, JSON.stringify(wudangThumb));
-    // Enter Wudang first: real photo must paint scene-bg
+    // Pick 武当 → path chooser (NOT body questionnaire, NOT auto-enter scene)
     await sender.click('.place[data-id="wudang"]');
+    await sender.waitForSelector("#s2w:not(.hidden)");
+    const onS1AfterWudang = await sender.locator("#s1:not(.hidden)").count();
+    const onS3AfterWudang = await sender.locator("#s3:not(.hidden)").count();
+    const pathCards = await sender.locator("#wudangPathList .path-card").count();
+    const pathLabels = await sender.locator("#wudangPathList").innerText();
+    record(
+      "wudang-path-chooser-visible",
+      onS1AfterWudang === 0 && onS3AfterWudang === 0 && pathCards === 3,
+      JSON.stringify({ onS1AfterWudang, onS3AfterWudang, pathCards, labels: pathLabels.slice(0, 180) })
+    );
+    record(
+      "wudang-path-chooser-copy",
+      pathLabels.includes("疗愈民宿") && pathLabels.includes("山中胜景") && pathLabels.includes("热闹观景") && pathLabels.includes("想安静住下来") && pathLabels.includes("想先被山打动") && pathLabels.includes("能接受人多"),
+      pathLabels.slice(0, 240)
+    );
+    record(
+      "wudang-bustle-honesty-badge",
+      pathLabels.includes("人多") && (pathLabels.includes("热门打卡") || pathLabels.includes("热闹")),
+      pathLabels.slice(0, 200)
+    );
+    await shot(sender, "wudang-path-chooser");
+    await sender.locator("#s2w").screenshot({ path: path.join(EVIDENCE, "wudang-path-chooser.png") });
+
+    // Skip-in also lands on path chooser
+    await sender.click("#s2w [data-back='s0']");
+    await sender.waitForSelector("#s0:not(.hidden)");
+    await sender.click("#btnSkipIn");
+    await sender.waitForSelector("#s2w:not(.hidden)");
+    record("wudang-skip-in-opens-path-chooser", true, "btnSkipIn → s2w");
+
+    // Each path enters scene with matching photo
+    const pathChecks = [
+      {
+        id: "wudang-homestay",
+        needle: "homestay/01-courtyard-house",
+        bgClass: "wudang-homestay",
+        shot: "wudang-path-homestay",
+        nameBits: ["民宿", "慢住"],
+      },
+      {
+        id: "wudang-vista",
+        needle: "vista/01-cliff-pavilion",
+        bgClass: "wudang-vista",
+        shot: "wudang-path-vista",
+        nameBits: ["胜景", "山"],
+      },
+      {
+        id: "wudang-bustle",
+        needle: "bustle/01-stairs-cable-crowd",
+        bgClass: "wudang-bustle",
+        shot: "wudang-path-bustle",
+        nameBits: ["热闹", "人多"],
+      },
+    ];
+    for (const pc of pathChecks) {
+      await sender.goto(base);
+      await sender.click("#btnStart");
+      await sender.waitForSelector("#s2:not(.hidden)");
+      await sender.click('.place[data-id="wudang"]');
+      await sender.waitForSelector("#s2w:not(.hidden)");
+      await sender.click(`.path-card[data-path="${pc.id}"]`);
+      await sender.waitForSelector("#s3:not(.hidden)");
+      await sender.waitForTimeout(350);
+      const scene = await sender.evaluate((expect) => {
+        const bg = document.getElementById("sceneBg");
+        const cs = getComputedStyle(bg);
+        const inline = bg.style.backgroundImage || "";
+        const sheet = cs.backgroundImage || "";
+        const combined = inline + " " + sheet;
+        const label = (document.getElementById("sceneLabel") || {}).innerText || "";
+        const line = (document.getElementById("sceneLine") || {}).innerText || "";
+        const note = (document.getElementById("assetNote") || {}).innerText || "";
+        const heading = (document.getElementById("sceneHeading") || {}).innerText || "";
+        return {
+          className: bg.className,
+          hasPhoto: combined.includes(expect.needle) && bg.classList.contains(expect.bgClass),
+          combined: combined.slice(0, 220),
+          label, line, note, heading,
+          markTools: document.querySelectorAll("#markTools .tool").length,
+        };
+      }, pc);
+      record(
+        "wudang-path-" + pc.id.replace("wudang-", "") + "-enters-scene",
+        !!(scene.hasPhoto && scene.markTools >= 3),
+        JSON.stringify(scene)
+      );
+      const nameOk = pc.nameBits.some((b) => (scene.label + scene.heading + scene.line).includes(b));
+      record("wudang-path-" + pc.id.replace("wudang-", "") + "-copy", nameOk, (scene.label + " | " + scene.line).slice(0, 160));
+      if (pc.id === "wudang-bustle") {
+        record(
+          "wudang-bustle-scene-honesty",
+          scene.line.includes("人多") || scene.label.includes("人多"),
+          (scene.label + " | " + scene.line).slice(0, 180)
+        );
+      }
+      record(
+        "wudang-path-" + pc.id.replace("wudang-", "") + "-honesty-note",
+        scene.note.includes("实景") && scene.note.includes("武当"),
+        scene.note.slice(0, 160)
+      );
+      await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, pc.shot + ".png") });
+      await shot(sender, pc.shot);
+    }
+
+    // Fresh navigate into vista for share PNG polish continuity
+    await sender.goto(base);
+    await sender.click("#btnStart");
+    await sender.waitForSelector("#s2:not(.hidden)");
+    await sender.click('.place[data-id="wudang"]');
+    await sender.waitForSelector("#s2w:not(.hidden)");
+    await sender.click('.path-card[data-path="wudang-vista"]');
     await sender.waitForSelector("#s3:not(.hidden)");
-    await sender.waitForTimeout(400);
+    await sender.waitForTimeout(300);
     const wudangScene = await sender.evaluate(() => {
       const bg = document.getElementById("sceneBg");
       const cs = getComputedStyle(bg);
@@ -177,7 +298,7 @@ async function main() {
       const combined = inline + " " + sheet;
       return {
         className: bg.className,
-        hasPhoto: combined.includes("assets/places/wudang/") && bg.classList.contains("wudang"),
+        hasPhoto: combined.includes("assets/places/wudang/") && (bg.classList.contains("wudang-vista") || bg.classList.contains("wudang")),
         assetNote: (document.getElementById("assetNote") || {}).innerText || "",
         footer: (document.querySelector("#s3 .footer-meta, .footer-meta") || {}).innerText || "",
       };
@@ -418,8 +539,12 @@ async function main() {
       !!reachedSceneNoBody.activeTool,
       "activeTool=" + reachedSceneNoBody.activeTool
     );
-    // Fix B: scene must not be blank on enter
-    await sender.waitForTimeout(500);
+    // Fix B: scene must not be blank on enter (wait for fx canvas paint; suite length can delay rAF)
+    await sender.waitForFunction(() => {
+      const c = document.getElementById("fxCanvas");
+      return !!(c && c.width > 40 && c.height > 40);
+    }, null, { timeout: 4000 }).catch(() => {});
+    await sender.waitForTimeout(700);
     const blankCheck = await sender.evaluate(() => {
       const bg = document.getElementById("sceneBg");
       const stage = document.getElementById("playStage");
@@ -430,9 +555,13 @@ async function main() {
       const canvas = document.getElementById("fxCanvas");
       const ctx = canvas.getContext("2d");
       let maxA = 0;
-      for (let i = 0; i < 30; i++) {
-        const d = ctx.getImageData(Math.floor(canvas.width * (0.1 + i * 0.025)), Math.floor(canvas.height * 0.35), 1, 1).data;
-        if (d[3] > maxA) maxA = d[3];
+      if (canvas.width > 0 && canvas.height > 0) {
+        for (let i = 0; i < 48; i++) {
+          const x = Math.floor(canvas.width * (0.08 + (i % 16) * 0.05));
+          const y = Math.floor(canvas.height * (0.2 + Math.floor(i / 16) * 0.2));
+          const d = ctx.getImageData(x, y, 1, 1).data;
+          if (d[3] > maxA) maxA = d[3];
+        }
       }
       return {
         bgGradient: sbg.backgroundImage.includes("gradient"),
@@ -444,6 +573,8 @@ async function main() {
         coachText: (coach && coach.innerText) || "",
         lightOn: bg.classList.contains("light-on"),
         maxParticleA: maxA,
+        canvasW: canvas.width,
+        canvasH: canvas.height,
         stageBg: getComputedStyle(stage).backgroundColor,
       };
     });
@@ -742,7 +873,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-i",
+    version: "v2026-09-24-j",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
