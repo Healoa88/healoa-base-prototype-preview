@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + primary CTA skips body + 发给朋友 share-tail + privacy confirm (v2026-09-24-f)
+ * Scene Seed P0 + primary CTA skips body + short 发给朋友 share-tail (default-ready) (v2026-09-24-f)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -212,12 +212,12 @@ async function main() {
     const feel = await sender.locator("#feelPrompt").innerText();
     record("solo-feel-wording", feel.includes("独自") && !feel.includes("一起体验"), feel);
 
-    // P0: must explicitly confirm public line before send/copy
+    // Short share-tail: enter ready-to-send; editing public line re-gates (P0 honesty stays on screen)
     const sendReadyDefault = !(await sender.locator("#btnSendToFriend").isDisabled());
     const copyReadyDefault = !(await sender.locator("#btnCopySeedUrl").isDisabled());
     record(
-      "privacy-requires-confirm-on-enter",
-      sendReadyDefault === false && copyReadyDefault === false,
+      "privacy-default-ready-on-enter",
+      sendReadyDefault === true && copyReadyDefault === true,
       "send enabled=" + sendReadyDefault + " copy enabled=" + copyReadyDefault
     );
 
