@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-e）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-f）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -219,7 +219,7 @@
   .asset-note { font-size:0.7rem; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45; }
   .proto-banner .line2 { display:block; margin-top:4px; font-size:10px; color:rgba(138,160,178,0.95); }
 
-  /* v2026-09-24-e · scene not blank + first-run coach */
+  /* v2026-09-24-f · primary CTA → place/scene; body optional */
   .scene-shell { min-height: 520px; }
   .scene-landmark {
     position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -276,6 +276,21 @@
   .trial-card summary::-webkit-details-marker { display:none; }
   .trial-card summary::after { content:"展开"; margin-left:auto; font-size:0.72rem; color:var(--muted); font-weight:500; }
   .trial-card[open] summary::after { content:"收起"; }
+  .reviewer-notes {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 8px 12px 10px;
+    background: rgba(8,14,18,0.35);
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .reviewer-notes summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+  }
+  .reviewer-notes[open] summary { color: var(--gold); margin-bottom: 4px; }
   .pain-line {
     font-size:0.92rem; color:rgba(238,244,248,0.92); line-height:1.55; margin-bottom:14px;
     border-left:3px solid var(--aqua); padding:8px 0 8px 12px; background:rgba(110,198,192,0.06);
@@ -300,7 +315,7 @@
     radial-gradient(ellipse at 28% 88%, rgba(90,200,220,0.4), transparent 40%),
     linear-gradient(180deg, #183848 0%, #204860 28%, #307878 60%, #1e4850 100%); }
 
-  /* Scene Seed · 场景种子 card & invite (v2026-09-24-e) · P0 invite honesty */
+  /* Scene Seed · 场景种子 card & invite (v2026-09-24-f) · P0 invite honesty · short 发给朋友 tail */
   .seed-badge { display:inline-block; font-size:10px; padding:3px 9px; border-radius:999px;
     background:linear-gradient(135deg,rgba(110,198,192,0.22),rgba(212,176,138,0.18));
     color:var(--aqua); border:1px solid rgba(110,198,192,0.35); letter-spacing:0.06em;
@@ -352,40 +367,42 @@
 <body>
 
 <div class="proto-banner quiet-chrome">
-  <strong>可看原型 · Scene Seed 场景种子 · 非正式 healoa.app · 预览 v2026-09-24-e</strong>
-  <span>虚拟场景 · 留下一笔 · Scene Seed 邀请 · 非正式 Demo</span>
-  <span class="line2">双方共享持续更新 / 富链 OG / 付费素材 / 正式发布 · UNKNOWN · 无用户数据迁移</span>
+  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-f</strong>
+  <span>走进场景 · 留下一笔 · 邀请朋友加一笔</span>
+  <span class="line2">第二人=模拟 · 朋友打开=副本 · 非正式 healoa.app</span>
 </div>
 <div class="wrap">
   <section id="s0" class="screen">
     <div class="brand">HEALOA BASE <span class="seed-badge">SCENE SEED</span></div>
     <h1>虚拟走进一个美的地方，留下一笔，再邀请朋友加一笔</h1>
-    <p class="pain-line">想先感受一个地方的气氛、留下自己的创作，顺便把一枚「场景种子」送给朋友继续画——不用先填一堆表，也不用真的先飞过去。</p>
-    <p class="lead"><strong>HeaLoa Base</strong>：身体×季节×地方 → 走进虚拟场景 · 独自创作 · 发出 Scene Seed 邀请。轻反馈 ≠ Choose Again；这里不是第二圈 OS。</p>
+    <p class="pain-line">不用先填一堆表，也不用真的先飞过去。</p>
+    <p class="lead">点一个地方 → 留下痕迹 → 把「场景种子」送给朋友，让对方在自己的副本里再加一笔。</p>
     <div class="home-badge-row">
-      <span class="trial-badge">非正式 · Scene Seed Demo</span>
+      <span class="trial-badge">非正式 · 可看 Demo</span>
       <span class="sim-badge">第二人=模拟</span>
-      <span class="seed-badge">Living Editions · App</span>
     </div>
     <div class="btn-row">
       <button class="primary" type="button" id="btnStart">走进场景试试</button>
-      <button class="warm" type="button" id="btnSkipIn">先随便进一个地方</button>
+      <button class="warm" type="button" id="btnSkipIn">直接进 · 日本温泉</button>
       <button class="ghost hidden" type="button" id="btnRestore">重开找回上次本机保存</button>
       <button class="ghost hidden" type="button" id="btnOpenSeedHome">打开本机场景种子</button>
     </div>
     <p class="note ok hidden" id="restoreHint" style="margin-top:10px"></p>
     <p class="note ok hidden" id="seedUrlHint" style="margin-top:8px"></p>
-    <p class="sub" style="margin-top:16px">身体与季节是可选自述（可跳过），不作诊断。默认分享的是作品，不是身体/隐私。朋友打开的是自己的副本——双方共享持续更新仍是 UNKNOWN。</p>
-    <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />不是 Circle Edition · 不是 Wrapped · 不对顾客称「Life Maps」<br />本页不接注册、不替你预约、不做 Keeper · 第二人=模拟（若同机）<br />可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移<br />气氛画面为<strong>程序生成预览，非付费素材包</strong></p>
+    <details class="reviewer-notes" id="homeReviewerNotes" style="margin-top:18px">
+      <summary>说明（给评审 / 非首屏）</summary>
+      <p class="sub" style="margin-top:10px">身体与季节是<strong>可选</strong>自述，默认跳过，不作诊断。默认分享的是作品，不是身体/隐私。朋友打开的是自己的<strong>副本</strong>——双方共享持续更新仍是 UNKNOWN。</p>
+      <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />不是 Circle Edition · 不是 Wrapped · 不对顾客称「Life Maps」· 不是 Choose Again / 第二圈 OS · 不做 Keeper<br />本页不接注册、不替你预约 · 第二人=模拟（若同机）<br />可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移<br />气氛画面为<strong>程序生成预览，非付费素材包</strong> · 朋友打开=副本（共享持续更新=UNKNOWN） · Living Editions · App</p>
+    </details>
   </section>
 
   <section id="s1" class="screen hidden">
     <div class="steps" aria-hidden="true">
       <span class="on">1 身体×季节</span><span>2 选地方</span><span>3 进场景玩</span><span>4 保存</span><span>5 场景种子</span>
     </div>
-    <div class="brand">HEALOA BASE · 可选两句 <span class="trial-badge">试探 · 未锁定</span></div>
+    <div class="brand">HEALOA BASE · 可选两句 <span class="trial-badge">可选 · 默认跳过</span></div>
     <h1>此刻身体感觉怎样？现在是什么季节？</h1>
-    <p class="sub">可选。帮你自己想清楚；不作诊断、不自动判定「该去哪国」。不想答也可以直接进场景。</p>
+    <p class="sub">可选，不挡主路径。帮你自己想清楚；不作诊断、不自动判定「该去哪国」。可随时返回选地方。</p>
     <div class="trial-card" id="depthCard">
       <h3>身体深度 · 试探入口 <span class="trial-badge">试探 · 未锁定</span></h3>
       <p class="hint">今晚开放两种深度让你体感哪一种「太多了」。不是正式玩法锁；不作医疗/处方；不自动选地。答案仍仅本机，永不进分享。</p>
@@ -450,9 +467,9 @@
       <span>1 身体×季节</span><span class="on">2 选地方</span><span>3 进场景玩</span><span>4 保存</span><span>5 场景种子</span>
     </div>
     <div class="brand">HEALOA BASE · 虚拟预览</div>
-    <h1>选一个想先「走进去」的地方</h1>
-    <p class="sub" id="answersEcho">选好后马上进入可玩场景：看得见气氛、可选环境声、能放下痕迹。地点由你选——不是系统根据身体开的处方。</p>
-    <p class="note">下列地点均为 Cindy 语音里点过名的例子，不是系统替你算出来的处方目的地。</p>
+    <h1>点一个地方，马上走进去</h1>
+    <p class="sub" id="answersEcho">一点即进可玩场景：看得见气氛、可选环境声、能放下痕迹。地点由你选——不是系统根据身体开的处方。</p>
+    <p class="note">下列地点是示例目的地，不是系统替你算出来的处方。</p>
     <div class="places" id="placeList">
       <button type="button" class="place" data-id="wudang"><div class="place-icon wudang" aria-hidden="true">山</div><div><b>武当山</b><span>山门静气 · 雾与石阶 · 可放足迹/松针</span></div></button>
       <button type="button" class="place" data-id="yunnan"><div class="place-icon forest" aria-hidden="true">林</div><div><b>云南森林</b><span>林光与湿润空气 · 可放叶/光斑</span></div></button>
@@ -461,7 +478,8 @@
     </div>
     <div class="btn-row" style="margin-top:16px">
       <button class="primary" type="button" id="btnEnter" disabled>一个人走进去 · 马上玩</button>
-      <button class="ghost" type="button" data-back="s1">返回</button>
+      <button class="ghost" type="button" id="btnOptionalBody">可选：写两句身体与季节</button>
+      <button class="ghost" type="button" data-back="s0">返回</button>
     </div>
   </section>
 
@@ -473,6 +491,7 @@
     <h1 id="sceneHeading">你已进入场景</h1>
     <p class="scene-intro" id="sceneSub">马上可玩：点痕迹 → 点画面放下 · 可拖 · 可开关风/光 · 可写一句。没有第二人也能独自保存。</p>
     <p class="note" id="simNote" style="margin-bottom:10px">第二人是<strong>本机按钮模拟</strong>，不是真人连线。<span class="sim-badge">仅模拟 · 非多人</span></p>
+    <p class="sub" style="margin:-4px 0 12px"><button type="button" class="ghost" id="btnOptionalBodyFromScene" style="padding:6px 10px;font-size:0.78rem">可选：写两句身体与季节</button></p>
 
     <div class="scene-shell" id="sceneShell">
       <div class="scene-bg wudang" id="sceneBg"></div>
@@ -500,8 +519,8 @@
           <button type="button" id="coachPlace" class="pulse">① 点痕迹放下</button>
           <button type="button" id="coachFx">② 开风 / 光</button>
           <button type="button" id="coachWrite">③ 写一句</button>
-          <button type="button" id="coachInvite">④ 邀请 / 模拟加入</button>
-          <button type="button" id="coachSave">⑤ 保存作品</button>
+          <button type="button" id="coachInvite">④ 发给朋友</button>
+          <button type="button" id="coachSave">⑤ 先保存本机</button>
         </div>
       </div>
       <div class="ta-activity" id="taActivity" aria-live="polite"></div>
@@ -554,8 +573,9 @@
     </div>
 
     <div class="btn-row" id="joinRow">
-      <button class="warm join-pulse" type="button" id="btnJoin">第二人加入<span class="sim-badge">模拟</span></button>
-      <button class="primary" type="button" id="btnSoloSave">不等人，独自保存这份作品</button>
+      <button class="primary join-pulse" type="button" id="btnSendFriend" disabled title="先放下至少一笔痕迹">发给朋友</button>
+      <button class="warm" type="button" id="btnJoin">第二人加入<span class="sim-badge">模拟</span></button>
+      <button class="soft" type="button" id="btnSoloSave">先保存本机</button>
       <button class="ghost" type="button" data-back="s2">换一个场景</button>
     </div>
     <div class="btn-row hidden" id="afterJoinRow">
@@ -570,8 +590,8 @@
       <span>1 身体×季节</span><span>2 选地方</span><span>3 进场景玩</span><span class="on">4 保存</span><span>5 场景种子</span>
     </div>
     <div class="brand">HEALOA BASE · 保存作品 <span class="sim-badge">第二人=模拟</span></div>
-    <h1>把作品留下来，再做成场景种子</h1>
-    <p class="sub">下面动作是<strong>真的可用</strong>：写入本机浏览器，或下载 JSON / 图片卡。不会上传服务器。导出<strong>不含</strong>身体自述；若有第二人痕迹，会标明为模拟。下一步可发出 <strong>Scene Seed</strong>。</p>
+    <h1>先留在本机，再发给朋友</h1>
+    <p class="sub">写入本机浏览器或下载 JSON / 图片卡（不上传服务器）。导出<strong>不含</strong>身体自述；若有第二人痕迹，会标明为模拟。也可跳过本页，直接从场景点「发给朋友」。</p>
     <div class="card">
       <h2>作品摘要</h2>
       <p class="hint" id="saveSummary" style="color:var(--text);font-size:0.9rem;line-height:1.55;margin:0;white-space:pre-wrap"></p>
@@ -585,7 +605,7 @@
       <p class="save-status" id="saveStatus" aria-live="polite"></p>
     </div>
     <div class="btn-row" style="margin-top:14px">
-      <button class="warm" type="button" id="btnToShare">下一步：做成场景种子</button>
+      <button class="primary" type="button" id="btnToShare">发给朋友</button>
       <button class="ghost" type="button" data-back="s3">返回场景</button>
     </div>
   </section>
@@ -595,8 +615,8 @@
       <span>1 身体×季节</span><span>2 选地方</span><span>3 进场景玩</span><span>4 保存</span><span class="on">5 场景种子</span>
     </div>
     <div class="brand">HEALOA BASE · Scene Seed <span class="seed-badge">场景种子</span> <span class="sim-badge" id="shareSimBadge">第二人=模拟</span></div>
-    <h1>发出一枚场景种子</h1>
-    <p class="sub">品味理由：<strong>「我发现了一个美的地方，并把创作邀请给你」</strong>。分享完全自愿；本原型<strong>不会</strong>自动发帖。<strong>身体/疲劳/精确位置/隐私答案永不进入种子。</strong>下面预览 = 即将发出的文案与画面。</p>
+    <h1>发给朋友</h1>
+    <p class="sub">「我发现了一个美的地方，并把创作邀请给你」。自愿发出；本原型<strong>不会</strong>自动发帖。<strong>身体/疲劳/精确位置/隐私答案永不进入种子。</strong>朋友打开的是<strong>自己的副本</strong>——双方共享持续更新仍是 <strong>UNKNOWN</strong>。</p>
     <div class="seed-card-live" id="seedCardLive" aria-live="polite">
       <div class="seed-inner">
         <div class="seed-kicker">SCENE SEED · 场景种子</div>
@@ -607,7 +627,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-e</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-f</span>
         </div>
         <div class="seed-foot" id="seedLiveFoot">默认分享作品 · 不含身体自述</div>
       </div>
@@ -623,8 +643,8 @@
       <button class="soft" type="button" id="btnRefreshShareImg" style="margin-top:8px">刷新种子预览图</button>
     </div>
     <div class="card" id="privacyConfirmCard">
-      <h2>公开的一行 · 分享前请确认</h2>
-      <p class="hint">这一行会出现在<strong>链接载荷、邀请文案、种子 PNG</strong>里。身体芯片不会进种子，但自由文本仍可能含健康/隐私——请先看清、可改可删，再勾选确认。</p>
+      <h2>公开的一行（会随链接发出）</h2>
+      <p class="hint">会出现在<strong>链接 / 文案 / 种子图</strong>里。身体自述不会进种子；自由文本可改可删。进入本页时已默认可发；改字后需再点一下确认。</p>
       <label class="hint" for="publicLineEdit" style="display:block;margin-bottom:6px">将发出的「公开的一行」</label>
       <textarea id="publicLineEdit" rows="2" maxlength="120" style="width:100%;box-sizing:border-box;border-radius:12px;border:1px solid var(--line);background:rgba(8,14,18,0.55);color:var(--text);padding:10px 12px;font:inherit;resize:vertical"></textarea>
       <div class="btn-pair" style="margin-top:8px">
@@ -633,9 +653,9 @@
       </div>
       <label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:0.86rem;line-height:1.45;cursor:pointer">
         <input type="checkbox" id="privacyLineConfirm" style="margin-top:3px;flex-shrink:0" />
-        <span>我已看到这一行会出现在链接 / 文案 / 图片里，并确认可以发出（可先改或删）。</span>
+        <span>可以发出这一行（改字后请再勾选）。</span>
       </label>
-      <p class="hint" id="privacyConfirmHint" style="margin-top:8px;margin-bottom:0;color:var(--gold)">未确认前，复制链接 / 系统分享 / 复制文案不可用。</p>
+      <p class="hint" id="privacyConfirmHint" style="margin-top:8px;margin-bottom:0;color:var(--gold)">未确认前，复制链接 / 系统分享 / 复制文案不可用。确认后点「发给朋友」。</p>
     </div>
     <div class="card">
       <h2>可打开的作品链接（邀请诚实）</h2>
@@ -648,12 +668,16 @@
       <div class="seed-url-box" id="seedUrlBox">（生成中…）</div>
       <p class="hint" id="seedUrlFail" style="display:none;margin-top:8px;color:#e8a090">链接过长，无法生成可跨设备打开的邀请。请下载种子 JSON 或 PNG 另发；不会发出仅本机可解的 #seedId=。</p>
       <div class="btn-pair" style="margin-top:8px">
-        <button class="soft" type="button" id="btnCopySeedUrl">复制种子链接</button>
         <button class="soft" type="button" id="btnDownloadSeedJson">下载种子 JSON</button>
       </div>
     </div>
     <div class="btn-row">
-      <button class="primary" type="button" id="btnShareNative">用系统分享（若设备支持）</button>
+      <button class="primary" type="button" id="btnSendToFriend">发给朋友</button>
+      <p class="hint" style="margin:4px 0 0;color:var(--muted)">复制可打开的 <code>#seed=</code> 链接。朋友得到的是<strong>副本</strong>；双方共享持续更新 = <strong>UNKNOWN</strong>。页内图 ≠ 微信/WhatsApp 富卡片。</p>
+      <div class="btn-pair" style="margin-top:8px">
+        <button class="soft" type="button" id="btnCopySeedUrl">只复制链接</button>
+        <button class="soft" type="button" id="btnShareNative">系统分享</button>
+      </div>
       <div class="btn-pair">
         <button class="soft" type="button" id="btnCopyText">复制邀请文案</button>
         <button class="soft" type="button" id="btnShareDownload">下载种子 PNG</button>
@@ -663,13 +687,13 @@
     </div>
     <div class="sep"></div>
     <div class="card handoff-card">
-      <h2>可选 · 到主站看看「现实中开放的真人小圈」</h2>
-      <p class="hint">可选跳转，不强制。打开 healoa.com/circles。<strong>不</strong>做注册、不代预约、不做 Keeper，也<strong>不承诺</strong>主站有你所选地方的场次/库存。Website Circle Edition 不在本 Demo 范围。</p>
-      <button class="warm" type="button" id="btnHandoff">到 HeaLoa 主站看看现实中的圈 → healoa.com/circles</button>
+      <h2>可选 · 到主站看看现实中的小圈</h2>
+      <p class="hint">可选跳转，不强制。打开 healoa.com/circles。本 Demo <strong>不</strong>做注册、不代预约，也<strong>不承诺</strong>主站有你所选地方的场次/库存。</p>
+      <button class="warm" type="button" id="btnHandoff">到 HeaLoa 主站看看 → healoa.com/circles</button>
       <button class="ghost" type="button" id="btnHandoffHome" style="margin-top:8px">或打开 healoa.com 首页</button>
     </div>
     <div class="card" style="margin-top:4px">
-      <h2>可选轻问（不等于 Choose Again · 非主站链路）</h2>
+      <h2>可选轻问（仅原型反馈）</h2>
       <p class="hint" id="feelPrompt">刚才独自创作还开心吗？仅原型轻反馈，不接报名。</p>
       <div class="feel-row" id="feelRow">
         <button type="button" class="feel" data-v="开心">开心</button>
@@ -681,7 +705,7 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-24-e · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人默认=模拟<br />气氛资产=程序生成预览，非付费素材包 · 非 Wrapped</p>
+    <p class="footer-meta">预览 v2026-09-24-f · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />气氛资产=程序生成预览，非付费素材包 · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
   </section>
 
   <section id="sSeed" class="screen hidden">
@@ -698,7 +722,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-e</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-f</span>
         </div>
         <div class="seed-foot">默认只开作品 · 不含身体/隐私</div>
       </div>
@@ -717,7 +741,7 @@
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-e";
+  var VERSION = "v2026-09-24-f";
   var MAX_MARKS = 6;
   var state = {
     body: null, season: null, placeId: null, joined: false, feel: null,
@@ -1033,6 +1057,17 @@
   document.addEventListener("touchmove", onPointerMove, {passive:false});
   document.addEventListener("touchend", onPointerUp);
 
+  function myMarkCount(){
+    return state.marks.filter(function(m){ return m.from!=="p2"; }).length;
+  }
+  function syncSendFriendCta(){
+    var btn=$("btnSendFriend");
+    if(!btn) return;
+    var ready = !state.recipientMode && myMarkCount()>=1;
+    btn.disabled = !ready;
+    btn.classList.toggle("join-pulse", ready);
+    btn.title = ready ? "一笔已留下 · 发给朋友" : "先放下至少一笔痕迹";
+  }
   function addMarkAt(pctX, pctY, toolId, from){
     if (from!=="p2" && state.marks.filter(function(m){return m.from!=="p2";}).length>=MAX_MARKS){
       toast("最多 "+MAX_MARKS+" 个痕迹 · 可拖动已有的"); return null;
@@ -1041,6 +1076,7 @@
     state.marks.push(mark); placeMarkEl(mark); $("stageHint").classList.add("hide"); updateMarkCount();
     var cp=$("coachPlace"); if(cp) cp.classList.remove("pulse");
     var spot=$("firstRunSpotlight"); if(spot) spot.classList.remove("on");
+    if(from!=="p2") syncSendFriendCta();
     return mark;
   }
   $("playStage").addEventListener("click", function(ev){
@@ -1119,7 +1155,7 @@
       }
       $("answersEcho").innerHTML="你刚答的是：身体「"+state.body+"」、季节「"+state.season+"」（深度试探："+depthLabel+extra+" · 仅本机，不会进入分享）。下面地点由你选——不是系统替你下结论。";
     } else {
-      $("answersEcho").innerHTML="你选择了先随便进场景（身体/季节自述已跳过 · 深度试探："+depthLabel+"）。下面地点由你选——不是系统替你下结论。";
+      $("answersEcho").innerHTML="身体/季节自述已跳过（可选，稍后可补）。点下面任一地方，马上进入可玩场景——不是系统替你下结论。";
     }
     show("s2");
   }
@@ -1159,18 +1195,53 @@
       toast("试探时长已切换 · 未锁定为正式玩法");
     });
   });
-  $("btnStart").addEventListener("click", function(){ show("s1"); });
-  $("btnSkipIn").addEventListener("click", function(){
+  function clearBodySeasonSelection(){
     state.body=null; state.season=null;
     document.querySelectorAll("#bodyChips .chip.on, #seasonChips .chip.on").forEach(function(el){ el.classList.remove("on"); });
-    $("btnToPlaces").disabled=true; goToPlacesEcho();
-  });
-  $("btnSkipAnswers").addEventListener("click", goToPlacesEcho);
-  $("btnToPlaces").addEventListener("click", goToPlacesEcho);
+    $("btnToPlaces").disabled=true;
+  }
+  function startViaPlaces(){
+    // Primary path: skip body×season form wall; go straight to one-tap place pick
+    clearBodySeasonSelection();
+    goToPlacesEcho();
+  }
+  function enterDefaultPlace(placeId){
+    clearBodySeasonSelection();
+    state.placeId=placeId||"onsen";
+    document.querySelectorAll(".place").forEach(function(b){
+      b.classList.toggle("on", b.getAttribute("data-id")===state.placeId);
+    });
+    $("btnEnter").disabled=false;
+    enterScene();
+  }
+  function afterOptionalBody(){
+    // If already in a place, return to playable scene without wiping marks
+    if(state.placeId){
+      show("s3");
+      requestAnimationFrame(function(){ resizeFxCanvas(); startFxLoop(); scrollSceneIntoView(); });
+      toast("已回到场景 · 身体/季节仅本机，不进分享");
+      return;
+    }
+    goToPlacesEcho();
+  }
+  $("btnStart").addEventListener("click", startViaPlaces);
+  $("btnSkipIn").addEventListener("click", function(){ enterDefaultPlace("onsen"); });
+  $("btnSkipAnswers").addEventListener("click", afterOptionalBody);
+  $("btnToPlaces").addEventListener("click", afterOptionalBody);
+  function openOptionalBody(){
+    show("s1");
+    toast("可选自述 · 不挡进场景 · 可随时返回");
+  }
+  var optBody=$("btnOptionalBody");
+  if(optBody) optBody.addEventListener("click", openOptionalBody);
+  var optBodyScene=$("btnOptionalBodyFromScene");
+  if(optBodyScene) optBodyScene.addEventListener("click", openOptionalBody);
   document.querySelectorAll(".place").forEach(function(btn){
     btn.addEventListener("click", function(){
       document.querySelectorAll(".place").forEach(function(b){ b.classList.remove("on"); });
       btn.classList.add("on"); state.placeId=btn.getAttribute("data-id"); $("btnEnter").disabled=false;
+      // one-tap: select + enter playable scene
+      enterScene();
     });
   });
 
@@ -1273,7 +1344,7 @@
     state.activeTool=null; state.soloText=""; state.soloSnapshot=null; state.compareMode="duo";
     clearJoinTimers(); clearStageMarks(); $("stageHint").classList.remove("hide");
     $("cmpSolo").classList.remove("on"); $("cmpDuo").classList.add("on");
-    paintScene(false); show("s3"); updateAudioChip(); startSoftTimer();
+    paintScene(false); show("s3"); updateAudioChip(); startSoftTimer(); syncSendFriendCta();
     requestAnimationFrame(function(){
       resizeFxCanvas(); startFxLoop();
       scrollSceneIntoView();
@@ -1303,12 +1374,16 @@
       toast("写一句你留下的话（可选）");
     });
     if(inv) inv.addEventListener("click", function(){
-      $("btnJoin").scrollIntoView({behavior:"smooth", block:"center"});
-      toast("可模拟第二人加入 · 或稍后在场景种子发出邀请");
+      var send=$("btnSendFriend");
+      if(send){
+        send.scrollIntoView({behavior:"smooth", block:"center"});
+        if(!send.disabled){ toast("点「发给朋友」· 一笔即可发出"); }
+        else toast("先放下至少一笔痕迹，再发给朋友");
+      }
     });
     if(save) save.addEventListener("click", function(){
       $("btnSoloSave").scrollIntoView({behavior:"smooth", block:"center"});
-      toast("准备好就独自保存这份作品");
+      toast("可先保存本机，或直接发给朋友");
     });
   }
   wireCoachDock();
@@ -1380,8 +1455,39 @@
     if(!state.soloText){ var p=PLACES[state.placeId]; state.soloText=(p&&p.defaultSolo)||""; $("soloLine").value=state.soloText; }
     fillSaveSummary(); $("saveStatus").textContent=""; stopAudio(); stopSoftTimer(); clearJoinTimers(); show("s4");
   }
+  function silentSaveLocal(){
+    try {
+      state.savedAt=new Date().toISOString();
+      var payload=buildWorkPayload({forPublic:false});
+      state.workId=payload.workId;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      refreshRestoreEntry();
+      return true;
+    } catch(err) {
+      return false;
+    }
+  }
+  function openShareScreen(opts){
+    opts=opts||{};
+    $("shareStatus").textContent="";
+    // P0: public line must be explicitly confirmed before copy/share
+    state.privacyLineConfirmed = opts.forceConfirm === true;
+    var cb=$("privacyLineConfirm"); if(cb) cb.checked=!!state.privacyLineConfirmed;
+    refreshSeedShareUI();
+    show("s5");
+  }
+  function goSendFriend(){
+    if(state.recipientMode){ toast("你已在副本里创作"); return; }
+    if(myMarkCount()<1){ toast("先放下至少一笔痕迹"); return; }
+    if(!state.soloText){ var p=PLACES[state.placeId]; state.soloText=(p&&p.defaultSolo)||""; $("soloLine").value=state.soloText; }
+    silentSaveLocal();
+    stopAudio(); stopSoftTimer(); clearJoinTimers();
+    openShareScreen();
+    toast("发给朋友 · 请先确认公开的一行");
+  }
   $("btnToSave").addEventListener("click", goSave);
-  $("btnSoloSave").addEventListener("click", function(){ goSave(); toast("独自路径 · 可保存"); });
+  $("btnSoloSave").addEventListener("click", function(){ goSave(); toast("已到保存页 · 也可返回场景发给朋友"); });
+  if($("btnSendFriend")) $("btnSendFriend").addEventListener("click", function(){ goSendFriend(); });
 
   $("btnSaveLocal").addEventListener("click", function(){
     try {
@@ -1615,15 +1721,15 @@
   function updatePrivacyGateUI(){
     var ok=!!state.privacyLineConfirmed;
     var urlOk=state.lastSeedUrlResult && state.lastSeedUrlResult.ok;
-    ["btnCopySeedUrl","btnShareNative","btnCopyText"].forEach(function(id){
+    ["btnSendToFriend","btnCopySeedUrl","btnShareNative","btnCopyText"].forEach(function(id){
       var b=$(id); if(b) b.disabled = !(ok && urlOk);
     });
     var hint=$("privacyConfirmHint");
     var card=$("privacyConfirmCard");
     if(hint){
-      if(!urlOk) hint.textContent="当前无法生成可跨设备打开的 #seed= 邀请（链接过长）。请改用 JSON/PNG；确认勾选仍建议勾上。";
-      else if(!ok) hint.textContent="未确认前，复制链接 / 系统分享 / 复制文案不可用。请先看清「公开的一行」并勾选。";
-      else hint.textContent="已确认「公开的一行」会出现在链接 / 文案 / 图片里。";
+      if(!urlOk) hint.textContent="当前无法生成可跨设备打开的 #seed= 邀请（链接过长）。请改用 JSON/PNG。";
+      else if(!ok) hint.textContent="请勾选确认「公开的一行」会出现在发出内容里，然后再点「发给朋友」。";
+      else hint.textContent="已可发。点「发给朋友」复制链接（朋友打开=副本 · 共享持续更新=UNKNOWN）。";
     }
     if(card) card.classList.toggle("confirmed", ok);
   }
@@ -1701,7 +1807,7 @@
     }
     ctx.fillStyle="#8aa0b2"; ctx.font="15px sans-serif";
     ctx.fillText("预览 "+VERSION+" · 非正式 healoa.app",48,h-78);
-    ctx.fillText("默认分享作品 · 不含身体自述 · 非 Wrapped",48,h-52);
+    ctx.fillText("默认分享作品 · 不含身体自述 · 副本非实时同步",48,h-52);
     return canvas;
   }
   function roundRect(ctx,x,y,w,h,r){
@@ -1753,11 +1859,9 @@
     } catch(e){ toast("预览图生成失败"); }
   }
   $("btnToShare").addEventListener("click", function(){
-    $("shareStatus").textContent="";
-    state.privacyLineConfirmed=false;
-    var cb=$("privacyLineConfirm"); if(cb) cb.checked=false;
-    refreshSeedShareUI();
-    show("s5");
+    silentSaveLocal();
+    openShareScreen();
+    toast("发给朋友 · 请先确认公开的一行");
   });
   if($("btnApplyPublicLine")) $("btnApplyPublicLine").addEventListener("click", function(){
     applyPublicLineFromEditor();
@@ -1796,23 +1900,35 @@
       toast(state.seedFormat==="square"?"方版画幅":"竖版画幅");
     });
   });
-  $("btnCopySeedUrl").addEventListener("click", function(){
-    if(!state.privacyLineConfirmed){ toast("请先确认「公开的一行」"); return; }
+  function copySeedInviteUrl(opts){
+    opts=opts||{};
+    if(!state.privacyLineConfirmed){ toast("请先确认「公开的一行」"); return false; }
     var result=state.lastSeedUrlResult;
     if(!result||!result.ok||!result.url){
       $("shareStatus").textContent="无法复制邀请：链接过长，未生成 #seedId= 假邀请。请下载 JSON 或 PNG。";
-      toast("无可用邀请链接"); return;
+      toast("无可用邀请链接"); return false;
     }
     if(result.url.indexOf("#seedId=")>=0){
       $("shareStatus").textContent="安全拦截：不会复制仅本机可解的 #seedId= 链接。";
-      toast("已拦截不可打开的邀请"); return;
+      toast("已拦截不可打开的邀请"); return false;
     }
     var url=result.url;
+    var doneMsg = opts.fromPrimary
+      ? "已复制给朋友的链接（#seed=）。朋友打开的是自己的副本；落笔不会同步回你这边（共享持续更新=UNKNOWN）。页内 PNG ≠ 微信/WhatsApp 富卡片。"
+      : "已复制 #seed= 邀请。朋友可在自己的副本继续创作；其落笔不会同步回你这边（共享持续更新=UNKNOWN）。";
+    var toastMsg = opts.fromPrimary ? "已复制 · 发给朋友" : "已复制种子链接";
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(url).then(function(){
-        $("shareStatus").textContent="已复制 #seed= 邀请。朋友可在自己的副本继续创作；其落笔不会同步回你这边（共享持续更新=UNKNOWN）。"; toast("已复制种子链接");
+        $("shareStatus").textContent=doneMsg; toast(toastMsg);
       }).catch(function(){ fallbackCopy(url); });
     } else fallbackCopy(url);
+    return true;
+  }
+  if($("btnSendToFriend")) $("btnSendToFriend").addEventListener("click", function(){
+    copySeedInviteUrl({fromPrimary:true});
+  });
+  if($("btnCopySeedUrl")) $("btnCopySeedUrl").addEventListener("click", function(){
+    copySeedInviteUrl({fromPrimary:false});
   });
   $("btnDownloadSeedJson").addEventListener("click", function(){
     var seed=buildSceneSeed(); persistSeedLocal(seed);
@@ -2050,6 +2166,10 @@
 
   // Test/debug hooks (read-only helpers for automated checks)
   window.__healoaSeedTest = {
+    goSendFriend: goSendFriend,
+    openShareScreen: openShareScreen,
+    myMarkCount: myMarkCount,
+    syncSendFriendCta: syncSendFriendCta,
     VERSION: VERSION,
     SEED_URL_SAFE_LEN: SEED_URL_SAFE_LEN,
     buildSceneSeed: function(){ return buildSceneSeed(); },
@@ -2085,7 +2205,7 @@
       $("feelRow").querySelectorAll(".feel").forEach(function(b){ b.classList.remove("on"); });
       btn.classList.add("on"); state.feel=btn.getAttribute("data-v");
       $("feelAckText").style.display="block";
-      $("feelAckText").textContent="你选了「"+state.feel+"」。仅作原型轻反馈——不等于 Choose Again，不会跳注册。";
+      $("feelAckText").textContent="你选了「"+state.feel+"」。仅作原型轻反馈，不会跳注册。";
     });
   });
   window.addEventListener("resize", function(){ if(!$("s3").classList.contains("hidden")) resizeFxCanvas(); });

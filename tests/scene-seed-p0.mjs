@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + scene-not-blank (v2026-09-24-e)
+ * Scene Seed P0 + primary CTA skips body + 发给朋友 share-tail + privacy confirm (v2026-09-24-f)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -44,12 +44,13 @@ async function shot(page, name) {
 }
 
 async function goSoloToShare(page, lineText) {
-  await page.click("#btnSkipIn");
+  // Primary CTA → place pick (no body); one-tap place enters scene
+  await page.click("#btnStart");
   await page.waitForSelector("#s2:not(.hidden)");
   await page.click('.place[data-id="yunnan"]');
-  await page.click("#btnEnter");
   await page.waitForSelector("#s3:not(.hidden)");
-  await page.click('#markTools .tool[data-tool="leaf"]');
+  const leafOn = await page.locator('#markTools .tool[data-tool="leaf"].on').count();
+  if (!leafOn) await page.click('#markTools .tool[data-tool="leaf"]');
   const stage = page.locator("#playStage");
   const box = await stage.boundingBox();
   await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.45);
@@ -57,10 +58,8 @@ async function goSoloToShare(page, lineText) {
     await page.fill("#soloLine", lineText);
     await page.click("#btnSetLine");
   }
-  await page.click("#btnSoloSave");
-  await page.waitForSelector("#s4:not(.hidden)");
-  await page.click("#btnSaveLocal");
-  await page.click("#btnToShare");
+  // Short share-tail: one mark → 发给朋友 (skips s4)
+  await page.click("#btnSendFriend");
   await page.waitForSelector("#s5:not(.hidden)");
 }
 
@@ -89,7 +88,7 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-e"), banner);
+    record("version-banner", banner.includes("v2026-09-24-f"), banner);
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
@@ -98,12 +97,49 @@ async function main() {
     record("homepage-primary-cta", homeCta.includes("走进场景"), homeCta);
     await shot(sender, "landing");
 
-    // Fix B: scene must not be blank on enter
-    await sender.click("#btnSkipIn");
+    // Primary CTA must NOT require body chips — goes to place pick
+    await sender.click("#btnStart");
     await sender.waitForSelector("#s2:not(.hidden)");
+    const onS1 = await sender.locator("#s1:not(.hidden)").count();
+    const bodyRequired = await sender.evaluate(() => {
+      const s1 = document.getElementById("s1");
+      const s2 = document.getElementById("s2");
+      return {
+        s1Visible: s1 && !s1.classList.contains("hidden"),
+        s2Visible: s2 && !s2.classList.contains("hidden"),
+        bodySelected: !!(window.__healoaSeedTest && false),
+      };
+    });
+    // state.body is internal; infer from UI: s1 hidden, s2 shown, no body chips selected needed
+    const bodyChipsOn = await sender.locator("#bodyChips .chip.on").count();
+    record(
+      "primary-start-skips-body-form",
+      onS1 === 0 && bodyRequired.s2Visible && bodyChipsOn === 0,
+      JSON.stringify({ onS1, bodyChipsOn, ...bodyRequired })
+    );
+    // one-tap place → scene (no body)
     await sender.click('.place[data-id="yunnan"]');
-    await sender.click("#btnEnter");
     await sender.waitForSelector("#s3:not(.hidden)");
+    const reachedSceneNoBody = await sender.evaluate(() => {
+      const s3 = document.getElementById("s3");
+      const s1 = document.getElementById("s1");
+      return {
+        s3: s3 && !s3.classList.contains("hidden"),
+        s1Hidden: !s1 || s1.classList.contains("hidden"),
+        activeTool: document.querySelector("#markTools .tool.on")?.getAttribute("data-tool") || null,
+      };
+    });
+    record(
+      "primary-start-reaches-scene-without-body",
+      reachedSceneNoBody.s3 && reachedSceneNoBody.s1Hidden,
+      JSON.stringify(reachedSceneNoBody)
+    );
+    record(
+      "first-mark-tool-auto-selected",
+      !!reachedSceneNoBody.activeTool,
+      "activeTool=" + reachedSceneNoBody.activeTool
+    );
+    // Fix B: scene must not be blank on enter
     await sender.waitForTimeout(500);
     const blankCheck = await sender.evaluate(() => {
       const bg = document.getElementById("sceneBg");
@@ -140,22 +176,31 @@ async function main() {
     await shot(sender, "scene-entered");
     await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, "14-scene-shell.png") });
 
-    // continue into share flow from current scene
-    await sender.click('#markTools .tool[data-tool="leaf"]');
+    // Short share-tail: one mark → 发给朋友 (skip s4 confirm dance)
+    const sendDisabledBefore = await sender.locator("#btnSendFriend").isDisabled();
+    record("send-friend-disabled-before-mark", sendDisabledBefore, "disabled=" + sendDisabledBefore);
+
+    const leafOn0 = await sender.locator('#markTools .tool[data-tool="leaf"].on').count();
+    if (!leafOn0) await sender.click('#markTools .tool[data-tool="leaf"]');
     const stage0 = sender.locator("#playStage");
     const box0 = await stage0.boundingBox();
     await sender.mouse.click(box0.x + box0.width * 0.4, box0.y + box0.height * 0.45);
     await sender.fill("#soloLine", "雨还没下完，叶子先亮了一下。");
     await sender.click("#btnSetLine");
-    await sender.click("#btnSoloSave");
-    await sender.waitForSelector("#s4:not(.hidden)");
-    await sender.click("#btnSaveLocal");
-    await sender.click("#btnToShare");
-    await sender.waitForSelector("#s5:not(.hidden)");
-    await shot(sender, "share-before-confirm");
 
-    const copyDisabled = await sender.locator("#btnCopySeedUrl").isDisabled();
-    record("privacy-gate-before-confirm", copyDisabled, "copy disabled=" + copyDisabled);
+    const sendEnabled = !(await sender.locator("#btnSendFriend").isDisabled());
+    record("send-friend-enabled-after-one-mark", sendEnabled, "enabled=" + sendEnabled);
+    const sendLabel = await sender.locator("#btnSendFriend").innerText();
+    record("send-friend-cta-label", sendLabel.includes("发给朋友"), sendLabel);
+
+    await sender.click("#btnSendFriend");
+    await sender.waitForSelector("#s5:not(.hidden)");
+    const s4Hidden = await sender.locator("#s4.hidden").count();
+    record("share-tail-skips-save-screen", s4Hidden > 0, "s4 hidden=" + s4Hidden);
+    await shot(sender, "share-after-one-mark");
+
+    const primarySend = await sender.locator("#btnSendToFriend").innerText();
+    record("share-primary-is-send-friend", primarySend.includes("发给朋友"), primarySend);
 
     const honest = await sender.locator("#seedHonestBlock").innerText();
     record(
@@ -167,10 +212,29 @@ async function main() {
     const feel = await sender.locator("#feelPrompt").innerText();
     record("solo-feel-wording", feel.includes("独自") && !feel.includes("一起体验"), feel);
 
+    // P0: must explicitly confirm public line before send/copy
+    const sendReadyDefault = !(await sender.locator("#btnSendToFriend").isDisabled());
+    const copyReadyDefault = !(await sender.locator("#btnCopySeedUrl").isDisabled());
+    record(
+      "privacy-requires-confirm-on-enter",
+      sendReadyDefault === false && copyReadyDefault === false,
+      "send enabled=" + sendReadyDefault + " copy enabled=" + copyReadyDefault
+    );
+
+    await sender.fill("#publicLineEdit", "改一行后应重新确认");
+    await sender.waitForTimeout(80);
+    const sendDisabledAfterEdit = await sender.locator("#btnSendToFriend").isDisabled();
+    record("privacy-gate-after-edit", sendDisabledAfterEdit, "disabled after edit=" + sendDisabledAfterEdit);
+
     await confirmPrivacy(sender);
-    const copyEnabled = !(await sender.locator("#btnCopySeedUrl").isDisabled());
-    record("privacy-gate-after-confirm", copyEnabled, "copy enabled=" + copyEnabled);
+    const copyEnabled = !(await sender.locator("#btnSendToFriend").isDisabled());
+    record("privacy-gate-after-confirm", copyEnabled, "send enabled=" + copyEnabled);
     await shot(sender, "share-after-confirm");
+
+    // Customer-facing share/save must not show main-site jargon
+    const s5Text = await sender.locator("#s5").innerText();
+    const jargonHits = ["Choose Again", "Keeper", "Circle Edition", "Wrapped"].filter((t) => s5Text.includes(t));
+    record("no-customer-jargon-on-share", jargonHits.length === 0, jargonHits.join(",") || "clean");
 
     const urlBox = await sender.locator("#seedUrlBox").innerText();
     record("seed-url-is-seed-hash", urlBox.includes("#seed=") && !urlBox.includes("#seedId="), urlBox.slice(0, 120));
@@ -387,7 +451,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-e",
+    version: "v2026-09-24-f",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
