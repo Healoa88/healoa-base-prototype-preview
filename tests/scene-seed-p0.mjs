@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + Wudang/Forest path chooser + Harbin + primary CTA skips body (v2026-09-24-k)
+ * Scene Seed P0 + Wudang/Forest path chooser + Harbin + primary CTA skips body (v2026-09-24-l)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -139,12 +139,24 @@ async function main() {
       const fp = path.join(ROOT, rel);
       record(name + "-exists", fs.existsSync(fp) && fs.statSync(fp).size > 1000, fp);
     }
+    const thaiAssets = [
+      ["thai-path-pool-infinity", "assets/places/thai/pool/01-infinity-coast.jpg"],
+      ["thai-path-pool-deck", "assets/places/thai/pool/02-deck-photo.jpg"],
+      ["thai-path-pool-canopy", "assets/places/thai/pool/03-long-pool-canopy.jpg"],
+      ["thai-path-market-boat", "assets/places/thai/market/01-floating-market-boat.jpg"],
+      ["thai-path-dive-scuba", "assets/places/thai/dive/01-scuba-pair.jpg"],
+      ["thai-path-sunset-harbor", "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg"],
+    ];
+    for (const [name, rel] of thaiAssets) {
+      const fp = path.join(ROOT, rel);
+      record(name + "-exists", fs.existsSync(fp) && fs.statSync(fp).size > 1000, fp);
+    }
     const senderCtx = await browser.newContext();
     const sender = await senderCtx.newPage();
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-k"), banner);
+    record("version-banner", banner.includes("v2026-09-24-l"), banner);
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
@@ -516,7 +528,132 @@ async function main() {
       await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, pc.shot + ".png") });
       await shot(sender, pc.shot);
     }
-    // Return home before Harbin suite (forest ends on s3)
+    // --- Thai top-level place → path chooser (mirror Wudang/Forest) ---
+    await sender.goto(base);
+    await sender.click("#btnStart");
+    await sender.waitForSelector("#s2:not(.hidden)");
+    const thaiThumb = await sender.evaluate(() => {
+      const icon = document.querySelector('.place[data-id="thai"] .place-icon');
+      if (!icon) return { ok: false };
+      const cs = getComputedStyle(icon);
+      const bg = cs.backgroundImage || "";
+      const btn = document.querySelector('.place[data-id="thai"]');
+      const title = (btn && btn.querySelector("b") || {}).innerText || "";
+      return {
+        ok: icon.classList.contains("photo") && bg.includes("assets/places/thai/") && title.includes("拥抱大海"),
+        cls: icon.className,
+        bg: bg.slice(0, 200),
+        title,
+      };
+    });
+    record("thai-place-card-photo", thaiThumb.ok, JSON.stringify(thaiThumb));
+    await sender.click('.place[data-id="thai"]');
+    await sender.waitForSelector("#s2t:not(.hidden)");
+    const onS1AfterThai = await sender.locator("#s1:not(.hidden)").count();
+    const onS3AfterThai = await sender.locator("#s3:not(.hidden)").count();
+    const thaiPathCards = await sender.locator("#thaiPathList .path-card").count();
+    const thaiPathLabels = await sender.locator("#thaiPathList").innerText();
+    const thaiChooserSub = await sender.locator("#s2t .sub").innerText();
+    record(
+      "thai-path-chooser-visible",
+      onS1AfterThai === 0 && onS3AfterThai === 0 && thaiPathCards === 4,
+      JSON.stringify({ onS1AfterThai, onS3AfterThai, thaiPathCards, labels: thaiPathLabels.slice(0, 220) })
+    );
+    record(
+      "thai-path-chooser-copy",
+      thaiPathLabels.includes("泳池看海") && thaiPathLabels.includes("水上市场") && thaiPathLabels.includes("潜入海里") && thaiPathLabels.includes("港湾日落") && thaiPathLabels.includes("想泡在泳池边看海") && thaiPathLabels.includes("想看港湾晚色"),
+      thaiPathLabels.slice(0, 300)
+    );
+    record(
+      "thai-path-chooser-honesty",
+      (thaiChooserSub.includes("不是行程报价") || thaiChooserSub.includes("非行程")) && thaiChooserSub.includes("演示用实景") && (thaiChooserSub.includes("度假") || thaiChooserSub.includes("海边放松")),
+      thaiChooserSub.slice(0, 220)
+    );
+    await shot(sender, "thai-path-chooser");
+    await sender.locator("#s2t").screenshot({ path: path.join(EVIDENCE, "thai-path-chooser.png") });
+
+    const thaiPathChecks = [
+      {
+        id: "thai-pool",
+        needle: "thai/pool/01-infinity-coast",
+        bgClass: "thai-pool",
+        shot: "thai-path-pool",
+        nameBits: ["泳池", "看海"],
+      },
+      {
+        id: "thai-market",
+        needle: "thai/market/01-floating-market-boat",
+        bgClass: "thai-market",
+        shot: "thai-path-market",
+        nameBits: ["水上", "市场"],
+      },
+      {
+        id: "thai-dive",
+        needle: "thai/dive/01-scuba-pair",
+        bgClass: "thai-dive",
+        shot: "thai-path-dive",
+        nameBits: ["潜入", "海里", "水下"],
+      },
+      {
+        id: "thai-sunset",
+        needle: "thai/sunset/01-pattaya-harbor-dusk",
+        bgClass: "thai-sunset",
+        shot: "thai-path-sunset",
+        nameBits: ["港湾", "日落", "暮光", "晚色"],
+      },
+    ];
+    for (const pc of thaiPathChecks) {
+      await sender.goto(base);
+      await sender.click("#btnStart");
+      await sender.waitForSelector("#s2:not(.hidden)");
+      await sender.click('.place[data-id="thai"]');
+      await sender.waitForSelector("#s2t:not(.hidden)");
+      await sender.click(`.path-card[data-path="${pc.id}"]`);
+      await sender.waitForSelector("#s3:not(.hidden)");
+      await sender.waitForTimeout(350);
+      const scene = await sender.evaluate((expect) => {
+        const bg = document.getElementById("sceneBg");
+        const cs = getComputedStyle(bg);
+        const inline = bg.style.backgroundImage || "";
+        const sheet = cs.backgroundImage || "";
+        const combined = inline + " " + sheet;
+        const label = (document.getElementById("sceneLabel") || {}).innerText || "";
+        const line = (document.getElementById("sceneLine") || {}).innerText || "";
+        const note = (document.getElementById("assetNote") || {}).innerText || "";
+        const heading = (document.getElementById("sceneHeading") || {}).innerText || "";
+        return {
+          className: bg.className,
+          hasPhoto: combined.includes(expect.needle) && bg.classList.contains(expect.bgClass),
+          combined: combined.slice(0, 240),
+          label, line, note, heading,
+          markTools: document.querySelectorAll("#markTools .tool").length,
+        };
+      }, pc);
+      const short = pc.id.replace("thai-", "");
+      record(
+        "thai-path-" + short + "-enters-scene",
+        !!(scene.hasPhoto && scene.markTools >= 3),
+        JSON.stringify(scene)
+      );
+      const nameOk = pc.nameBits.some((b) => (scene.label + scene.heading + scene.line).includes(b));
+      record("thai-path-" + short + "-copy", nameOk, (scene.label + " | " + scene.line).slice(0, 160));
+      record(
+        "thai-path-" + short + "-honesty-note",
+        scene.note.includes("实景") && (scene.note.includes("泰国") || scene.note.includes("泳池") || scene.note.includes("水上") || scene.note.includes("潜入") || scene.note.includes("港湾") || scene.note.includes("拥抱")),
+        scene.note.slice(0, 160)
+      );
+      if (pc.id === "thai-sunset" || pc.id === "thai-pool") {
+        record(
+          "thai-path-" + short + "-scene-honesty",
+          scene.line.includes("不是行程报价") || scene.line.includes("演示用实景") || scene.line.includes("度假"),
+          (scene.label + " | " + scene.line).slice(0, 200)
+        );
+      }
+      await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, pc.shot + ".png") });
+      await shot(sender, pc.shot);
+    }
+
+    // Return home before Harbin suite (thai ends on s3)
     await sender.goto(base);
     await sender.waitForSelector("#s0:not(.hidden)");
 
@@ -530,6 +667,11 @@ async function main() {
     record(
       "homepage-mentions-forest",
       homeMulti.includes("森林"),
+      homeMulti.slice(0, 160)
+    );
+    record(
+      "homepage-mentions-thai",
+      homeMulti.includes("泰国"),
       homeMulti.slice(0, 160)
     );
     const skipStillWudang = await sender.locator("#btnSkipIn").innerText();
@@ -673,12 +815,21 @@ async function main() {
       !!reachedSceneNoBody.activeTool,
       "activeTool=" + reachedSceneNoBody.activeTool
     );
-    // Fix B: scene must not be blank on enter (wait for fx canvas paint; suite length can delay rAF)
+    // Fix B: scene must not be blank on enter (wait for fx canvas paint; longer suite/Thai can delay rAF)
     await sender.waitForFunction(() => {
       const c = document.getElementById("fxCanvas");
-      return !!(c && c.width > 40 && c.height > 40);
-    }, null, { timeout: 4000 }).catch(() => {});
-    await sender.waitForTimeout(700);
+      if (!(c && c.width > 40 && c.height > 40)) return false;
+      const ctx = c.getContext("2d");
+      let maxA = 0;
+      for (let i = 0; i < 64; i++) {
+        const x = Math.floor(c.width * (0.05 + (i % 16) * 0.055));
+        const y = Math.floor(c.height * (0.12 + Math.floor(i / 16) * 0.18));
+        const d = ctx.getImageData(x, y, 1, 1).data;
+        if (d[3] > maxA) maxA = d[3];
+      }
+      return maxA >= 20;
+    }, null, { timeout: 8000 }).catch(() => {});
+    await sender.waitForTimeout(400);
     const blankCheck = await sender.evaluate(() => {
       const bg = document.getElementById("sceneBg");
       const stage = document.getElementById("playStage");
@@ -1010,7 +1161,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-k",
+    version: "v2026-09-24-l",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,

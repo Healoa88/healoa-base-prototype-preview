@@ -3,17 +3,25 @@
 **Not** a formal App launch. **Not** aurora-companions / healoa.com website work.
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- Version stamp: **预览 v2026-09-24-k** · **Scene Seed / 场景种子**
+- Version stamp: **预览 v2026-09-24-l** · **Scene Seed / 场景种子**
 - Single-file offline HTML demo + local place photos: pick a place → see/hear/operate a scene → solo create → optional **simulated** second person → save / restore → emit a **Scene Seed** (`#seed=` reopenable work URL) → friend opens **their own copy** and can add a stroke
 
 App social currency (Living Editions · App side) = **Scene Seed** — “我发现了一个美的地方，并把创作邀请给你”.
+
+## v2026-09-24-l UX (泰国 · 拥抱大海 四路径选择)
+
+- Pick **泰国 · 拥抱大海** from the place list → **path chooser** `#s2t` (not body questionnaire, not auto one path). Mirror of Wudang `#s2w` / Forest `#s2f`.
+- Four photo paths: **泳池看海** (`thai-pool`, soft-cycles deck/canopy) · **水上市场** (`thai-market`) · **潜入海里** (`thai-dive`) · **港湾日落** (`thai-sunset`).
+- Honesty: 度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景.
+- Default CTA remains **直接进 · 武当**. Wudang + Harbin + Forest stay green. Thai assets committed this tip.
+- Scene Seed P0 honesty unchanged.
 
 ## v2026-09-24-k UX (森林三路径选择)
 
 - Pick **森林** from the place list → **path chooser** `#s2f` (not body questionnaire, not auto one path). Mirror of Wudang `#s2w`.
 - Three photo paths: **廊前远望** (`forest-porch`) · **林中路** (`forest-path`, soft-cycles leaf/monstera/canopy) · **屋里创作** (`forest-cabin`, merges cabin set; honesty **窗外可能很冷 · 非医疗主张**).
-- Default CTA remains **直接进 · 武当**. Harbin + Wudang paths unchanged. Thai assets left **unwired**.
-- Scene Seed P0 honesty unchanged. Tests: **113/113 PASS**.
+- Default CTA remains **直接进 · 武当**. Harbin + Wudang paths unchanged. Thai wired in **v2026-09-24-l**.
+- Scene Seed P0 honesty unchanged. Tests: **138/138 PASS**.
 
 ## v2026-09-24-j UX (武当三路径选择)
 

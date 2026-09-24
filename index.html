@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-k）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-l）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -85,11 +85,14 @@
   .place-icon.forest.photo {
     background-image: url("assets/places/forest/porch/01-lava-porch.jpg");
   }
+  .place-icon.thai.photo {
+    background-image: url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+  }
   .place b { display: block; font-size: 0.98rem; font-weight: 650; margin-bottom: 3px; }
   .place span { display: block; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
 
-  /* Wudang path chooser · v2026-09-24-k */
+  /* Path chooser · v2026-09-24-l (Wudang / Forest / Thai) */
   .path-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
   .path-card { appearance: none; width: 100%; text-align: left; border: 1px solid var(--line);
     background: linear-gradient(145deg, rgba(22,36,44,0.95), rgba(14,28,34,0.9)); border-radius: 18px; padding: 0;
@@ -106,6 +109,10 @@
   .path-card-photo.forest-porch { background-image: url("assets/places/forest/porch/01-lava-porch.jpg"); }
   .path-card-photo.forest-path { background-image: url("assets/places/forest/path/01-leaf-tunnel.jpg"); }
   .path-card-photo.forest-cabin { background-image: url("assets/places/cabin/03-desk-notebook-window.jpg"); }
+  .path-card-photo.thai-pool { background-image: url("assets/places/thai/pool/01-infinity-coast.jpg"); }
+  .path-card-photo.thai-market { background-image: url("assets/places/thai/market/01-floating-market-boat.jpg"); }
+  .path-card-photo.thai-dive { background-image: url("assets/places/thai/dive/01-scuba-pair.jpg"); }
+  .path-card-photo.thai-sunset { background-image: url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg"); }
   .path-card-body { padding: 12px 14px 13px; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
   .path-card-body b { display: block; font-size: 0.98rem; font-weight: 650; letter-spacing: -0.01em; }
   .path-card-body .path-feel { display: block; font-size: 0.82rem; color: rgba(238,244,248,0.88); line-height: 1.45; }
@@ -163,8 +170,38 @@
     linear-gradient(180deg, #1a3028 0%, #243828 40%, #1e4030 70%, #152820 100%); }
   .scene-bg.onsen { background: radial-gradient(ellipse at 50% 85%, rgba(212,176,138,0.38), transparent 45%),
     linear-gradient(180deg, #2a2030 0%, #3a3040 30%, #4a3840 55%, #2a2830 100%); }
-  .scene-bg.thai { background: radial-gradient(ellipse at 70% 30%, rgba(255,200,120,0.22), transparent 40%),
-    linear-gradient(180deg, #1a3048 0%, #204058 35%, #286068 65%, #1a4040 100%); }
+  .scene-bg.thai,
+  .scene-bg.thai-pool,
+  .scene-bg.thai-market,
+  .scene-bg.thai-dive,
+  .scene-bg.thai-sunset {
+    background-color: #152838;
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  .scene-bg.thai-pool {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/pool/01-infinity-coast.jpg");
+  }
+  .scene-bg.thai-market {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/market/01-floating-market-boat.jpg");
+  }
+  .scene-bg.thai-dive {
+    background-image:
+      linear-gradient(180deg, rgba(8,24,40,0.60) 0%, rgba(8,24,40,0.30) 38%, rgba(8,24,40,0.66) 100%),
+      url("assets/places/thai/dive/01-scuba-pair.jpg");
+  }
+  .scene-bg.thai-sunset {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+  }
   .scene-bg.light-on { filter: brightness(1.18) saturate(1.1); }
   .scene-bg.wind-on { animation: sway 3.2s ease-in-out infinite; }
   @keyframes sway { 0%,100%{transform:translateX(0)} 50%{transform:translateX(3px)} }
@@ -323,10 +360,38 @@
     radial-gradient(ellipse at 50% 88%, rgba(232,190,150,0.42), transparent 42%),
     radial-gradient(ellipse at 70% 30%, rgba(180,140,160,0.2), transparent 40%),
     linear-gradient(180deg, #241828 0%, #342838 28%, #4a3840 55%, #2a2430 100%); }
-  .scene-bg.thai { background:
-    radial-gradient(ellipse at 75% 25%, rgba(255,210,130,0.28), transparent 38%),
-    radial-gradient(ellipse at 30% 85%, rgba(80,180,200,0.25), transparent 40%),
-    linear-gradient(180deg, #152838 0%, #1c3850 30%, #286068 62%, #1a4048 100%); }
+  .scene-bg.thai,
+  .scene-bg.thai-pool,
+  .scene-bg.thai-market,
+  .scene-bg.thai-dive,
+  .scene-bg.thai-sunset {
+    background-color: #152838;
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  .scene-bg.thai-pool {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/pool/01-infinity-coast.jpg");
+  }
+  .scene-bg.thai-market {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/market/01-floating-market-boat.jpg");
+  }
+  .scene-bg.thai-dive {
+    background-image:
+      linear-gradient(180deg, rgba(8,24,40,0.60) 0%, rgba(8,24,40,0.30) 38%, rgba(8,24,40,0.66) 100%),
+      url("assets/places/thai/dive/01-scuba-pair.jpg");
+  }
+  .scene-bg.thai-sunset {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+  }
   .scene-bg.pace-short { filter: brightness(1.06) saturate(1.08); }
   .scene-bg.pace-linger { filter: brightness(0.96) saturate(1.12); }
   .scene-bg.pace-short.light-on { filter: brightness(1.22) saturate(1.15); }
@@ -336,7 +401,7 @@
   .asset-note { font-size:0.7rem; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45; }
   .proto-banner .line2 { display:block; margin-top:4px; font-size:10px; color:rgba(138,160,178,0.95); }
 
-  /* v2026-09-24-k · Wudang path chooser (homestay/vista/bustle) · Harbin intact · share PNG polish */
+  /* v2026-09-24-l · Thai path chooser + Wudang/Forest/Harbin · share PNG polish */
   .scene-shell { min-height: 520px; }
   .scene-landmark {
     position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -463,12 +528,40 @@
     radial-gradient(ellipse at 50% 90%, rgba(240,200,160,0.55), transparent 40%),
     radial-gradient(ellipse at 72% 28%, rgba(200,150,170,0.28), transparent 38%),
     linear-gradient(180deg, #2c1c30 0%, #3c2c40 28%, #564048 55%, #2e2834 100%); }
-  .scene-bg.thai { background:
-    radial-gradient(ellipse at 78% 22%, rgba(255,220,140,0.42), transparent 36%),
-    radial-gradient(ellipse at 28% 88%, rgba(90,200,220,0.4), transparent 40%),
-    linear-gradient(180deg, #183848 0%, #204860 28%, #307878 60%, #1e4850 100%); }
+  .scene-bg.thai,
+  .scene-bg.thai-pool,
+  .scene-bg.thai-market,
+  .scene-bg.thai-dive,
+  .scene-bg.thai-sunset {
+    background-color: #152838;
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  .scene-bg.thai-pool {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/pool/01-infinity-coast.jpg");
+  }
+  .scene-bg.thai-market {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/market/01-floating-market-boat.jpg");
+  }
+  .scene-bg.thai-dive {
+    background-image:
+      linear-gradient(180deg, rgba(8,24,40,0.60) 0%, rgba(8,24,40,0.30) 38%, rgba(8,24,40,0.66) 100%),
+      url("assets/places/thai/dive/01-scuba-pair.jpg");
+  }
+  .scene-bg.thai-sunset {
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%),
+      url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+  }
 
-  /* Scene Seed · 场景种子 card & invite (v2026-09-24-k) · P0 invite honesty · short 发给朋友 tail · share PNG real-photo hero */
+  /* Scene Seed · 场景种子 card & invite (v2026-09-24-l) · Thai paths · P0 invite honesty · share PNG real-photo hero */
   .seed-badge { display:inline-block; font-size:10px; padding:3px 9px; border-radius:999px;
     background:linear-gradient(135deg,rgba(110,198,192,0.22),rgba(212,176,138,0.18));
     color:var(--aqua); border:1px solid rgba(110,198,192,0.35); letter-spacing:0.06em;
@@ -533,7 +626,18 @@
   .seed-card-live.place-forest .seed-foot { text-shadow:0 1px 8px rgba(0,0,0,0.45); }
   .seed-card-live.place-yunnan { background:linear-gradient(165deg,#142820 0%,#1e3428 40%,#0a1218 100%); }
   .seed-card-live.place-onsen { background:linear-gradient(165deg,#241828 0%,#342838 40%,#0a1218 100%); }
-  .seed-card-live.place-thai { background:linear-gradient(165deg,#152838 0%,#1c3850 40%,#0a1218 100%); }
+  .seed-card-live.place-thai {
+    background-color:#152838;
+    background-image:
+      linear-gradient(180deg, rgba(10,20,32,0.66) 0%, rgba(10,20,32,0.30) 36%, rgba(10,20,32,0.58) 62%, rgba(4,10,16,0.92) 100%),
+      url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
+    background-size:cover; background-position:center;
+  }
+  .seed-card-live.place-thai.has-photo::before { opacity:0.2; }
+  .seed-card-live.place-thai .seed-title { text-shadow:0 2px 14px rgba(0,0,0,0.55); }
+  .seed-card-live.place-thai .seed-line,
+  .seed-card-live.place-thai .seed-invite,
+  .seed-card-live.place-thai .seed-foot { text-shadow:0 1px 8px rgba(0,0,0,0.45); }
   .seed-format-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0; }
   .seed-format-btn { appearance:none; border:1px solid var(--line); background:rgba(255,255,255,0.04);
     color:var(--muted); border-radius:12px; padding:10px; font-size:0.8rem; cursor:pointer; font-family:inherit; }
@@ -555,7 +659,7 @@
 <body>
 
 <div class="proto-banner quiet-chrome">
-  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-k</strong>
+  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-l</strong>
   <span>先感受气氛 · 留下一笔 · 邀请朋友加一笔</span>
   <span class="line2">第二人=模拟 · 朋友打开=副本 · 非正式 healoa.app</span>
 </div>
@@ -568,7 +672,7 @@
     <div class="home-badge-row">
       <span class="trial-badge">非正式 · 可看 Demo</span>
       <span class="sim-badge">第二人=模拟</span>
-      <span class="trial-badge">多地实景（武当太极／哈尔滨冰雪／森林）</span>
+      <span class="trial-badge">多地实景（武当太极／哈尔滨冰雪／森林／泰国）</span>
     </div>
     <div class="btn-row">
       <button class="primary" type="button" id="btnStart">走进场景试试</button>
@@ -581,7 +685,7 @@
     <details class="reviewer-notes" id="homeReviewerNotes" style="margin-top:18px">
       <summary>说明（给评审 / 非首屏）</summary>
       <p class="sub" style="margin-top:10px">身体与季节是<strong>可选</strong>自述，默认跳过，不作诊断。默认分享的是作品，不是身体/隐私。朋友打开的是自己的<strong>副本</strong>——双方共享持续更新仍是 UNKNOWN。</p>
-      <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />不是 Circle Edition · 不是 Wrapped · 不对顾客称「Life Maps」· 不是 Choose Again / 第二圈 OS · 不做 Keeper<br />本页不接注册、不替你预约 · 第二人=模拟（若同机）<br />可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移<br />场景照片为<strong>演示用实景（武当／哈尔滨／森林）</strong>· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN） · Living Editions · App</p>
+      <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />不是 Circle Edition · 不是 Wrapped · 不对顾客称「Life Maps」· 不是 Choose Again / 第二圈 OS · 不做 Keeper<br />本页不接注册、不替你预约 · 第二人=模拟（若同机）<br />可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移<br />场景照片为<strong>演示用实景（武当／哈尔滨／森林／泰国）</strong>· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN） · Living Editions · App</p>
     </details>
   </section>
 
@@ -663,8 +767,8 @@
       <button type="button" class="place" data-id="wudang"><div class="place-icon wudang photo" aria-hidden="true" title="武当实景">山</div><div><b>武当山</b><span>民宿／胜景／热闹 · 三选一路 · 实景</span></div></button>
       <button type="button" class="place" data-id="harbin"><div class="place-icon harbin photo" aria-hidden="true" title="哈尔滨实景">冰</div><div><b>哈尔滨冰雪</b><span>约−28℃ · 年开约两月 · 雪乡奶茶／暖食 · 实景</span></div></button>
       <button type="button" class="place" data-id="forest"><div class="place-icon forest photo" aria-hidden="true" title="森林实景">林</div><div><b>森林</b><span>廊前远望／林中路／屋里创作 · 三选一路 · 实景</span></div></button>
+      <button type="button" class="place" data-id="thai"><div class="place-icon thai photo" aria-hidden="true" title="泰国实景">海</div><div><b>泰国 · 拥抱大海</b><span>泳池／水上市场／潜水／港湾日落 · 四选一路 · 实景</span></div></button>
       <button type="button" class="place" data-id="onsen"><div class="place-icon onsen" aria-hidden="true">泉</div><div><b>日本温泉</b><span>热气与石阶 · 可放石/灯</span></div></button>
-      <button type="button" class="place" data-id="thai"><div class="place-icon thai" aria-hidden="true">海</div><div><b>泰国海边</b><span>暖、慢、浪声 · 可放贝壳/椰影</span></div></button>
     </div>
     <div class="btn-row" style="margin-top:16px">
       <button class="primary" type="button" id="btnEnter" disabled>一个人走进去 · 马上玩</button>
@@ -753,6 +857,55 @@
       <button class="ghost" type="button" data-back="s0">回首页</button>
     </div>
     <p class="footer-meta" style="margin-top:14px">演示用实景 · 非正式付费素材包 · 无医疗主张 · 不作诊断</p>
+  </section>
+
+  <section id="s2t" class="screen hidden">
+    <div class="steps" aria-hidden="true">
+      <span>1 身体×季节</span><span class="on">2 泰国路径</span><span>3 进场景玩</span><span>4 保存</span><span>5 场景种子</span>
+    </div>
+    <div class="brand">HEALOA BASE · 泰国路径 <span class="trial-badge">四选一 · 非诊断</span></div>
+    <h1>泰国 · 拥抱大海 · 你更想先感受哪一种？</h1>
+    <p class="sub">点一张照片路径，马上走进可玩场景。度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景。不是身体问卷，也不是系统替你开的处方。</p>
+    <div class="path-cards" id="thaiPathList" role="list">
+      <button type="button" class="path-card" data-path="thai-pool" role="listitem">
+        <div class="path-card-photo thai-pool" aria-hidden="true"></div>
+        <div class="path-card-body">
+          <b>泳池看海</b>
+          <span class="path-feel">想泡在泳池边看海</span>
+          <span class="path-hint">无边泳池 · 海岸线在眼前</span>
+        </div>
+      </button>
+      <button type="button" class="path-card" data-path="thai-market" role="listitem">
+        <div class="path-card-photo thai-market" aria-hidden="true"></div>
+        <div class="path-card-body">
+          <b>水上市场</b>
+          <span class="path-feel">想坐船逛一逛</span>
+          <span class="path-hint">船屋与水面小摊 · 慢悠悠的热闹</span>
+        </div>
+      </button>
+      <button type="button" class="path-card" data-path="thai-dive" role="listitem">
+        <div class="path-card-photo thai-dive" aria-hidden="true"></div>
+        <div class="path-card-body">
+          <b>潜入海里</b>
+          <span class="path-feel">想潜入水下看看</span>
+          <span class="path-hint">潜伴与蓝水 · 海边放松气氛预览</span>
+        </div>
+      </button>
+      <button type="button" class="path-card" data-path="thai-sunset" role="listitem">
+        <div class="path-card-photo thai-sunset" aria-hidden="true"></div>
+        <div class="path-card-body">
+          <b>港湾日落</b>
+          <span class="path-feel">想看港湾晚色</span>
+          <span class="path-hint">码头与暮光 · 一天收尾的暖</span>
+          <span class="path-badge honest">演示用实景 · 非行程报价</span>
+        </div>
+      </button>
+    </div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="ghost" type="button" data-back="s2">返回选地方</button>
+      <button class="ghost" type="button" data-back="s0">回首页</button>
+    </div>
+    <p class="footer-meta" style="margin-top:14px">度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景 · 非正式付费素材包 · 无医疗主张</p>
   </section>
 
   <section id="s3" class="screen hidden">
@@ -899,7 +1052,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-k</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-l</span>
         </div>
         <div class="seed-foot" id="seedLiveFoot">默认分享作品 · 不含身体自述</div>
       </div>
@@ -977,7 +1130,7 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-24-k · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当／哈尔滨／森林）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
+    <p class="footer-meta">预览 v2026-09-24-l · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当／哈尔滨／森林／泰国）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
   </section>
 
   <section id="sSeed" class="screen hidden">
@@ -994,7 +1147,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-k</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-l</span>
         </div>
         <div class="seed-foot">默认只开作品 · 不含身体/隐私</div>
       </div>
@@ -1013,7 +1166,7 @@
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-k";
+  var VERSION = "v2026-09-24-l";
   var MAX_MARKS = 6;
   var state = {
     body: null, season: null, placeId: null, joined: false, feel: null,
@@ -1153,15 +1306,59 @@
       colors: ["#2a2030","#d4b08a","#6ec6c0"], audio: { base: 98, type: "sine", mod: 0.12 }
     },
     thai: {
-      name: "泰国海边", label: "泰国海边 · 虚拟预览",
-      seedTitle: "泰国海边 · 一潮尚未退尽的暖",
-      lineSolo: "空气暖而慢。把贝壳或椰影放到岸边。",
-      lineDuo: "模拟同伴过来后，场景多了一抹晚色痕迹。",
-      defaultSolo: "慢一点，也算一种休息。",
-      defaultDuo: "【模拟·预设】我加了一笔海边的暖黄。",
-      bg: "thai",
+      name: "泰国 · 拥抱大海", label: "泰国 · 拥抱大海 · 实景预览",
+      seedTitle: "拥抱大海 · 一潮尚未退尽的暖",
+      lineSolo: "海边很暖。先选一条路径，再走进可玩场景。度假／海边放松气氛预览 · 不是行程报价或报名。",
+      lineDuo: "模拟同伴也在岸边放下了一笔。看对比：场景痕迹变了。",
+      defaultSolo: "先感受这里的暖。",
+      defaultDuo: "【模拟·预设】我在海边加了一笔暖黄。",
+      bg: "thai", family: "thai",
       tools: [{id:"shell",icon:"🐚",label:"贝壳"},{id:"palm",icon:"🌴",label:"椰"},{id:"wave",icon:"🌊",label:"浪"},{id:"sun2",icon:"🌅",label:"晚色"}],
       colors: ["#1a3048","#ffc878","#6ec6c0"], audio: { base: 130, type: "sine", mod: 0.28 }
+    },
+    "thai-pool": {
+      name: "泰国 · 泳池看海", label: "泳池看海 · 实景",
+      seedTitle: "泳池看海 · 一场尚未散尽的蓝",
+      lineSolo: "无边泳池。想泡在泳池边看海的话，先把目光交给海岸线——度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景。再放下痕迹。",
+      lineDuo: "模拟同伴也在泳池边放下了一笔。看对比：场景痕迹变了。",
+      defaultSolo: "想泡在泳池边看海。",
+      defaultDuo: "【模拟·预设】我在泳池边加了一笔暖色。",
+      bg: "thai-pool", family: "thai",
+      tools: [{id:"shell",icon:"🐚",label:"贝壳"},{id:"palm",icon:"🌴",label:"椰"},{id:"wave",icon:"🌊",label:"浪"},{id:"sun2",icon:"🌅",label:"晚色"}],
+      colors: ["#1a3048","#ffc878","#6ec6c0"], audio: { base: 128, type: "sine", mod: 0.24 }
+    },
+    "thai-market": {
+      name: "泰国 · 水上市场", label: "水上市场 · 实景",
+      seedTitle: "水上市场 · 一场尚未散尽的船影",
+      lineSolo: "船屋与水面小摊。想坐船逛一逛的话，慢悠悠看热闹——度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景。再放下痕迹。",
+      lineDuo: "模拟同伴也在船边放下了一笔。看对比：场景痕迹变了。",
+      defaultSolo: "想坐船逛一逛。",
+      defaultDuo: "【模拟·预设】我在水面上加了一笔暖色。",
+      bg: "thai-market", family: "thai",
+      tools: [{id:"shell",icon:"🐚",label:"贝壳"},{id:"palm",icon:"🌴",label:"椰"},{id:"wave",icon:"🌊",label:"浪"},{id:"sun2",icon:"🌅",label:"晚色"}],
+      colors: ["#1a3048","#ffc878","#6ec6c0"], audio: { base: 136, type: "triangle", mod: 0.26 }
+    },
+    "thai-dive": {
+      name: "泰国 · 潜入海里", label: "潜入海里 · 实景",
+      seedTitle: "潜入海里 · 一场尚未浮起的蓝",
+      lineSolo: "潜伴与蓝水。想潜入水下看看的话，先感受一下——度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景。再放下痕迹。",
+      lineDuo: "模拟同伴也在水下放下了一笔。看对比：场景痕迹变了。",
+      defaultSolo: "想潜入水下看看。",
+      defaultDuo: "【模拟·预设】我在蓝水里加了一笔暖色。",
+      bg: "thai-dive", family: "thai",
+      tools: [{id:"shell",icon:"🐚",label:"贝壳"},{id:"palm",icon:"🌴",label:"椰"},{id:"wave",icon:"🌊",label:"浪"},{id:"sun2",icon:"🌅",label:"晚色"}],
+      colors: ["#0e2840","#6ec6c0","#ffc878"], audio: { base: 118, type: "sine", mod: 0.2 }
+    },
+    "thai-sunset": {
+      name: "泰国 · 港湾日落", label: "港湾日落 · 实景",
+      seedTitle: "港湾日落 · 一场尚未散尽的暮光",
+      lineSolo: "码头与暮光。想看港湾晚色的话，先站一会儿——度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景。再放下痕迹。",
+      lineDuo: "模拟同伴也在码头边放下了一笔。看对比：场景痕迹变了。",
+      defaultSolo: "想看港湾晚色。",
+      defaultDuo: "【模拟·预设】我在暮光里加了一笔暖色。",
+      bg: "thai-sunset", family: "thai",
+      tools: [{id:"shell",icon:"🐚",label:"贝壳"},{id:"palm",icon:"🌴",label:"椰"},{id:"wave",icon:"🌊",label:"浪"},{id:"sun2",icon:"🌅",label:"晚色"}],
+      colors: ["#1a3048","#ffc878","#6ec6c0"], audio: { base: 122, type: "sine", mod: 0.22 }
     }
   };
   function defaultHeroPlace(){
@@ -1179,10 +1376,17 @@
     var p = PLACES[placeId];
     return !!(p && p.family === "forest");
   }
+  function isThaiFamily(placeId){
+    if(!placeId) return false;
+    if(placeId === "thai" || placeId.indexOf("thai-") === 0) return true;
+    var p = PLACES[placeId];
+    return !!(p && p.family === "thai");
+  }
   function seedPlaceCssId(placeId){
     if(!placeId) return "yunnan";
     if(isWudangFamily(placeId)) return "wudang";
     if(isForestFamily(placeId)) return "forest";
+    if(isThaiFamily(placeId)) return "thai";
     return placeId;
   }
   function openWudangPathChooser(){
@@ -1221,6 +1425,26 @@
     state.placeId = pathId;
     document.querySelectorAll(".place").forEach(function(b){
       b.classList.toggle("on", b.getAttribute("data-id") === "forest");
+    });
+    var enter=$("btnEnter"); if(enter) enter.disabled = false;
+    enterScene();
+  }
+  function openThaiPathChooser(){
+    clearBodySeasonSelection();
+    state.placeId = null;
+    document.querySelectorAll(".place").forEach(function(b){
+      b.classList.toggle("on", b.getAttribute("data-id") === "thai");
+    });
+    var enter=$("btnEnter"); if(enter) enter.disabled = true;
+    show("s2t");
+    toast("泰国 · 先选一条路径");
+  }
+  function enterThaiPath(pathId){
+    if(!PLACES[pathId]){ toast("路径暂不可用"); return; }
+    clearBodySeasonSelection();
+    state.placeId = pathId;
+    document.querySelectorAll(".place").forEach(function(b){
+      b.classList.toggle("on", b.getAttribute("data-id") === "thai");
     });
     var enter=$("btnEnter"); if(enter) enter.disabled = false;
     enterScene();
@@ -1300,6 +1524,43 @@
         "assets/places/cabin/04-soup-window-warm.jpg",
         "assets/places/cabin/05-aurora-forest-night.jpg"
       ]
+    },
+    thai: {
+      hero: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
+      thumb: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
+      cycle: [
+        "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg"
+      ]
+    },
+    "thai-pool": {
+      hero: "assets/places/thai/pool/01-infinity-coast.jpg",
+      thumb: "assets/places/thai/pool/01-infinity-coast.jpg",
+      cycle: [
+        "assets/places/thai/pool/01-infinity-coast.jpg",
+        "assets/places/thai/pool/02-deck-photo.jpg",
+        "assets/places/thai/pool/03-long-pool-canopy.jpg"
+      ]
+    },
+    "thai-market": {
+      hero: "assets/places/thai/market/01-floating-market-boat.jpg",
+      thumb: "assets/places/thai/market/01-floating-market-boat.jpg",
+      cycle: [
+        "assets/places/thai/market/01-floating-market-boat.jpg"
+      ]
+    },
+    "thai-dive": {
+      hero: "assets/places/thai/dive/01-scuba-pair.jpg",
+      thumb: "assets/places/thai/dive/01-scuba-pair.jpg",
+      cycle: [
+        "assets/places/thai/dive/01-scuba-pair.jpg"
+      ]
+    },
+    "thai-sunset": {
+      hero: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
+      thumb: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
+      cycle: [
+        "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg"
+      ]
     }
   };
   var placePhotoImgs = {};
@@ -1377,7 +1638,12 @@
     forest: "linear-gradient(180deg, rgba(8,18,14,0.58) 0%, rgba(8,18,14,0.28) 38%, rgba(8,18,14,0.62) 100%)",
     "forest-porch": "linear-gradient(180deg, rgba(8,18,14,0.58) 0%, rgba(8,18,14,0.28) 38%, rgba(8,18,14,0.62) 100%)",
     "forest-path": "linear-gradient(180deg, rgba(8,18,14,0.58) 0%, rgba(8,18,14,0.28) 38%, rgba(8,18,14,0.62) 100%)",
-    "forest-cabin": "linear-gradient(180deg, rgba(10,16,14,0.60) 0%, rgba(10,16,14,0.30) 38%, rgba(10,16,14,0.66) 100%)"
+    "forest-cabin": "linear-gradient(180deg, rgba(10,16,14,0.60) 0%, rgba(10,16,14,0.30) 38%, rgba(10,16,14,0.66) 100%)",
+    thai: "linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%)",
+    "thai-pool": "linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%)",
+    "thai-market": "linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%)",
+    "thai-dive": "linear-gradient(180deg, rgba(8,24,40,0.60) 0%, rgba(8,24,40,0.30) 38%, rgba(8,24,40,0.66) 100%)",
+    "thai-sunset": "linear-gradient(180deg, rgba(10,20,32,0.58) 0%, rgba(10,20,32,0.28) 38%, rgba(10,20,32,0.62) 100%)"
   };
   function stopPlacePhotoCycle(){
     if(placePhotoCycleTimer){ clearInterval(placePhotoCycleTimer); placePhotoCycleTimer=null; }
@@ -1426,13 +1692,13 @@
         var nm = (PLACES[pid] && PLACES[pid].name) || pid;
         note.innerHTML = "场景照片为<strong>演示用实景（"+nm+"）</strong>· 非正式付费素材包 · 粒子/痕迹仍为程序叠加";
       } else {
-        note.innerHTML = "本场景气氛画面为<strong>程序生成预览</strong>· 非正式付费素材包 · 武当／哈尔滨／森林处可用实景";
+        note.innerHTML = "本场景气氛画面为<strong>程序生成预览</strong>· 非正式付费素材包 · 武当／哈尔滨／森林／泰国处可用实景";
       }
     }
   }
     function $(id) { return document.getElementById(id); }
   function show(id) {
-    ["s0","s1","s2","s2w","s2f","s3","s4","s5","sSeed"].forEach(function(s){ var el=$(s); if(el) el.classList.toggle("hidden", s !== id); });
+    ["s0","s1","s2","s2w","s2f","s2t","s3","s4","s5","sSeed"].forEach(function(s){ var el=$(s); if(el) el.classList.toggle("hidden", s !== id); });
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (id === "s3") requestAnimationFrame(function(){ resizeFxCanvas(); startFxLoop(); scrollSceneIntoView(); });
   }
@@ -1740,7 +2006,7 @@
         secondPersonNote:"本机按钮模拟；TA 痕迹与文案为预设，非真实用户贡献",
         duoText:state.joined?(p.defaultDuo||null):null },
       lightFeel:state.feel,
-      disclaimer:"可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 时长与身体深度为试探未锁定 · 第二人加入为模拟 · 场景照片为演示用实景（武当／哈尔滨／森林）· 非正式付费素材包 · 预览 "+VERSION
+      disclaimer:"可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 时长与身体深度为试探未锁定 · 第二人加入为模拟 · 场景照片为演示用实景（武当／哈尔滨／森林／泰国）· 非正式付费素材包 · 预览 "+VERSION
     };
     payload.trials={
       duration:state.duration, bodyDepth:state.bodyDepth,
@@ -1838,10 +2104,11 @@
     // Top-level 武当 → path chooser (not auto one path); sub-paths enter scene
     if(placeId === "wudang"){ openWudangPathChooser(); return; }
     if(placeId === "forest"){ openForestPathChooser(); return; }
+    if(placeId === "thai"){ openThaiPathChooser(); return; }
     clearBodySeasonSelection();
     state.placeId=placeId;
     document.querySelectorAll(".place").forEach(function(b){
-      var top = isWudangFamily(state.placeId) ? "wudang" : (isForestFamily(state.placeId) ? "forest" : state.placeId);
+      var top = isWudangFamily(state.placeId) ? "wudang" : (isForestFamily(state.placeId) ? "forest" : (isThaiFamily(state.placeId) ? "thai" : state.placeId));
       b.classList.toggle("on", b.getAttribute("data-id")===top || b.getAttribute("data-id")===state.placeId);
     });
     $("btnEnter").disabled=false;
@@ -1878,6 +2145,7 @@
       // 武当 top-level → path chooser (no body questionnaire); others enter scene
       if(id === "wudang"){ openWudangPathChooser(); return; }
       if(id === "forest"){ openForestPathChooser(); return; }
+      if(id === "thai"){ openThaiPathChooser(); return; }
       state.placeId = id;
       enterScene();
     });
@@ -1892,6 +2160,12 @@
     btn.addEventListener("click", function(){
       var pathId = btn.getAttribute("data-path");
       enterForestPath(pathId);
+    });
+  });
+  document.querySelectorAll("#thaiPathList .path-card").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var pathId = btn.getAttribute("data-path");
+      enterThaiPath(pathId);
     });
   });
 
@@ -2107,7 +2381,7 @@
     var p2Marks=state.marks.filter(function(m){return m.from==="p2";}).length;
     var depthLabel=state.bodyDepth==="deep"?"深":"浅";
     var durLabel={short:"短逛",linger:"多待一会儿",free:"不限"}[state.duration]||state.duration;
-    $("saveSummary").textContent="场景："+(p.name||"—")+"\n短句："+(state.soloText||p.defaultSolo||"（未写）")+"\n痕迹：你的 "+myMarks+(state.joined?(" + 模拟同伴 "+p2Marks):"（独自）")+"\n气氛："+summarizeFx(state.fx)+"\n共创："+(state.joined?"第二人已加入（本机模拟 · 预设）":"独自完成 · 未加入第二人")+"\n试探时长："+durLabel+"（未锁定）\n身体深度试探："+depthLabel+"（未锁定）\n身体/季节自述：仅存本机（若有），不会进入分享或公开导出\n作品编号："+(state.workId||"—")+"\n版本：预览 "+VERSION+"\n说明：可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 场景照片=演示用实景（武当／哈尔滨／森林）· 非正式付费素材包";
+    $("saveSummary").textContent="场景："+(p.name||"—")+"\n短句："+(state.soloText||p.defaultSolo||"（未写）")+"\n痕迹：你的 "+myMarks+(state.joined?(" + 模拟同伴 "+p2Marks):"（独自）")+"\n气氛："+summarizeFx(state.fx)+"\n共创："+(state.joined?"第二人已加入（本机模拟 · 预设）":"独自完成 · 未加入第二人")+"\n试探时长："+durLabel+"（未锁定）\n身体深度试探："+depthLabel+"（未锁定）\n身体/季节自述：仅存本机（若有），不会进入分享或公开导出\n作品编号："+(state.workId||"—")+"\n版本：预览 "+VERSION+"\n说明：可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 场景照片=演示用实景（武当／哈尔滨／森林／泰国）· 非正式付费素材包";
   }
   function goSave(){
     if(!state.soloText){ var p=PLACES[state.placeId]; state.soloText=(p&&p.defaultSolo)||""; $("soloLine").value=state.soloText; }
