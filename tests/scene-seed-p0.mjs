@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + primary CTA skips body + short 发给朋友 share-tail (default-ready) (v2026-09-24-g)
+ * Scene Seed P0 + primary CTA skips body + short 发给朋友 share-tail (default-ready) (v2026-09-24-h)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -113,7 +113,7 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-g"), banner);
+    record("version-banner", banner.includes("v2026-09-24-h") || banner.includes("v2026-09-24-g"), banner);
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
@@ -184,8 +184,88 @@ async function main() {
     );
     await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, "wudang-scene-shell.png") });
     await shot(sender, "wudang-scene");
-    // return to place pick, then continue yunnan share-path coverage
-    await sender.click('[data-back="s2"]');
+
+    // Share-card PNG polish: Wudang export must use real hero (not leaf/placeholder)
+    const leafOnW = await sender.locator('#markTools .tool[data-tool="leaf"].on').count();
+    if (!leafOnW) {
+      const anyOn = await sender.locator("#markTools .tool.on").count();
+      if (!anyOn) await sender.click("#markTools .tool").first();
+    }
+    const stageW = sender.locator("#playStage");
+    const boxW = await stageW.boundingBox();
+    await sender.mouse.click(boxW.x + boxW.width * 0.42, boxW.y + boxW.height * 0.48);
+    await sender.fill("#soloLine", "雾还没散，我先留下一笔。");
+    await sender.click("#btnSetLine");
+    await sender.click("#btnSendFriend");
+    await sender.waitForSelector("#s5:not(.hidden)");
+    await sender.evaluate(async () => {
+      if (window.__healoaSeedTest && window.__healoaSeedTest.ensureSharePhotoReady) {
+        await window.__healoaSeedTest.ensureSharePhotoReady();
+      }
+      if (window.__healoaSeedTest && window.__healoaSeedTest.paintShareImgPreviewNow) {
+        window.__healoaSeedTest.paintShareImgPreviewNow();
+      }
+    });
+    await sender.waitForTimeout(200);
+    const exportMeta = await sender.evaluate(() => {
+      const api = window.__healoaSeedTest;
+      return api.inspectShareCard("vertical");
+    });
+    record(
+      "wudang-share-png-uses-hero",
+      !!(exportMeta && exportMeta.usedPhoto && String(exportMeta.heroSrc || "").includes("assets/places/wudang/")),
+      JSON.stringify({
+        usedPhoto: exportMeta && exportMeta.usedPhoto,
+        heroSrc: exportMeta && exportMeta.heroSrc,
+        placeId: exportMeta && exportMeta.placeId,
+      })
+    );
+    record(
+      "wudang-share-png-crisp-size",
+      !!(exportMeta && exportMeta.width >= 1080 && exportMeta.height >= 1440),
+      JSON.stringify({ w: exportMeta && exportMeta.width, h: exportMeta && exportMeta.height })
+    );
+    record(
+      "wudang-share-png-is-png",
+      !!(exportMeta && exportMeta.isPngDataUrl && exportMeta.pngBytesHint > 20000),
+      JSON.stringify({ isPng: exportMeta && exportMeta.isPngDataUrl, bytesHint: exportMeta && exportMeta.pngBytesHint })
+    );
+    const liveCardPhoto = await sender.evaluate(() => {
+      const card = document.getElementById("seedCardLive");
+      if (!card) return { ok: false };
+      const cs = getComputedStyle(card);
+      const bg = (card.style.backgroundImage || "") + " " + (cs.backgroundImage || "");
+      return {
+        ok: card.classList.contains("place-wudang") && card.classList.contains("has-photo") && bg.includes("assets/places/wudang/"),
+        cls: card.className,
+        bg: bg.slice(0, 200),
+      };
+    });
+    record("wudang-live-seed-card-photo", liveCardPhoto.ok, JSON.stringify(liveCardPhoto));
+    const previewShown = await sender.locator("#shareImgPreview").evaluate((el) => el.classList.contains("show") && !!el.src && el.src.indexOf("data:image/png") === 0);
+    record("wudang-share-preview-png-shown", previewShown, "previewShown=" + previewShown);
+    // Save exported PNG bytes into evidence for visual check
+    await sender.evaluate((destHint) => {
+      const api = window.__healoaSeedTest;
+      const meta = api.inspectShareCard("vertical");
+      window.__healoaLastExportDataUrl = meta.dataUrl || "";
+      return !!window.__healoaLastExportDataUrl;
+    }, "wudang-share-export.png");
+    const dataUrl = await sender.evaluate(() => window.__healoaLastExportDataUrl || "");
+    if (dataUrl && dataUrl.startsWith("data:image/png")) {
+      const b64 = dataUrl.split(",", 2)[1] || "";
+      const buf = Buffer.from(b64, "base64");
+      fs.writeFileSync(path.join(EVIDENCE, "wudang-share-export.png"), buf);
+      record("wudang-share-export-evidence-written", buf.length > 20000, "bytes=" + buf.length);
+    } else {
+      record("wudang-share-export-evidence-written", false, "no dataUrl");
+    }
+    await shot(sender, "wudang-share-card");
+
+    // reset to continue yunnan share-path coverage
+    await sender.click("#btnEndReplay");
+    await sender.waitForSelector("#s0:not(.hidden)");
+    await sender.click("#btnStart");
     await sender.waitForSelector("#s2:not(.hidden)");
     // one-tap place → scene (no body)
     await sender.click('.place[data-id="yunnan"]');
@@ -315,6 +395,18 @@ async function main() {
     const previewHas = await sender.locator("#shareImgPreview").evaluate((el) => el.classList.contains("show") && !!el.src);
     const ogNote = honest.includes("页内 PNG") || honest.includes("富卡片") || honest.includes("OG");
     record("inpage-png-vs-og-honesty", previewHas && ogNote, "png=" + previewHas + " ogNote=" + ogNote);
+
+    const yunnanExport = await sender.evaluate(() => window.__healoaSeedTest.inspectShareCard("vertical"));
+    record(
+      "yunnan-share-png-no-fake-wudang-hero",
+      !!(yunnanExport && yunnanExport.placeId === "yunnan" && yunnanExport.usedPhoto === false && !(yunnanExport.heroSrc || "").includes("wudang")),
+      JSON.stringify({ placeId: yunnanExport && yunnanExport.placeId, usedPhoto: yunnanExport && yunnanExport.usedPhoto, heroSrc: yunnanExport && yunnanExport.heroSrc })
+    );
+    record(
+      "yunnan-share-png-still-crisp",
+      !!(yunnanExport && yunnanExport.width >= 1080 && yunnanExport.isPngDataUrl),
+      JSON.stringify({ w: yunnanExport && yunnanExport.width, h: yunnanExport && yunnanExport.height, isPng: yunnanExport && yunnanExport.isPngDataUrl })
+    );
 
     const nativeDupCheck = await sender.evaluate(() => {
       const api = window.__healoaSeedTest;
@@ -521,7 +613,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-g",
+    version: "v2026-09-24-h",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
