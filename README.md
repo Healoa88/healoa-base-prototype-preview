@@ -3,10 +3,19 @@
 **Not** a formal App launch. **Not** aurora-companions / healoa.com website work.
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- Version stamp: **预览 v2026-09-24-l** · **Scene Seed / 场景种子**
+- Version stamp: **预览 v2026-09-24-m** · **Scene Seed / 场景种子**
 - Single-file offline HTML demo + local place photos: pick a place → see/hear/operate a scene → solo create → optional **simulated** second person → save / restore → emit a **Scene Seed** (`#seed=` reopenable work URL) → friend opens **their own copy** and can add a stroke
 
 App social currency (Living Editions · App side) = **Scene Seed** — “我发现了一个美的地方，并把创作邀请给你”.
+
+## v2026-09-24-m UX (share-card PNG · place + path heroes)
+
+- Share PNG / 种子预览图 hero keys off **selected place id + path id** via `resolveShareHero` → `PLACE_PHOTOS[placeId].hero`.
+- Covered photo families: Wudang subs (`wudang-homestay` / `vista` / `bustle`) · Harbin · Forest paths (`forest-porch` / `path` / `cabin`) · Thai paths (`thai-pool` / `market` / `dive` / `sunset`).
+- Missing / not-ready photo → **procedural** draw with `usedPhoto:false` (never borrow another place’s photo, e.g. no Wudang terrace on Forest/Thai/onsen).
+- Honesty foot unchanged: **页内PNG≠链接富卡片** · 演示用实景 · no `#seedId=` fake invite.
+- Place chooser / scene CTA / `startViaPlaces` untouched.
+- Tests: **144/144 PASS**.
 
 ## v2026-09-24-l UX (泰国 · 拥抱大海 四路径选择)
 
@@ -21,7 +30,7 @@ App social currency (Living Editions · App side) = **Scene Seed** — “我发
 - Pick **森林** from the place list → **path chooser** `#s2f` (not body questionnaire, not auto one path). Mirror of Wudang `#s2w`.
 - Three photo paths: **廊前远望** (`forest-porch`) · **林中路** (`forest-path`, soft-cycles leaf/monstera/canopy) · **屋里创作** (`forest-cabin`, merges cabin set; honesty **窗外可能很冷 · 非医疗主张**).
 - Default CTA remains **直接进 · 武当**. Harbin + Wudang paths unchanged. Thai wired in **v2026-09-24-l**.
-- Scene Seed P0 honesty unchanged. Tests: **138/138 PASS**.
+- Scene Seed P0 honesty unchanged. (Forest tip tests were **138/138**; share-path tip **v-m** is **144/144**.)
 
 ## v2026-09-24-j UX (武当三路径选择)
 

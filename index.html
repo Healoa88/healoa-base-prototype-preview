@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-l）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-m）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -92,7 +92,7 @@
   .place span { display: block; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
 
-  /* Path chooser · v2026-09-24-l (Wudang / Forest / Thai) */
+  /* Path chooser · v2026-09-24-m (Wudang / Forest / Thai) */
   .path-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
   .path-card { appearance: none; width: 100%; text-align: left; border: 1px solid var(--line);
     background: linear-gradient(145deg, rgba(22,36,44,0.95), rgba(14,28,34,0.9)); border-radius: 18px; padding: 0;
@@ -401,7 +401,7 @@
   .asset-note { font-size:0.7rem; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45; }
   .proto-banner .line2 { display:block; margin-top:4px; font-size:10px; color:rgba(138,160,178,0.95); }
 
-  /* v2026-09-24-l · Thai path chooser + Wudang/Forest/Harbin · share PNG polish */
+  /* v2026-09-24-m · Thai path chooser + Wudang/Forest/Harbin · share PNG polish */
   .scene-shell { min-height: 520px; }
   .scene-landmark {
     position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -561,7 +561,7 @@
       url("assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg");
   }
 
-  /* Scene Seed · 场景种子 card & invite (v2026-09-24-l) · Thai paths · P0 invite honesty · share PNG real-photo hero */
+  /* Scene Seed · 场景种子 card & invite (v2026-09-24-m) · Thai paths · P0 invite honesty · share PNG real-photo hero */
   .seed-badge { display:inline-block; font-size:10px; padding:3px 9px; border-radius:999px;
     background:linear-gradient(135deg,rgba(110,198,192,0.22),rgba(212,176,138,0.18));
     color:var(--aqua); border:1px solid rgba(110,198,192,0.35); letter-spacing:0.06em;
@@ -659,7 +659,7 @@
 <body>
 
 <div class="proto-banner quiet-chrome">
-  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-l</strong>
+  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-m</strong>
   <span>先感受气氛 · 留下一笔 · 邀请朋友加一笔</span>
   <span class="line2">第二人=模拟 · 朋友打开=副本 · 非正式 healoa.app</span>
 </div>
@@ -1052,7 +1052,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-l</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-m</span>
         </div>
         <div class="seed-foot" id="seedLiveFoot">默认分享作品 · 不含身体自述</div>
       </div>
@@ -1130,7 +1130,7 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-24-l · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当／哈尔滨／森林／泰国）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
+    <p class="footer-meta">预览 v2026-09-24-m · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当／哈尔滨／森林／泰国）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
   </section>
 
   <section id="sSeed" class="screen hidden">
@@ -1147,7 +1147,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-l</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-m</span>
         </div>
         <div class="seed-foot">默认只开作品 · 不含身体/隐私</div>
       </div>
@@ -1166,7 +1166,7 @@
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-l";
+  var VERSION = "v2026-09-24-m";
   var MAX_MARKS = 6;
   var state = {
     body: null, season: null, placeId: null, joined: false, feel: null,
@@ -1564,7 +1564,7 @@
     }
   };
   var placePhotoImgs = {};
-  var lastShareExport = { usedPhoto:false, heroSrc:"", width:0, height:0, format:"vertical" };
+  var lastShareExport = { usedPhoto:false, heroSrc:"", expectedHero:"", reason:"", width:0, height:0, format:"vertical", placeId:"" };
   function preloadPlacePhotos(){
     Object.keys(PLACE_PHOTOS).forEach(function(id){
       var info = PLACE_PHOTOS[id];
@@ -1596,6 +1596,48 @@
   function placeHeroReady(placeId){
     var img = getPlaceHeroImg(placeId);
     return !!(img && img.complete && img.naturalWidth > 0);
+  }
+  /**
+   * Share-card / PNG hero resolution.
+   * Keys ONLY off the selected place id (incl. path ids like wudang-vista, forest-cabin, thai-pool).
+   * Never remaps to another place's photo (e.g. no Wudang terrace for Forest/Thai/onsen).
+   * Missing or not-yet-loaded photo → usedPhoto:false + procedural draw.
+   */
+  function resolveShareHero(placeId){
+    placeId = placeId || state.placeId || "";
+    var info = PLACE_PHOTOS[placeId];
+    if(!info || !info.hero){
+      return {
+        ok:false,
+        usedPhoto:false,
+        heroSrc:"",
+        expectedHero:"",
+        placeId:placeId,
+        reason:"no_photo"
+      };
+    }
+    var img = getPlaceHeroImg(placeId);
+    var ready = !!(img && img.complete && img.naturalWidth > 0);
+    if(!ready){
+      return {
+        ok:false,
+        usedPhoto:false,
+        heroSrc:"",
+        expectedHero:info.hero,
+        placeId:placeId,
+        reason:"not_ready",
+        img:img
+      };
+    }
+    return {
+      ok:true,
+      usedPhoto:true,
+      heroSrc:info.hero,
+      expectedHero:info.hero,
+      placeId:placeId,
+      reason:"ok",
+      img:img
+    };
   }
   function ensurePlacePhotoReady(placeId, timeoutMs){
     placeId = placeId || state.placeId;
@@ -2714,13 +2756,14 @@
     var ctx=canvas.getContext("2d");
     var p=PLACES[state.placeId]||{name:"场景",defaultSolo:"",defaultDuo:"",colors:["#0a1218","#6ec6c0","#d4b08a"],seedTitle:"场景 · 种子"};
     var w=canvas.width, h=canvas.height;
-    var photoInfo = PLACE_PHOTOS[state.placeId];
-    var photoImg = photoInfo ? getPlaceHeroImg(state.placeId) : null;
-    var usedPhoto = !!(photoImg && photoImg.complete && photoImg.naturalWidth > 0);
-    var heroSrc = (usedPhoto && photoInfo) ? photoInfo.hero : "";
+    // Hero keys off selected placeId + path id via PLACE_PHOTOS; never borrow another place's photo
+    var heroRes = resolveShareHero(state.placeId);
+    var usedPhoto = !!heroRes.usedPhoto;
+    var heroSrc = usedPhoto ? (heroRes.heroSrc || "") : "";
+    var photoImg = usedPhoto ? heroRes.img : null;
     ctx.clearRect(0,0,w,h);
-    if(usedPhoto){
-      // cover-draw real place photo (Wudang demo asset) — not a fake leaf/placeholder
+    if(usedPhoto && photoImg){
+      // cover-draw the selected place/path photo — not a leaf/placeholder, not a wrong-place hero
       var iw=photoImg.naturalWidth, ih=photoImg.naturalHeight;
       var scale=Math.max(w/iw, h/ih);
       var dw=iw*scale, dh=ih*scale;
@@ -2797,6 +2840,8 @@
     lastShareExport = {
       usedPhoto: usedPhoto,
       heroSrc: heroSrc,
+      expectedHero: heroRes.expectedHero || "",
+      reason: heroRes.reason || (usedPhoto ? "ok" : "no_photo"),
       width: w,
       height: h,
       format: fmt,
@@ -3194,6 +3239,20 @@
     utf8ToB64url: utf8ToB64url,
     b64urlToUtf8: b64urlToUtf8,
     ensureSharePhotoReady: function(placeId){ return ensurePlacePhotoReady(placeId||state.placeId); },
+    resolveShareHero: function(placeId){
+      var r = resolveShareHero(placeId||state.placeId);
+      return {
+        ok:!!r.ok, usedPhoto:!!r.usedPhoto, heroSrc:r.heroSrc||"", expectedHero:r.expectedHero||"",
+        placeId:r.placeId||"", reason:r.reason||""
+      };
+    },
+    placePhotoHeroMap: function(){
+      var out = {};
+      Object.keys(PLACE_PHOTOS).forEach(function(id){
+        out[id] = (PLACE_PHOTOS[id] && PLACE_PHOTOS[id].hero) || "";
+      });
+      return out;
+    },
     refreshShareImgPreview: refreshShareImgPreview,
     paintShareImgPreviewNow: paintShareImgPreviewNow,
     drawShareCard: function(fmt){ return drawShareCard(fmt||state.seedFormat); },
@@ -3202,6 +3261,8 @@
       var meta = {
         usedPhoto: !!lastShareExport.usedPhoto,
         heroSrc: lastShareExport.heroSrc || "",
+        expectedHero: lastShareExport.expectedHero || "",
+        reason: lastShareExport.reason || "",
         width: canvas.width,
         height: canvas.height,
         format: lastShareExport.format || fmt || "vertical",
