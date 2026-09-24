@@ -571,22 +571,25 @@
 <body>
 
 <div class="proto-banner">
-  <strong>可看原型 · 非正式产品 · 时长与玩法未锁定</strong>
-  <span>HeaLoa Base · 一人进场景 → 第二人加入（模拟）→ 保存 → 自愿分享 → 可选看主站</span>
+  <strong>可看原型 · 非正式产品 · 时长与玩法未锁定 · 预览 v2026-09-23-b</strong>
+  <span>HeaLoa Base · 一人进场景 → 第二人加入（本机模拟）→ 保存 → 自愿分享 → 可选看主站真人光圈</span>
 </div>
 
 <div class="wrap">
 
   <!-- S0: Landing -->
   <section id="s0" class="screen">
-    <div class="brand">HEALOA BASE</div>
+    <div class="brand">HEALOA BASE · 预览 v2026-09-23-b</div>
     <h1>先走进一个疗愈场景，再让第二个人进来一起留下痕迹</h1>
-    <p class="lead">这是一份<strong>可点的演示</strong>：一个人进场景，另一个人加入后，屏幕上的共创作品会跟着变；你可以<strong>真正保存</strong>这份作品，并<strong>自愿分享</strong>。不是成品，也不是正式玩法锁。</p>
-    <p class="note">地点与说法来自 Cindy 本人提过的疗愈地（武当、云南森林、日本温泉、泰国等）。身体与季节在这里是<strong>你自己回答的问题</strong>，不是替你下健康结论、也不是自动把身体状态绑死到某个国家。</p>
+    <p class="lead">这是一份<strong>可点的演示</strong>：一个人进场景；点「第二人加入」时，第二人是<strong>本机按钮模拟</strong>（不是真人连线）。你可以<strong>真正保存</strong>这份作品，并<strong>自愿分享</strong>。不是成品，也不是正式玩法锁，更不是正式 App 上线。</p>
+    <p class="note">地点与说法来自 Cindy 本人提过的疗愈地例子。身体与季节是<strong>可选自述</strong>（可跳过），不作诊断、不自动绑国家。分享文案<strong>不会</strong>带上身体自述。</p>
     <div class="btn-row">
-      <button class="primary" type="button" id="btnStart">开始看看</button>
+      <button class="primary" type="button" id="btnStart">开始看看（可先答两句，也可跳过）</button>
+      <button class="warm" type="button" id="btnSkipIn">先随便进一个场景</button>
+      <button class="ghost hidden" type="button" id="btnRestore">重开找回上次本机保存</button>
     </div>
-    <p class="footer-meta">对外名：HeaLoa Base · 不对顾客称「Life Maps」<br />本页不接注册、不替你预约、不做 Keeper</p>
+    <p class="note ok hidden" id="restoreHint" style="margin-top:10px"></p>
+    <p class="footer-meta">对外名：HeaLoa Base · 不对顾客称「Life Maps」<br />本页不接注册、不替你预约、不做 Keeper · 第二人=模拟</p>
   </section>
 
   <!-- S1: Body × Season as questions -->
@@ -594,9 +597,9 @@
     <div class="steps" aria-hidden="true">
       <span class="on">1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span>4 保存</span><span>5 分享</span>
     </div>
-    <div class="brand">HEALOA BASE · 先问两句</div>
+    <div class="brand">HEALOA BASE · 可选两句</div>
     <h1>此刻身体感觉怎样？现在是什么季节？</h1>
-    <p class="sub">只是问题，帮你自己想清楚。答案不会被当成诊断，也不会自动判定「你该去哪国」。</p>
+    <p class="sub">可选。帮你自己想清楚；不作诊断、不自动判定「该去哪国」。不想答也可以直接进场景——不是「零问卷」硬宣称，只是这两句可不答。</p>
 
     <div class="card">
       <h2>1. 身体现在更接近哪一种？</h2>
@@ -622,6 +625,7 @@
 
     <div class="btn-row">
       <button class="primary" type="button" id="btnToPlaces" disabled>接下来选一个场景</button>
+      <button class="warm" type="button" id="btnSkipAnswers">先随便进一个场景（跳过自述）</button>
       <button class="ghost" type="button" data-back="s0">返回</button>
     </div>
   </section>
@@ -680,8 +684,8 @@
     </div>
     <div class="brand">HEALOA BASE · 同一场景</div>
     <h1 id="sceneHeading">你已进入场景</h1>
-    <p class="sub" id="sceneSub">现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」，看同一张共创物怎么变。</p>
-    <p class="note" id="simNote" style="display:none">第二人加入是<strong>本机模拟</strong>（点按钮触发），不是真实多人连线。<span class="sim-badge">仅演示</span></p>
+    <p class="sub" id="sceneSub">现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」（模拟），看同一张共创物怎么变。</p>
+    <p class="note" id="simNote">第二人是<strong>本机按钮模拟</strong>，不是真人连线；TA 的文案是预设演示，不是某位真实用户的贡献。<span class="sim-badge">仅模拟 · 非多人</span></p>
 
     <div class="scene-shell" id="sceneShell">
       <div class="scene-bg wudang" id="sceneBg"></div>
@@ -710,7 +714,7 @@
           </div>
           <div class="collage" id="collage" aria-live="polite">
             <div class="mark m1" id="mark1">你留下：今天先把脚步放慢。</div>
-            <div class="mark m2" id="mark2">TA 补上：我在同一片气里，加了一笔暖色。</div>
+            <div class="mark m2" id="mark2">【模拟·预设】TA 补上：我在同一片气里，加了一笔暖色。</div>
             <div class="layer-hint" id="layerHint">等待第二人留下一笔…</div>
           </div>
         </div>
@@ -732,9 +736,9 @@
     <div class="steps" aria-hidden="true">
       <span>1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span class="on">4 保存</span><span>5 分享</span>
     </div>
-    <div class="brand">HEALOA BASE · 保存</div>
+    <div class="brand">HEALOA BASE · 保存 <span class="sim-badge">第二人=模拟</span></div>
     <h1>把共创作品留下来</h1>
-    <p class="sub">下面两个动作是<strong>真的可用</strong>：写入本机浏览器，或下载一份 JSON / 图片卡片。不会上传到服务器，也不会替你发帖。</p>
+    <p class="sub">下面动作是<strong>真的可用</strong>：写入本机浏览器，或下载 JSON / 图片卡。不会上传服务器、不代发帖。导出内容<strong>不含</strong>身体自述；若有第二人痕迹，会标明为模拟。</p>
 
     <div class="card">
       <h2 id="saveSummaryTitle">共创摘要</h2>
@@ -761,9 +765,9 @@
     <div class="steps" aria-hidden="true">
       <span>1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span>4 保存</span><span class="on">5 分享</span>
     </div>
-    <div class="brand">HEALOA BASE · 自愿分享</div>
+    <div class="brand">HEALOA BASE · 自愿分享 <span class="sim-badge">第二人=模拟</span></div>
     <h1>想分享的话，可以自己发出去</h1>
-    <p class="sub">分享完全自愿。本原型<strong>不会</strong>自动发帖，也<strong>不做</strong>「会火 / 病毒传播」一类承诺——只提供系统分享、复制文案、或再下一次图片卡。</p>
+    <p class="sub">分享完全自愿。本原型<strong>不会</strong>自动发帖，也<strong>不做</strong>「会火 / 病毒传播」承诺。分享文案与分享卡<strong>不含身体自述</strong>；第二人一律标为模拟。</p>
 
     <div class="card">
       <h2>将分享的文案预览</h2>
@@ -782,9 +786,9 @@
     <div class="sep"></div>
 
     <div class="card handoff-card">
-      <h2>可选 · 想去真实的地方看看</h2>
-      <p class="hint">这是<strong>可选跳转</strong>：打开 HeaLoa 主站看看真实地方的介绍。App 原型本身<strong>不</strong>做注册、不代为预约、不做 Keeper。去不去、登不登录，都由你决定。</p>
-      <button class="warm" type="button" id="btnHandoff">想去真实的地方看看 → healoa.com/circles</button>
+      <h2>可选 · 去 HeaLoa 看看真人光圈</h2>
+      <p class="hint">这是<strong>可选跳转</strong>：打开 HeaLoa 主站，看看<strong>真人光圈</strong>相关介绍。本原型<strong>不</strong>做注册、不代预约、不做 Keeper，也<strong>不承诺</strong>主站上一定有匹配目的地 / 场次 / 报名库存。去不去、登不登录，都由你决定。</p>
+      <button class="warm" type="button" id="btnHandoff">去 HeaLoa 看真人光圈 → healoa.com/circles</button>
       <button class="ghost" type="button" id="btnHandoffHome" style="margin-top:8px">或打开 healoa.com 首页</button>
     </div>
 
@@ -802,7 +806,7 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">2026-09-23 · 可看原型 · 非正式产品<br />不锁时长 · 不锁 Circle Season / Keeper · 无医疗主张</p>
+    <p class="footer-meta">预览 v2026-09-23-b · 可看原型 · 非正式产品<br />不锁时长 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人=模拟</p>
   </section>
 
 </div>
@@ -830,7 +834,7 @@
       lineSolo: "云气很淡。你先在这里站稳。",
       lineDuo: "两个人站在同一道山门前，卡上多了一笔。",
       mark1: "你留下：今天先把脚步放慢。",
-      mark2: "TA 补上：我在同一片气里，加了一笔暖色。",
+      mark2: "【模拟·预设】TA 补上：我在同一片气里，加了一笔暖色。",
       bg: "wudang",
       deco: ["雾", "阶", "松", "云"],
       colors: ["#1a2840", "#6ec6c0", "#d4b08a"]
@@ -841,7 +845,7 @@
       lineSolo: "林光一跳一跳。你听见叶子自己在响。",
       lineDuo: "第二个人进来后，林间那张共创卡亮了一层。",
       mark1: "你留下：光斑落在肩上就够了。",
-      mark2: "TA 补上：我在树影边画了一小片绿。",
+      mark2: "【模拟·预设】TA 补上：我在树影边画了一小片绿。",
       bg: "yunnan",
       deco: ["叶", "光", "苔", "风"],
       colors: ["#1a3028", "#64aa78", "#d4b08a"]
@@ -852,7 +856,7 @@
       lineSolo: "热气从石缝里起来。你先把肩膀松开。",
       lineDuo: "有人坐到你对面，共创卡多了一道蒸汽痕迹。",
       mark1: "你留下：水温刚好，不用说话。",
-      mark2: "TA 补上：我把雾气描成第二层线。",
+      mark2: "【模拟·预设】TA 补上：我把雾气描成第二层线。",
       bg: "onsen",
       deco: ["气", "石", "汤", "灯"],
       colors: ["#2a2030", "#d4b08a", "#6ec6c0"]
@@ -863,7 +867,7 @@
       lineSolo: "空气暖而慢。你先找一块能坐下的阴影。",
       lineDuo: "第二个人过来后，共创卡上多了一抹晚色。",
       mark1: "你留下：慢一点，也算一种休息。",
-      mark2: "TA 补上：我加了一笔海边的暖黄。",
+      mark2: "【模拟·预设】TA 补上：我加了一笔海边的暖黄。",
       bg: "thai",
       deco: ["浪", "椰", "暖", "影"],
       colors: ["#1a3048", "#ffc878", "#6ec6c0"]
@@ -891,21 +895,19 @@
     return "hb-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
   }
 
-  function buildWorkPayload() {
+  function buildWorkPayload(opts) {
+    opts = opts || {};
+    var forPublic = !!opts.forPublic;
     var p = PLACES[state.placeId] || {};
-    return {
+    var payload = {
       schema: "healoa-base-cocreate/v1",
       workId: state.workId || makeWorkId(),
       externalName: "HeaLoa Base",
       prototype: true,
+      previewVersion: "v2026-09-23-b",
       notProductLock: true,
       createdAt: new Date().toISOString(),
       savedAt: state.savedAt || null,
-      questions: {
-        bodyFeeling: state.body,
-        season: state.season,
-        note: "用户自选问题，非医疗结论、非自动目的地处方"
-      },
       place: {
         id: state.placeId,
         name: p.name || null
@@ -913,12 +915,28 @@
       cocreate: {
         multiplayer: "simulated",
         joinedSecondPerson: !!state.joined,
+        secondPersonNote: "本机按钮模拟；TA 文案为预设，非真实用户贡献",
         mark1: p.mark1 || null,
         mark2: state.joined ? (p.mark2 || null) : null
       },
       lightFeel: state.feel,
-      disclaimer: "可看原型 · 非正式产品 · 时长与玩法未锁定 · 第二人加入为模拟"
+      disclaimer: "可看原型 · 非正式产品 · 时长与玩法未锁定 · 第二人加入为模拟 · 预览 v2026-09-23-b"
     };
+    if (!forPublic) {
+      payload.questions = {
+        bodyFeeling: state.body,
+        season: state.season,
+        optional: true,
+        note: "可选自述，仅存本机；非医疗结论；不会进入分享文案"
+      };
+    } else {
+      payload.privacy = {
+        bodyFeelingIncluded: false,
+        seasonIncluded: false,
+        note: "公开导出已去除身体自述与季节字段"
+      };
+    }
+    return payload;
   }
 
   function syncChips(containerId, key) {
@@ -937,16 +955,39 @@
     $("btnToPlaces").disabled = !(state.body && state.season);
   }
 
+  function goToPlacesEcho() {
+    if (state.body && state.season) {
+      $("answersEcho").innerHTML =
+        "你刚答的是：身体「" + state.body + "」、季节「" + state.season +
+        "」（仅本机参考，不会进入分享）。下面地点由你选——不是系统替你下结论。";
+    } else {
+      $("answersEcho").innerHTML =
+        "你选择了先随便进场景（身体/季节自述已跳过，可选）。下面地点由你选——不是系统替你下结论。";
+    }
+    show("s2");
+  }
+
   syncChips("bodyChips", "body");
   syncChips("seasonChips", "season");
 
   $("btnStart").addEventListener("click", function () { show("s1"); });
 
+  $("btnSkipIn").addEventListener("click", function () {
+    state.body = null;
+    state.season = null;
+    document.querySelectorAll("#bodyChips .chip.on, #seasonChips .chip.on").forEach(function (el) {
+      el.classList.remove("on");
+    });
+    $("btnToPlaces").disabled = true;
+    goToPlacesEcho();
+  });
+
+  $("btnSkipAnswers").addEventListener("click", function () {
+    goToPlacesEcho();
+  });
+
   $("btnToPlaces").addEventListener("click", function () {
-    $("answersEcho").innerHTML =
-      "你刚答的是：身体「" + state.body + "」、季节「" + state.season +
-      "」。下面地点由你选——不是系统替你下结论。Cindy 还提过：先在虚拟空间感受，才更容易想去线下。";
-    show("s2");
+    goToPlacesEcho();
   });
 
   document.querySelectorAll(".place").forEach(function (btn) {
@@ -984,17 +1025,17 @@
       deco.appendChild(el);
     });
 
+    $("simNote").style.display = "block";
     if (duo) {
       $("avatarP2").classList.add("show");
-      $("presenceText").textContent = "2 人在场 · 同场景（模拟）";
+      $("presenceText").textContent = "1 人 + 1 模拟同伴";
       $("mark2").classList.add("show");
       $("layerHint").classList.add("hide");
       $("artifact").classList.add("changed");
-      $("artifactTag").textContent = "两人共创 · 已变化";
+      $("artifactTag").textContent = "两人共创 · 第二人模拟";
       $("artifactTag").classList.add("live");
-      $("sceneHeading").textContent = "第二个人进来了";
-      $("sceneSub").textContent = "注意共创场景卡：第二笔痕迹出现了。同一场景里，作品被一起改写——不是代币、不是配对。";
-      $("simNote").style.display = "block";
+      $("sceneHeading").textContent = "模拟第二人已加入";
+      $("sceneSub").textContent = "注意共创场景卡：第二笔是预设演示文案，不是真实用户贡献。同一场景里作品被改写——不是代币、不是配对、不是真多人。";
       $("joinRow").classList.add("hidden");
       $("afterJoinRow").classList.remove("hidden");
     } else {
@@ -1006,8 +1047,7 @@
       $("artifactTag").textContent = "仅你的痕迹";
       $("artifactTag").classList.remove("live");
       $("sceneHeading").textContent = "你已进入「" + p.name + "」";
-      $("sceneSub").textContent = "现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」（模拟），看同一张共创物怎么变。";
-      $("simNote").style.display = "none";
+      $("sceneSub").textContent = "现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」（模拟），看同一张共创物怎么变——不会连上真人。";
       $("joinRow").classList.remove("hidden");
       $("afterJoinRow").classList.add("hidden");
     }
@@ -1031,9 +1071,10 @@
     var p = PLACES[state.placeId] || {};
     $("saveSummary").textContent =
       "场景：" + (p.name || "—") +
-      "\n身体自述：「" + (state.body || "—") + "」· 季节：「" + (state.season || "—") + "」" +
-      "\n共创：你的痕迹 + " + (state.joined ? "第二人一笔（模拟加入）" : "尚未加入第二人") +
-      "\n作品编号：" + (state.workId || "—");
+      "\n共创：你的痕迹 + " + (state.joined ? "第二人一笔（本机模拟 · 预设文案）" : "尚未加入第二人") +
+      "\n身体/季节自述：仅存本机（若有），不会进入分享或公开导出" +
+      "\n作品编号：" + (state.workId || "—") +
+      "\n版本：预览 v2026-09-23-b";
   }
 
   $("btnToSave").addEventListener("click", function () {
@@ -1045,12 +1086,13 @@
   $("btnSaveLocal").addEventListener("click", function () {
     try {
       state.savedAt = new Date().toISOString();
-      var payload = buildWorkPayload();
+      var payload = buildWorkPayload({ forPublic: false });
       state.workId = payload.workId;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      $("saveStatus").textContent = "已写入本机浏览器 localStorage（键名：" + STORAGE_KEY + "）。关页后仍可在同一浏览器读回。";
-      toast("已保存到本机");
+      $("saveStatus").textContent = "已写入本机 localStorage（键：" + STORAGE_KEY + "）。刷新后可在首页点「重开找回」。身体自述（若有）只留在本机，不会进入分享。";
+      toast("已保存到本机 · 可重开找回");
       fillSaveSummary();
+      refreshRestoreEntry();
     } catch (err) {
       $("saveStatus").textContent = "保存失败：" + (err && err.message ? err.message : "浏览器拒绝写入");
     }
@@ -1069,12 +1111,12 @@
 
   $("btnDownloadJson").addEventListener("click", function () {
     state.savedAt = state.savedAt || new Date().toISOString();
-    var payload = buildWorkPayload();
+    var payload = buildWorkPayload({ forPublic: true });
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     var name = "HeaLoa-Base-共创-" + (payload.place.name || "scene") + "-" + payload.workId + ".json";
     downloadBlob(name, blob);
-    $("saveStatus").textContent = "已触发 JSON 下载（文件留在你的下载目录）。";
-    toast("JSON 已开始下载");
+    $("saveStatus").textContent = "已触发 JSON 下载（公开导出，不含身体自述/季节字段）。";
+    toast("JSON 已开始下载（无身体字段）");
   });
 
   function drawShareCard() {
@@ -1104,7 +1146,7 @@
 
     ctx.fillStyle = "#8aa0b2";
     ctx.font = "22px sans-serif";
-    ctx.fillText("身体：「" + (state.body || "—") + "」 · 季节：「" + (state.season || "—") + "」", 48, 175);
+    ctx.fillText(state.joined ? "共创卡 · 第二人为本机模拟（非真人）" : "共创卡 · 仅你的痕迹", 48, 175);
 
     // card panel
     roundRect(ctx, 48, 220, w - 96, 420, 28);
@@ -1136,9 +1178,9 @@
 
     ctx.fillStyle = "#8aa0b2";
     ctx.font = "18px sans-serif";
-    ctx.fillText("非正式产品 · 时长与玩法未锁定", 48, h - 120);
+    ctx.fillText("非正式产品 · 预览 v2026-09-23-b · 时长未锁定", 48, h - 120);
     ctx.fillText("作品编号：" + (state.workId || "—"), 48, h - 88);
-    ctx.fillText("自愿分享 · 无病毒传播承诺", 48, h - 56);
+    ctx.fillText("自愿分享 · 不含身体自述 · 无病毒承诺", 48, h - 56);
 
     return canvas;
   }
@@ -1191,12 +1233,12 @@
   function shareText() {
     var p = PLACES[state.placeId] || {};
     return (
-      "【HeaLoa Base · 可看原型】\n" +
-      "我和一位同伴（模拟）在「" + (p.name || "场景") + "」留下了一张共创场景卡。\n" +
-      "身体自述：「" + (state.body || "—") + "」· 季节：「" + (state.season || "—") + "」\n" +
+      "【HeaLoa Base · 可看原型 · 预览 v2026-09-23-b】\n" +
+      "我在「" + (p.name || "场景") + "」留下了一张共创场景卡" +
+      (state.joined ? "（第二人为本机模拟，非真人连线）" : "") + "。\n" +
       (p.mark1 || "") + "\n" +
       (state.joined ? (p.mark2 || "") + "\n" : "") +
-      "——这是非正式原型演示，不是产品定论；分享完全自愿。"
+      "——非正式原型演示，不是产品定论；分享完全自愿；不含身体自述。"
     );
   }
 
@@ -1268,7 +1310,7 @@
 
   $("btnHandoff").addEventListener("click", function () {
     window.open("https://healoa.com/circles", "_blank", "noopener,noreferrer");
-    toast("已在新标签打开主站 circles（可选跳转）");
+    toast("已打开主站 · 看真人光圈（可选）");
   });
 
   $("btnHandoffHome").addEventListener("click", function () {
@@ -1286,8 +1328,86 @@
     $("feelAckText").style.display = "none";
     $("saveStatus").textContent = "";
     $("shareStatus").textContent = "";
+    refreshRestoreEntry();
     show("s0");
   }
+
+  function readSavedPayload() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || !data.place || !data.place.id) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function refreshRestoreEntry() {
+    var data = readSavedPayload();
+    var btn = $("btnRestore");
+    var hint = $("restoreHint");
+    if (!btn || !hint) return;
+    if (!data) {
+      btn.classList.add("hidden");
+      hint.classList.add("hidden");
+      hint.textContent = "";
+      return;
+    }
+    btn.classList.remove("hidden");
+    hint.classList.remove("hidden");
+    var when = data.savedAt || data.createdAt || "";
+    var placeName = (data.place && data.place.name) || "场景";
+    hint.textContent = "本机有一份已保存作品：「" + placeName + "」" +
+      (when ? " · " + when : "") +
+      "。点「重开找回」可回到保存页继续下载 / 分享（同一浏览器）。";
+  }
+
+  function restoreFromLocal() {
+    var data = readSavedPayload();
+    if (!data) {
+      toast("没有找到本机保存");
+      refreshRestoreEntry();
+      return;
+    }
+    state.placeId = data.place.id;
+    state.joined = !!(data.cocreate && data.cocreate.joinedSecondPerson);
+    state.workId = data.workId || makeWorkId();
+    state.savedAt = data.savedAt || data.createdAt || null;
+    state.feel = data.lightFeel || null;
+    if (data.questions) {
+      state.body = data.questions.bodyFeeling || null;
+      state.season = data.questions.season || null;
+    } else {
+      state.body = null;
+      state.season = null;
+    }
+    document.querySelectorAll("#bodyChips .chip").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-v") === state.body);
+    });
+    document.querySelectorAll("#seasonChips .chip").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-v") === state.season);
+    });
+    document.querySelectorAll(".place").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-id") === state.placeId);
+    });
+    $("btnEnter").disabled = !state.placeId;
+    maybeEnablePlaces();
+    if (!PLACES[state.placeId]) {
+      toast("保存的场景已失效，请重新选");
+      return;
+    }
+    paintScene(!!state.joined);
+    fillSaveSummary();
+    $("saveStatus").textContent = "已从本机读回（键：" + STORAGE_KEY + "）。可继续下载或去自愿分享。";
+    $("sharePreview").textContent = shareText();
+    show("s4");
+    toast("已重开找回本机作品");
+  }
+
+  $("btnRestore").addEventListener("click", restoreFromLocal);
+  refreshRestoreEntry();
 
   $("btnReplay").addEventListener("click", resetFlow);
   $("btnEndReplay").addEventListener("click", resetFlow);
