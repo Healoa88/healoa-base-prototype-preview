@@ -7,582 +7,180 @@
 <title>HeaLoa Base · 场景共创原型（可看 · 非正式）</title>
 <style>
   :root {
-    --bg: #0a1218;
-    --card: rgba(18, 30, 38, 0.92);
-    --text: #eef4f8;
-    --muted: #8aa0b2;
-    --aqua: #6ec6c0;
-    --aqua-dim: rgba(110, 198, 192, 0.16);
-    --gold: #d4b08a;
-    --gold-dim: rgba(212, 176, 138, 0.18);
-    --line: rgba(255, 255, 255, 0.10);
-    --ok: #8fd4a8;
-    --shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
-    --ease: cubic-bezier(.22, 1, .36, 1);
-    --radius: 18px;
+    --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
+    --aqua: #6ec6c0; --aqua-dim: rgba(110, 198, 192, 0.16); --gold: #d4b08a;
+    --gold-dim: rgba(212, 176, 138, 0.18); --line: rgba(255, 255, 255, 0.10);
+    --ok: #8fd4a8; --shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
+    --ease: cubic-bezier(.22, 1, .36, 1); --radius: 18px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { min-height: 100%; }
   body {
-    font-family: "PingFang SC", "SF Pro Text", "Noto Sans SC", "Hiragino Sans GB",
-      system-ui, -apple-system, sans-serif;
+    font-family: "PingFang SC", "SF Pro Text", "Noto Sans SC", "Hiragino Sans GB", system-ui, -apple-system, sans-serif;
     color: var(--text);
-    background:
-      radial-gradient(900px 480px at 50% -10%, rgba(40, 90, 100, 0.38), transparent 55%),
-      radial-gradient(700px 420px at 90% 80%, rgba(212, 176, 138, 0.08), transparent 50%),
-      var(--bg);
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.45;
+    background: radial-gradient(900px 480px at 50% -10%, rgba(40, 90, 100, 0.38), transparent 55%),
+      radial-gradient(700px 420px at 90% 80%, rgba(212, 176, 138, 0.08), transparent 50%), var(--bg);
+    -webkit-font-smoothing: antialiased; line-height: 1.45;
   }
-
-  .proto-banner {
-    position: sticky; top: 0; z-index: 50;
-    backdrop-filter: blur(12px);
-    background: rgba(10, 18, 24, 0.88);
-    border-bottom: 1px solid var(--line);
-    padding: 10px 16px;
-    text-align: center;
-  }
-  .proto-banner strong {
-    display: block;
-    font-size: 12px;
-    letter-spacing: 0.04em;
-    color: var(--gold);
-    font-weight: 650;
-  }
-  .proto-banner span {
-    display: block;
-    margin-top: 3px;
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  .wrap {
-    max-width: 420px;
-    margin: 0 auto;
-    padding: 18px 18px max(40px, env(safe-area-inset-bottom));
-  }
-
+  .proto-banner { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px);
+    background: rgba(10, 18, 24, 0.88); border-bottom: 1px solid var(--line); padding: 10px 16px; text-align: center; }
+  .proto-banner strong { display: block; font-size: 12px; letter-spacing: 0.04em; color: var(--gold); font-weight: 650; }
+  .proto-banner span { display: block; margin-top: 3px; font-size: 11px; color: var(--muted); }
+  .wrap { max-width: 420px; margin: 0 auto; padding: 18px 18px max(40px, env(safe-area-inset-bottom)); }
   .screen { animation: rise 0.38s var(--ease) both; }
   .hidden { display: none !important; }
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .brand {
-    font-size: 12px;
-    color: var(--aqua);
-    letter-spacing: 0.08em;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-  h1 {
-    font-size: 1.38rem;
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    line-height: 1.3;
-    margin-bottom: 10px;
-  }
-  .lead {
-    font-size: 0.95rem;
-    color: var(--text);
-    margin-bottom: 14px;
-  }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .brand { font-size: 12px; color: var(--aqua); letter-spacing: 0.08em; font-weight: 600; margin-bottom: 10px; }
+  h1 { font-size: 1.38rem; font-weight: 650; letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 10px; }
+  .lead { font-size: 0.95rem; color: var(--text); margin-bottom: 14px; }
   .lead strong { color: var(--aqua); }
-  .sub {
-    font-size: 0.84rem;
-    color: var(--muted);
-    margin-bottom: 18px;
-    line-height: 1.55;
-  }
-  .note {
-    font-size: 0.78rem;
-    color: var(--muted);
-    border-left: 2px solid var(--gold);
-    padding: 6px 0 6px 10px;
-    margin-bottom: 18px;
-    background: var(--gold-dim);
-    border-radius: 0 8px 8px 0;
-  }
-  .note.ok {
-    border-left-color: var(--aqua);
-    background: var(--aqua-dim);
-  }
-
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow);
-  }
-  .card h2 {
-    font-size: 0.95rem;
-    font-weight: 650;
-    margin-bottom: 10px;
-  }
-  .card .hint {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .chip {
-    appearance: none;
-    border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--text);
-    border-radius: 999px;
-    padding: 9px 14px;
-    font-size: 0.88rem;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s, transform 0.12s;
-    font-family: inherit;
-  }
+  .sub { font-size: 0.84rem; color: var(--muted); margin-bottom: 18px; line-height: 1.55; }
+  .note { font-size: 0.78rem; color: var(--muted); border-left: 2px solid var(--gold); padding: 6px 0 6px 10px;
+    margin-bottom: 18px; background: var(--gold-dim); border-radius: 0 8px 8px 0; }
+  .note.ok { border-left-color: var(--aqua); background: var(--aqua-dim); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .card h2 { font-size: 0.95rem; font-weight: 650; margin-bottom: 10px; }
+  .card .hint { font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,0.04); color: var(--text);
+    border-radius: 999px; padding: 9px 14px; font-size: 0.88rem; cursor: pointer; font-family: inherit; }
   .chip:active { transform: scale(0.97); }
-  .chip.on {
-    border-color: rgba(110, 198, 192, 0.55);
-    background: var(--aqua-dim);
-    color: var(--aqua);
-  }
-
+  .chip.on { border-color: rgba(110,198,192,0.55); background: var(--aqua-dim); color: var(--aqua); }
   button.primary, button.ghost, button.warm, button.soft {
-    appearance: none;
-    border: 0;
-    border-radius: 999px;
-    padding: 15px 18px;
-    font-size: 1rem;
-    font-weight: 650;
-    cursor: pointer;
-    width: 100%;
-    transition: transform 0.15s var(--ease);
-    font-family: inherit;
+    appearance: none; border: 0; border-radius: 999px; padding: 15px 18px; font-size: 1rem; font-weight: 650;
+    cursor: pointer; width: 100%; font-family: inherit; transition: transform 0.15s var(--ease);
   }
-  button.primary:active, button.ghost:active, button.warm:active, button.soft:active {
-    transform: scale(0.975);
-  }
-  button.primary {
-    background: linear-gradient(180deg, #7fd4ce, var(--aqua));
-    color: #04201c;
-    box-shadow: 0 8px 26px rgba(110, 198, 192, 0.28);
-  }
-  button.primary:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-  button.ghost {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--line);
-    margin-top: 8px;
-    font-weight: 500;
-  }
-  button.warm {
-    background: linear-gradient(180deg, #e0c4a0, var(--gold));
-    color: #2a1a08;
-    box-shadow: 0 8px 26px rgba(212, 176, 138, 0.28);
-  }
-  button.soft {
-    background: rgba(255,255,255,0.06);
-    color: var(--text);
-    border: 1px solid var(--line);
-    font-weight: 550;
-    margin-top: 8px;
-  }
+  button.primary:active, button.ghost:active, button.warm:active, button.soft:active { transform: scale(0.975); }
+  button.primary { background: linear-gradient(180deg, #7fd4ce, var(--aqua)); color: #04201c; box-shadow: 0 8px 26px rgba(110,198,192,0.28); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); margin-top: 8px; font-weight: 500; }
+  button.warm { background: linear-gradient(180deg, #e0c4a0, var(--gold)); color: #2a1a08; box-shadow: 0 8px 26px rgba(212,176,138,0.28); }
+  button.soft { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--line); font-weight: 550; margin-top: 8px; }
   .btn-row { margin-top: 6px; }
-  .btn-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 8px;
-  }
+  .btn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
   .btn-pair button { margin-top: 0; }
-
   .places { display: flex; flex-direction: column; gap: 10px; }
-  .place {
-    appearance: none;
-    width: 100%;
-    text-align: left;
-    border: 1px solid var(--line);
-    background: linear-gradient(145deg, rgba(22, 36, 44, 0.95), rgba(14, 28, 34, 0.9));
-    border-radius: 16px;
-    padding: 14px;
-    color: var(--text);
-    cursor: pointer;
-    display: grid;
-    grid-template-columns: 52px 1fr;
-    gap: 12px;
-    align-items: center;
-    transition: border-color 0.15s, transform 0.12s;
-    font-family: inherit;
-  }
+  .place { appearance: none; width: 100%; text-align: left; border: 1px solid var(--line);
+    background: linear-gradient(145deg, rgba(22,36,44,0.95), rgba(14,28,34,0.9)); border-radius: 16px; padding: 14px;
+    color: var(--text); cursor: pointer; display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; font-family: inherit; }
   .place:active { transform: scale(0.985); }
-  .place.on {
-    border-color: rgba(110, 198, 192, 0.55);
-    box-shadow: 0 0 0 1px rgba(110, 198, 192, 0.25);
-  }
-  .place-icon {
-    width: 52px; height: 52px;
-    border-radius: 14px;
-    display: grid; place-items: center;
-    font-size: 1.45rem;
-    background: var(--aqua-dim);
-  }
-  .place-icon.forest { background: rgba(100, 170, 120, 0.18); }
-  .place-icon.onsen { background: rgba(212, 176, 138, 0.22); }
-  .place-icon.thai { background: rgba(110, 170, 210, 0.18); }
-  .place-icon.wudang { background: rgba(140, 160, 200, 0.2); }
+  .place.on { border-color: rgba(110,198,192,0.55); box-shadow: 0 0 0 1px rgba(110,198,192,0.25); }
+  .place-icon { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; font-size: 1.45rem; background: var(--aqua-dim); }
+  .place-icon.forest { background: rgba(100,170,120,0.18); }
+  .place-icon.onsen { background: rgba(212,176,138,0.22); }
+  .place-icon.thai { background: rgba(110,170,210,0.18); }
+  .place-icon.wudang { background: rgba(140,160,200,0.2); }
   .place b { display: block; font-size: 0.98rem; font-weight: 650; margin-bottom: 3px; }
   .place span { display: block; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
 
-  .scene-shell {
-    position: relative;
-    border-radius: 22px;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    min-height: 340px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow);
-  }
-  .scene-bg {
-    position: absolute; inset: 0;
-    transition: background 0.5s var(--ease);
-  }
-  .scene-bg.wudang {
-    background:
-      radial-gradient(ellipse at 50% 20%, rgba(180, 200, 230, 0.25), transparent 50%),
-      linear-gradient(180deg, #1a2840 0%, #243850 35%, #2a4050 60%, #1a3028 100%);
-  }
-  .scene-bg.yunnan {
-    background:
-      radial-gradient(ellipse at 30% 70%, rgba(80, 160, 100, 0.35), transparent 45%),
-      linear-gradient(180deg, #1a3028 0%, #243828 40%, #1e4030 70%, #152820 100%);
-  }
-  .scene-bg.onsen {
-    background:
-      radial-gradient(ellipse at 50% 85%, rgba(212, 176, 138, 0.35), transparent 45%),
-      linear-gradient(180deg, #2a2030 0%, #3a3040 30%, #4a3840 55%, #2a2830 100%);
-  }
-  .scene-bg.thai {
-    background:
-      radial-gradient(ellipse at 70% 30%, rgba(255, 200, 120, 0.2), transparent 40%),
-      linear-gradient(180deg, #1a3048 0%, #204058 35%, #286068 65%, #1a4040 100%);
-  }
-
-  .scene-mist {
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 50% 100%, rgba(255,255,255,0.08), transparent 55%);
-    pointer-events: none;
-  }
-  .scene-decoration {
-    position: absolute; inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
-  .deco {
-    position: absolute;
-    opacity: 0.55;
-    font-size: 1.6rem;
-    filter: blur(0.2px);
-  }
-
-  .scene-top {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 14px 14px 0;
-  }
-  .scene-label {
-    font-size: 11px;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: rgba(0,0,0,0.35);
-    border: 1px solid var(--line);
-    color: var(--gold);
-    backdrop-filter: blur(6px);
-  }
-  .presence {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .avatar {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.35);
-    display: grid; place-items: center;
-    font-size: 11px;
-    font-weight: 700;
-    background: rgba(110, 198, 192, 0.5);
-    color: #04201c;
-    transition: transform 0.35s var(--ease), opacity 0.35s;
-  }
-  .avatar.p2 {
-    background: rgba(212, 176, 138, 0.7);
-    color: #2a1a08;
-    opacity: 0;
-    transform: scale(0.4);
-  }
-  .avatar.p2.show {
-    opacity: 1;
-    transform: scale(1);
-  }
-  .presence-text {
-    font-size: 11px;
-    color: rgba(255,255,255,0.75);
-    background: rgba(0,0,0,0.28);
-    padding: 4px 8px;
-    border-radius: 8px;
-  }
-
-  .scene-body {
-    position: relative;
-    z-index: 2;
-    padding: 28px 16px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-  }
-  .scene-title { text-align: center; }
-  .scene-title h2 {
-    font-size: 1.2rem;
-    font-weight: 650;
-    margin-bottom: 4px;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
-  }
-  .scene-title p {
-    font-size: 0.82rem;
-    color: rgba(238, 244, 248, 0.78);
-  }
-
-  .artifact {
-    width: 100%;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.14);
-    background: rgba(8, 14, 18, 0.55);
-    backdrop-filter: blur(8px);
-    padding: 14px;
-    transition: box-shadow 0.4s, border-color 0.4s;
-  }
-  .artifact.changed {
-    border-color: rgba(110, 198, 192, 0.45);
-    box-shadow: 0 0 28px rgba(110, 198, 192, 0.22);
-  }
-  .artifact-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .artifact-head b {
-    font-size: 0.82rem;
-    color: var(--gold);
-  }
-  .artifact-head .tag {
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.06);
-    color: var(--muted);
-  }
-  .artifact-head .tag.live {
-    background: var(--aqua-dim);
-    color: var(--aqua);
-  }
-
-  .collage {
-    position: relative;
-    height: 120px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.03);
-    border: 1px dashed rgba(255,255,255,0.12);
-    overflow: hidden;
-  }
-  .mark {
-    position: absolute;
-    border-radius: 10px;
-    padding: 8px 10px;
-    font-size: 0.78rem;
-    line-height: 1.35;
-    max-width: 58%;
-    transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
-  }
-  .mark.m1 {
-    left: 10px; top: 14px;
-    background: rgba(110, 198, 192, 0.22);
-    border: 1px solid rgba(110, 198, 192, 0.35);
-    color: #c8ebe8;
-  }
-  .mark.m2 {
-    right: 10px; bottom: 12px;
-    background: rgba(212, 176, 138, 0.25);
-    border: 1px solid rgba(212, 176, 138, 0.4);
-    color: #f0e0c8;
-    opacity: 0;
-    transform: translateY(12px) scale(0.92);
-  }
-  .mark.m2.show {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  .layer-hint {
-    position: absolute;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.35);
-    white-space: nowrap;
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
-  .layer-hint.hide { opacity: 0; }
-
-  .join-pulse {
-    animation: pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 8px 26px rgba(212, 176, 138, 0.28); }
-    50% { box-shadow: 0 8px 32px rgba(212, 176, 138, 0.5); }
-  }
-
-  .sim-badge {
-    display: inline-block;
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 999px;
-    background: rgba(212, 176, 138, 0.2);
-    color: var(--gold);
-    margin-left: 4px;
-    vertical-align: middle;
-  }
-
-  .save-status {
-    font-size: 0.8rem;
-    color: var(--ok);
-    margin-top: 8px;
-    min-height: 1.2em;
-  }
-  .share-status {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 8px;
-    min-height: 1.2em;
-  }
-
-  .handoff-card {
-    border: 1px dashed rgba(110, 198, 192, 0.35);
-    background: rgba(110, 198, 192, 0.06);
-  }
+  .scene-shell { position: relative; border-radius: 22px; overflow: hidden; border: 1px solid var(--line);
+    min-height: 420px; margin-bottom: 12px; box-shadow: var(--shadow); touch-action: none; }
+  .scene-bg { position: absolute; inset: 0; transition: background 0.5s var(--ease), filter 0.4s; }
+  .scene-bg.wudang { background: radial-gradient(ellipse at 50% 18%, rgba(180,200,230,0.28), transparent 50%),
+    linear-gradient(180deg, #1a2840 0%, #243850 35%, #2a4050 60%, #1a3028 100%); }
+  .scene-bg.yunnan { background: radial-gradient(ellipse at 30% 70%, rgba(80,160,100,0.38), transparent 45%),
+    linear-gradient(180deg, #1a3028 0%, #243828 40%, #1e4030 70%, #152820 100%); }
+  .scene-bg.onsen { background: radial-gradient(ellipse at 50% 85%, rgba(212,176,138,0.38), transparent 45%),
+    linear-gradient(180deg, #2a2030 0%, #3a3040 30%, #4a3840 55%, #2a2830 100%); }
+  .scene-bg.thai { background: radial-gradient(ellipse at 70% 30%, rgba(255,200,120,0.22), transparent 40%),
+    linear-gradient(180deg, #1a3048 0%, #204058 35%, #286068 65%, #1a4040 100%); }
+  .scene-bg.light-on { filter: brightness(1.18) saturate(1.1); }
+  .scene-bg.wind-on { animation: sway 3.2s ease-in-out infinite; }
+  @keyframes sway { 0%,100%{transform:translateX(0)} 50%{transform:translateX(3px)} }
+  .scene-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+  .scene-mist { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(255,255,255,0.08), transparent 55%);
+    pointer-events: none; z-index: 1; transition: opacity 0.4s; }
+  .scene-mist.steam-on { background: radial-gradient(ellipse at 40% 80%, rgba(255,255,255,0.18), transparent 40%),
+    radial-gradient(ellipse at 60% 90%, rgba(212,176,138,0.2), transparent 45%); animation: mistPulse 4s ease-in-out infinite; }
+  @keyframes mistPulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
+  .scene-top { position: relative; z-index: 4; display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 12px 12px 0; pointer-events: none; }
+  .scene-top > * { pointer-events: auto; }
+  .scene-label { font-size: 11px; padding: 5px 10px; border-radius: 999px; background: rgba(0,0,0,0.35);
+    border: 1px solid var(--line); color: var(--gold); backdrop-filter: blur(6px); }
+  .presence { display: flex; gap: 6px; align-items: center; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35);
+    display: grid; place-items: center; font-size: 11px; font-weight: 700; background: rgba(110,198,192,0.5); color: #04201c;
+    transition: transform 0.35s var(--ease), opacity 0.35s; }
+  .avatar.p2 { background: rgba(212,176,138,0.7); color: #2a1a08; opacity: 0; transform: scale(0.4); }
+  .avatar.p2.show { opacity: 1; transform: scale(1); }
+  .presence-text { font-size: 11px; color: rgba(255,255,255,0.75); background: rgba(0,0,0,0.28); padding: 4px 8px; border-radius: 8px; }
+  .audio-chip { appearance: none; border: 1px solid var(--line); background: rgba(0,0,0,0.4); color: var(--text);
+    border-radius: 999px; padding: 5px 10px; font-size: 11px; cursor: pointer; font-family: inherit; backdrop-filter: blur(6px); }
+  .audio-chip.muted { color: var(--muted); }
+  .audio-chip.no-audio { opacity: 0.7; }
+  .play-stage { position: relative; z-index: 3; height: 260px; margin: 8px 12px 0; border-radius: 16px;
+    border: 1px dashed rgba(255,255,255,0.18); background: rgba(0,0,0,0.12); overflow: hidden; cursor: crosshair; touch-action: none; }
+  .stage-hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 0.78rem;
+    color: rgba(255,255,255,0.45); text-align: center; pointer-events: none; padding: 0 16px; transition: opacity 0.3s; line-height: 1.45; }
+  .stage-hint.hide { opacity: 0; }
+  .drop-mark { position: absolute; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 1.25rem; background: rgba(8,14,18,0.55); border: 1.5px solid rgba(110,198,192,0.45);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35); cursor: grab; user-select: none; touch-action: none; z-index: 5; }
+  .drop-mark.p2 { border-color: rgba(212,176,138,0.55); background: rgba(40,28,18,0.55); }
+  .drop-mark:active { cursor: grabbing; transform: scale(1.08); }
+  .drop-mark.selected { box-shadow: 0 0 0 2px rgba(110,198,192,0.7), 0 4px 16px rgba(0,0,0,0.35); }
+  .scene-footer-bar { position: relative; z-index: 4; padding: 10px 12px 12px; }
+  .scene-title-mini { text-align: center; margin-bottom: 8px; }
+  .scene-title-mini h2 { font-size: 1.05rem; font-weight: 650; text-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+  .scene-title-mini p { font-size: 0.78rem; color: rgba(238,244,248,0.78); }
+  .tool-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; justify-content: center; }
+  .tool { appearance: none; border: 1px solid var(--line); background: rgba(0,0,0,0.35); color: var(--text);
+    border-radius: 999px; padding: 7px 11px; font-size: 0.78rem; cursor: pointer; font-family: inherit; backdrop-filter: blur(6px); }
+  .tool.on { border-color: rgba(110,198,192,0.55); background: var(--aqua-dim); color: var(--aqua); }
+  .tool.fx.on { border-color: rgba(212,176,138,0.55); background: var(--gold-dim); color: var(--gold); }
+  .create-line { display: flex; gap: 8px; margin-top: 4px; }
+  .create-line input { flex: 1; appearance: none; border: 1px solid var(--line); background: rgba(8,14,18,0.55);
+    color: var(--text); border-radius: 12px; padding: 10px 12px; font-size: 0.88rem; font-family: inherit; }
+  .create-line input::placeholder { color: var(--muted); }
+  .create-line button { appearance: none; border: 0; border-radius: 12px; padding: 10px 14px; background: var(--aqua);
+    color: #04201c; font-weight: 650; font-size: 0.85rem; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .mark-count { font-size: 0.72rem; color: var(--muted); text-align: center; margin-top: 6px; }
+  .compare-box { border: 1px solid rgba(110,198,192,0.3); background: rgba(110,198,192,0.06); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+  .compare-box h3 { font-size: 0.85rem; font-weight: 650; margin-bottom: 8px; color: var(--aqua); }
+  .compare-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .compare-toggle button { appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,0.04);
+    color: var(--muted); border-radius: 10px; padding: 8px; font-size: 0.8rem; cursor: pointer; font-family: inherit; }
+  .compare-toggle button.on { border-color: rgba(110,198,192,0.5); color: var(--aqua); background: var(--aqua-dim); }
+  .compare-view { font-size: 0.82rem; line-height: 1.5; color: var(--text); min-height: 3.2em; white-space: pre-wrap; }
+  .join-pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{box-shadow:0 8px 26px rgba(212,176,138,0.28)} 50%{box-shadow:0 8px 32px rgba(212,176,138,0.5)} }
+  .sim-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 999px; background: rgba(212,176,138,0.2); color: var(--gold); margin-left: 4px; vertical-align: middle; }
+  .save-status, .share-status { font-size: 0.8rem; margin-top: 8px; min-height: 1.2em; }
+  .save-status { color: var(--ok); } .share-status { color: var(--muted); }
+  .handoff-card { border: 1px dashed rgba(110,198,192,0.35); background: rgba(110,198,192,0.06); }
   .handoff-card .hint { margin-bottom: 10px; }
-
-  .toast {
-    position: fixed;
-    left: 50%;
-    bottom: max(24px, env(safe-area-inset-bottom));
-    transform: translateX(-50%) translateY(20px);
-    background: rgba(18, 30, 38, 0.96);
-    border: 1px solid rgba(110, 198, 192, 0.4);
-    color: var(--text);
-    padding: 10px 16px;
-    border-radius: 12px;
-    font-size: 0.84rem;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s, transform 0.3s var(--ease);
-    z-index: 80;
-    max-width: calc(100% - 40px);
-    text-align: center;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  .feel-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-  }
-  .feel {
-    appearance: none;
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,0.04);
-    color: var(--text);
-    border-radius: 14px;
-    padding: 14px 8px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    font-family: inherit;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .feel.on {
-    border-color: rgba(110, 198, 192, 0.55);
-    background: var(--aqua-dim);
-    color: var(--aqua);
-  }
-
-  .footer-meta {
-    margin-top: 22px;
-    font-size: 0.72rem;
-    color: var(--muted);
-    text-align: center;
-    line-height: 1.5;
-  }
-  .sep {
-    height: 1px;
-    background: var(--line);
-    margin: 16px 0;
-  }
-
-  .steps {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .steps span {
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.04);
-    color: var(--muted);
-    border: 1px solid transparent;
-  }
-  .steps span.on {
-    color: var(--aqua);
-    border-color: rgba(110, 198, 192, 0.35);
-    background: var(--aqua-dim);
-  }
-
+  .toast { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
+    background: rgba(18,30,38,0.96); border: 1px solid rgba(110,198,192,0.4); color: var(--text); padding: 10px 16px;
+    border-radius: 12px; font-size: 0.84rem; opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s var(--ease);
+    z-index: 80; max-width: calc(100% - 40px); text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .feel-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .feel { appearance: none; border: 1px solid var(--line); background: rgba(255,255,255,0.04); color: var(--text);
+    border-radius: 14px; padding: 14px 8px; font-size: 0.85rem; cursor: pointer; font-family: inherit; }
+  .feel.on { border-color: rgba(110,198,192,0.55); background: var(--aqua-dim); color: var(--aqua); }
+  .footer-meta { margin-top: 22px; font-size: 0.72rem; color: var(--muted); text-align: center; line-height: 1.5; }
+  .sep { height: 1px; background: var(--line); margin: 16px 0; }
+  .steps { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+  .steps span { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid transparent; }
+  .steps span.on { color: var(--aqua); border-color: rgba(110,198,192,0.35); background: var(--aqua-dim); }
+  .share-preview-img { width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 10px; display: none; }
+  .share-preview-img.show { display: block; }
   canvas#cardCanvas { display: none; }
 </style>
 </head>
 <body>
 
 <div class="proto-banner">
-  <strong>可看原型 · 非正式产品 · 时长与玩法未锁定 · 预览 v2026-09-23-b</strong>
-  <span>HeaLoa Base · 一人进场景 → 第二人加入（本机模拟）→ 保存 → 自愿分享 → 可选看主站真人光圈</span>
+  <strong>可看原型 · 非正式产品 · 时长与玩法未锁定 · 预览 v2026-09-24-a</strong>
+  <span>HeaLoa Base · 进场景可看/听/操作 → 独自留下痕迹 → 第二人（本机模拟）可见对比 → 保存/分享 → 可选看主站真人光圈</span>
 </div>
-
 <div class="wrap">
-
-  <!-- S0: Landing -->
   <section id="s0" class="screen">
-    <div class="brand">HEALOA BASE · 预览 v2026-09-23-b</div>
-    <h1>先走进一个疗愈场景，再让第二个人进来一起留下痕迹</h1>
-    <p class="lead">这是一份<strong>可点的演示</strong>：一个人进场景；点「第二人加入」时，第二人是<strong>本机按钮模拟</strong>（不是真人连线）。你可以<strong>真正保存</strong>这份作品，并<strong>自愿分享</strong>。不是成品，也不是正式玩法锁，更不是正式 App 上线。</p>
-    <p class="note">地点与说法来自 Cindy 本人提过的疗愈地例子。身体与季节是<strong>可选自述</strong>（可跳过），不作诊断、不自动绑国家。分享文案<strong>不会</strong>带上身体自述。</p>
+    <div class="brand">HEALOA BASE · 预览 v2026-09-24-a</div>
+    <h1>走进一个疗愈场景：看得见、听得到、能动手留下痕迹</h1>
+    <p class="lead">这是一份<strong>可点的演示</strong>：选地方后马上进入可玩场景（动画气氛 + 可选环境声 + 放置/拖动痕迹）。第二人加入是<strong>本机按钮模拟</strong>（不是真人连线），会给你<strong>独自 vs 双人</strong>的可见对比。你可以<strong>真正保存</strong>并<strong>自愿分享</strong>（分享前预览；不含身体自述）。不是成品，也不是正式 App 上线。</p>
+    <p class="note">地点来自 Cindy 提过的疗愈地例子。身体与季节是<strong>可选自述</strong>（可跳过），不作诊断。系统<strong>不</strong>根据身体替你指定地方。</p>
     <div class="btn-row">
       <button class="primary" type="button" id="btnStart">开始看看（可先答两句，也可跳过）</button>
       <button class="warm" type="button" id="btnSkipIn">先随便进一个场景</button>
@@ -592,18 +190,16 @@
     <p class="footer-meta">对外名：HeaLoa Base · 不对顾客称「Life Maps」<br />本页不接注册、不替你预约、不做 Keeper · 第二人=模拟</p>
   </section>
 
-  <!-- S1: Body × Season as questions -->
   <section id="s1" class="screen hidden">
     <div class="steps" aria-hidden="true">
-      <span class="on">1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span>4 保存</span><span>5 分享</span>
+      <span class="on">1 身体×季节</span><span>2 选地方</span><span>3 进场景玩</span><span>4 保存</span><span>5 分享</span>
     </div>
     <div class="brand">HEALOA BASE · 可选两句</div>
     <h1>此刻身体感觉怎样？现在是什么季节？</h1>
-    <p class="sub">可选。帮你自己想清楚；不作诊断、不自动判定「该去哪国」。不想答也可以直接进场景——不是「零问卷」硬宣称，只是这两句可不答。</p>
-
+    <p class="sub">可选。帮你自己想清楚；不作诊断、不自动判定「该去哪国」。不想答也可以直接进场景。</p>
     <div class="card">
       <h2>1. 身体现在更接近哪一种？</h2>
-      <p class="hint">用户自述 · 非医疗结论</p>
+      <p class="hint">用户自述 · 非医疗结论 · 不会进入公开分享</p>
       <div class="chips" id="bodyChips" role="group" aria-label="身体感觉">
         <button type="button" class="chip" data-v="累、想放空">累、想放空</button>
         <button type="button" class="chip" data-v="肩颈紧、需要暖">肩颈紧、需要暖</button>
@@ -611,7 +207,6 @@
         <button type="button" class="chip" data-v="还好，想换个环境">还好，想换个环境</button>
       </div>
     </div>
-
     <div class="card">
       <h2>2. 你现在所处的季节是？</h2>
       <p class="hint">季节问题 · 不作健康处方</p>
@@ -622,7 +217,6 @@
         <button type="button" class="chip" data-v="冬">冬</button>
       </div>
     </div>
-
     <div class="btn-row">
       <button class="primary" type="button" id="btnToPlaces" disabled>接下来选一个场景</button>
       <button class="warm" type="button" id="btnSkipAnswers">先随便进一个场景（跳过自述）</button>
@@ -630,121 +224,105 @@
     </div>
   </section>
 
-  <!-- S2: Pick place -->
   <section id="s2" class="screen hidden">
     <div class="steps" aria-hidden="true">
-      <span>1 身体×季节</span><span class="on">2 选地方</span><span>3 共创</span><span>4 保存</span><span>5 分享</span>
+      <span>1 身体×季节</span><span class="on">2 选地方</span><span>3 进场景玩</span><span>4 保存</span><span>5 分享</span>
     </div>
     <div class="brand">HEALOA BASE · 虚拟预览</div>
     <h1>选一个想先「走进去」的地方</h1>
-    <p class="sub" id="answersEcho">先在线上感受一下气氛。Cindy 提过：虚拟预览在前，才更容易想去线下；亚洲这些地方也常被她当作成本更友好的减压例子。</p>
+    <p class="sub" id="answersEcho">选好后马上进入可玩场景：看得见气氛、可选环境声、能放下痕迹。地点由你选——不是系统根据身体开的处方。</p>
     <p class="note">下列地点均为 Cindy 语音里点过名的例子，不是系统替你算出来的处方目的地。</p>
-
     <div class="places" id="placeList">
-      <button type="button" class="place" data-id="wudang">
-        <div class="place-icon wudang" aria-hidden="true">山</div>
-        <div>
-          <b>武当山</b>
-          <span>山门前的静气 · 适合先站一会儿、慢慢走</span>
-        </div>
-      </button>
-      <button type="button" class="place" data-id="yunnan">
-        <div class="place-icon forest" aria-hidden="true">林</div>
-        <div>
-          <b>云南森林</b>
-          <span>林间光斑与湿润空气 · 森林疗愈的例子</span>
-        </div>
-      </button>
-      <button type="button" class="place" data-id="onsen">
-        <div class="place-icon onsen" aria-hidden="true">泉</div>
-        <div>
-          <b>日本温泉</b>
-          <span>热气与石阶 · onsen 式放松的例子</span>
-        </div>
-      </button>
-      <button type="button" class="place" data-id="thai">
-        <div class="place-icon thai" aria-hidden="true">海</div>
-        <div>
-          <b>泰国（暖地例子）</b>
-          <span>暖、慢、成本相对友好的减压例子</span>
-        </div>
-      </button>
+      <button type="button" class="place" data-id="wudang"><div class="place-icon wudang" aria-hidden="true">山</div><div><b>武当山</b><span>山门静气 · 雾与石阶 · 可放足迹/松针</span></div></button>
+      <button type="button" class="place" data-id="yunnan"><div class="place-icon forest" aria-hidden="true">林</div><div><b>云南森林</b><span>林光与湿润空气 · 可放叶/光斑</span></div></button>
+      <button type="button" class="place" data-id="onsen"><div class="place-icon onsen" aria-hidden="true">泉</div><div><b>日本温泉</b><span>热气与石阶 · 可放石/灯</span></div></button>
+      <button type="button" class="place" data-id="thai"><div class="place-icon thai" aria-hidden="true">海</div><div><b>泰国海边</b><span>暖、慢、浪声 · 可放贝壳/椰影</span></div></button>
     </div>
-
     <div class="btn-row" style="margin-top:16px">
-      <button class="primary" type="button" id="btnEnter" disabled>一个人走进去</button>
+      <button class="primary" type="button" id="btnEnter" disabled>一个人走进去 · 马上玩</button>
       <button class="ghost" type="button" data-back="s1">返回</button>
     </div>
   </section>
 
-  <!-- S3: Scene solo → P2 joins -->
   <section id="s3" class="screen hidden">
     <div class="steps" aria-hidden="true">
-      <span>1 身体×季节</span><span>2 选地方</span><span class="on">3 共创</span><span>4 保存</span><span>5 分享</span>
+      <span>1 身体×季节</span><span>2 选地方</span><span class="on">3 进场景玩</span><span>4 保存</span><span>5 分享</span>
     </div>
-    <div class="brand">HEALOA BASE · 同一场景</div>
+    <div class="brand">HEALOA BASE · 可操作场景</div>
     <h1 id="sceneHeading">你已进入场景</h1>
-    <p class="sub" id="sceneSub">现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」（模拟），看同一张共创物怎么变。</p>
-    <p class="note" id="simNote">第二人是<strong>本机按钮模拟</strong>，不是真人连线；TA 的文案是预设演示，不是某位真实用户的贡献。<span class="sim-badge">仅模拟 · 非多人</span></p>
+    <p class="sub" id="sceneSub">点选痕迹工具，再点场景放下；可拖动。下方可开关风/光等气氛，并写一句短句。没有第二人也能独自完成保存。</p>
+    <p class="note" id="simNote">第二人是<strong>本机按钮模拟</strong>，不是真人连线；加入后请看「独自 vs 双人」对比。<span class="sim-badge">仅模拟 · 非多人</span></p>
 
     <div class="scene-shell" id="sceneShell">
       <div class="scene-bg wudang" id="sceneBg"></div>
-      <div class="scene-mist"></div>
-      <div class="scene-decoration" id="sceneDeco" aria-hidden="true"></div>
-
+      <canvas class="scene-canvas" id="fxCanvas" width="420" height="420" aria-hidden="true"></canvas>
+      <div class="scene-mist" id="sceneMist"></div>
       <div class="scene-top">
         <div class="scene-label" id="sceneLabel">武当山 · 虚拟预览</div>
-        <div class="presence">
-          <div class="avatar" title="你">你</div>
-          <div class="avatar p2" id="avatarP2" title="第二人">TA</div>
-          <div class="presence-text" id="presenceText">1 人在场</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button type="button" class="audio-chip muted" id="btnAudio" title="环境声">静音</button>
+          <div class="presence">
+            <div class="avatar" title="你">你</div>
+            <div class="avatar p2" id="avatarP2" title="第二人（模拟）">TA</div>
+            <div class="presence-text" id="presenceText">1 人在场</div>
+          </div>
         </div>
       </div>
-
-      <div class="scene-body">
-        <div class="scene-title">
+      <div class="play-stage" id="playStage" aria-label="可操作场景台">
+        <div class="stage-hint" id="stageHint">选下方痕迹 → 点这里放下<br />可拖动调整位置（最多 4 个）</div>
+      </div>
+      <div class="scene-footer-bar">
+        <div class="scene-title-mini">
           <h2 id="sceneName">武当山</h2>
           <p id="sceneLine">云气很淡。你先在这里站稳。</p>
         </div>
-
-        <div class="artifact" id="artifact">
-          <div class="artifact-head">
-            <b>共创场景卡</b>
-            <span class="tag" id="artifactTag">仅你的痕迹</span>
-          </div>
-          <div class="collage" id="collage" aria-live="polite">
-            <div class="mark m1" id="mark1">你留下：今天先把脚步放慢。</div>
-            <div class="mark m2" id="mark2">【模拟·预设】TA 补上：我在同一片气里，加了一笔暖色。</div>
-            <div class="layer-hint" id="layerHint">等待第二人留下一笔…</div>
-          </div>
+        <div class="tool-row" id="markTools" role="group" aria-label="痕迹工具"></div>
+        <div class="tool-row" id="fxTools" role="group" aria-label="气氛开关">
+          <button type="button" class="tool fx" data-fx="wind" id="fxWind">风</button>
+          <button type="button" class="tool fx" data-fx="light" id="fxLight">光</button>
+          <button type="button" class="tool fx" data-fx="mist" id="fxMist">雾气</button>
+          <button type="button" class="tool fx" data-fx="pulse" id="fxPulse">律动</button>
         </div>
+        <div class="create-line">
+          <input id="soloLine" type="text" maxlength="40" placeholder="写一句你留下的话（可选）" autocomplete="off" />
+          <button type="button" id="btnSetLine">写下</button>
+        </div>
+        <p class="mark-count" id="markCount">痕迹 0 / 4 · 气氛未开</p>
       </div>
+    </div>
+
+    <div class="compare-box hidden" id="compareBox">
+      <h3>可见对比 · 独自 vs 双人（第二人=模拟）</h3>
+      <div class="compare-toggle">
+        <button type="button" class="on" id="cmpSolo" data-mode="solo">看独自时</button>
+        <button type="button" id="cmpDuo" data-mode="duo">看双人后</button>
+      </div>
+      <div class="compare-view" id="compareView"></div>
     </div>
 
     <div class="btn-row" id="joinRow">
       <button class="warm join-pulse" type="button" id="btnJoin">第二人加入<span class="sim-badge">模拟</span></button>
+      <button class="primary" type="button" id="btnSoloSave">不等人，独自保存这份作品</button>
       <button class="ghost" type="button" data-back="s2">换一个场景</button>
     </div>
     <div class="btn-row hidden" id="afterJoinRow">
       <button class="primary" type="button" id="btnToSave">保存这份共创作品</button>
+      <button class="ghost" type="button" data-back="s2" id="btnChangePlaceAfter">换一个场景</button>
       <button class="ghost" type="button" id="btnReplay">从头再看一遍</button>
     </div>
   </section>
 
-  <!-- S4: SAVE (real localStorage + download) -->
   <section id="s4" class="screen hidden">
     <div class="steps" aria-hidden="true">
-      <span>1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span class="on">4 保存</span><span>5 分享</span>
+      <span>1 身体×季节</span><span>2 选地方</span><span>3 进场景玩</span><span class="on">4 保存</span><span>5 分享</span>
     </div>
     <div class="brand">HEALOA BASE · 保存 <span class="sim-badge">第二人=模拟</span></div>
-    <h1>把共创作品留下来</h1>
-    <p class="sub">下面动作是<strong>真的可用</strong>：写入本机浏览器，或下载 JSON / 图片卡。不会上传服务器、不代发帖。导出内容<strong>不含</strong>身体自述；若有第二人痕迹，会标明为模拟。</p>
-
+    <h1>把作品留下来</h1>
+    <p class="sub">下面动作是<strong>真的可用</strong>：写入本机浏览器，或下载 JSON / 图片卡。不会上传服务器。导出<strong>不含</strong>身体自述；若有第二人痕迹，会标明为模拟。</p>
     <div class="card">
-      <h2 id="saveSummaryTitle">共创摘要</h2>
-      <p class="hint" id="saveSummary" style="color:var(--text);font-size:0.9rem;line-height:1.55;margin:0"></p>
+      <h2>作品摘要</h2>
+      <p class="hint" id="saveSummary" style="color:var(--text);font-size:0.9rem;line-height:1.55;margin:0;white-space:pre-wrap"></p>
     </div>
-
     <div class="btn-row">
       <button class="primary" type="button" id="btnSaveLocal">保存到本机（localStorage）</button>
       <div class="btn-pair">
@@ -753,27 +331,25 @@
       </div>
       <p class="save-status" id="saveStatus" aria-live="polite"></p>
     </div>
-
     <div class="btn-row" style="margin-top:14px">
       <button class="warm" type="button" id="btnToShare">下一步：自愿分享</button>
       <button class="ghost" type="button" data-back="s3">返回场景</button>
     </div>
   </section>
 
-  <!-- S5: SHARE (voluntary, honest) -->
   <section id="s5" class="screen hidden">
     <div class="steps" aria-hidden="true">
-      <span>1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span>4 保存</span><span class="on">5 分享</span>
+      <span>1 身体×季节</span><span>2 选地方</span><span>3 进场景玩</span><span>4 保存</span><span class="on">5 分享</span>
     </div>
     <div class="brand">HEALOA BASE · 自愿分享 <span class="sim-badge">第二人=模拟</span></div>
-    <h1>想分享的话，可以自己发出去</h1>
-    <p class="sub">分享完全自愿。本原型<strong>不会</strong>自动发帖，也<strong>不做</strong>「会火 / 病毒传播」承诺。分享文案与分享卡<strong>不含身体自述</strong>；第二人一律标为模拟。</p>
-
+    <h1>分享前先看清楚会发出什么</h1>
+    <p class="sub">分享完全自愿。本原型<strong>不会</strong>自动发帖。<strong>身体自述永不进入公开分享。</strong>下面预览即你将复制 / 系统分享 / 图片卡上的内容。</p>
     <div class="card">
       <h2>将分享的文案预览</h2>
       <p class="hint" id="sharePreview" style="color:var(--text);font-size:0.88rem;line-height:1.55;margin:0;white-space:pre-wrap"></p>
+      <img class="share-preview-img" id="shareImgPreview" alt="分享卡预览" />
+      <button class="soft" type="button" id="btnRefreshShareImg" style="margin-top:8px">刷新分享卡预览图</button>
     </div>
-
     <div class="btn-row">
       <button class="primary" type="button" id="btnShareNative">用系统分享（若设备支持）</button>
       <div class="btn-pair">
@@ -782,19 +358,16 @@
       </div>
       <p class="share-status" id="shareStatus" aria-live="polite"></p>
     </div>
-
     <div class="sep"></div>
-
     <div class="card handoff-card">
-      <h2>可选 · 去 HeaLoa 看看真人光圈</h2>
-      <p class="hint">这是<strong>可选跳转</strong>：打开 HeaLoa 主站，看看<strong>真人光圈</strong>相关介绍。本原型<strong>不</strong>做注册、不代预约、不做 Keeper，也<strong>不承诺</strong>主站上一定有匹配目的地 / 场次 / 报名库存。去不去、登不登录，都由你决定。</p>
-      <button class="warm" type="button" id="btnHandoff">去 HeaLoa 看真人光圈 → healoa.com/circles</button>
+      <h2>可选 · 到 HeaLoa 主站看看现实中的圈</h2>
+      <p class="hint">这是<strong>可选跳转</strong>：打开 HeaLoa 主站「光圈 / circles」页。本原型<strong>不</strong>做注册、不代预约、不做 Keeper，也<strong>不承诺</strong>主站上一定有你刚选地方的场次 / 报名库存。</p>
+      <button class="warm" type="button" id="btnHandoff">到 HeaLoa 主站看看现实中的圈 → healoa.com/circles</button>
       <button class="ghost" type="button" id="btnHandoffHome" style="margin-top:8px">或打开 healoa.com 首页</button>
     </div>
-
     <div class="card" style="margin-top:4px">
-      <h2>可选轻问（非主站链路）</h2>
-      <p class="hint">刚才一起体验开心吗？仅原型里的轻反馈，不接报名。</p>
+      <h2>可选轻问（不等于 Choose Again · 非主站链路）</h2>
+      <p class="hint">刚才一起体验开心吗？仅原型轻反馈，不接报名。</p>
       <div class="feel-row" id="feelRow">
         <button type="button" class="feel" data-v="开心">开心</button>
         <button type="button" class="feel" data-v="还好">还好</button>
@@ -802,632 +375,623 @@
       </div>
       <p class="hint" id="feelAckText" style="margin-top:10px;margin-bottom:0;display:none;color:var(--text)"></p>
     </div>
-
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-23-b · 可看原型 · 非正式产品<br />不锁时长 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人=模拟</p>
+    <p class="footer-meta">预览 v2026-09-24-a · 可看原型 · 非正式产品<br />不锁时长 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人=模拟</p>
   </section>
-
 </div>
-
 <canvas id="cardCanvas" width="720" height="960" aria-hidden="true"></canvas>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
+  var VERSION = "v2026-09-24-a";
+  var MAX_MARKS = 4;
   var state = {
-    body: null,
-    season: null,
-    placeId: null,
-    joined: false,
-    feel: null,
-    savedAt: null,
-    workId: null
+    body: null, season: null, placeId: null, joined: false, feel: null,
+    savedAt: null, workId: null, soloText: "", marks: [],
+    fx: { wind: false, light: false, mist: false, pulse: false },
+    activeTool: null, compareMode: "duo", soloSnapshot: null
   };
-
   var PLACES = {
     wudang: {
-      name: "武当山",
-      label: "武当山 · 虚拟预览",
-      lineSolo: "云气很淡。你先在这里站稳。",
-      lineDuo: "两个人站在同一道山门前，卡上多了一笔。",
-      mark1: "你留下：今天先把脚步放慢。",
-      mark2: "【模拟·预设】TA 补上：我在同一片气里，加了一笔暖色。",
+      name: "武当山", label: "武当山 · 虚拟预览",
+      lineSolo: "云气很淡。你先在这里站稳、放下痕迹。",
+      lineDuo: "模拟同伴也在山门前放下了一笔。看对比：场景痕迹变了。",
+      defaultSolo: "今天先把脚步放慢。",
+      defaultDuo: "【模拟·预设】我在同一片气里，加了一笔暖色。",
       bg: "wudang",
-      deco: ["雾", "阶", "松", "云"],
-      colors: ["#1a2840", "#6ec6c0", "#d4b08a"]
+      tools: [{id:"foot",icon:"👣",label:"足迹"},{id:"pine",icon:"🌲",label:"松"},{id:"stone",icon:"🪨",label:"石"},{id:"cloud",icon:"☁️",label:"云"}],
+      colors: ["#1a2840","#6ec6c0","#d4b08a"], audio: { base: 110, type: "sine", mod: 0.15 }
     },
     yunnan: {
-      name: "云南森林",
-      label: "云南森林 · 虚拟预览",
-      lineSolo: "林光一跳一跳。你听见叶子自己在响。",
-      lineDuo: "第二个人进来后，林间那张共创卡亮了一层。",
-      mark1: "你留下：光斑落在肩上就够了。",
-      mark2: "【模拟·预设】TA 补上：我在树影边画了一小片绿。",
+      name: "云南森林", label: "云南森林 · 虚拟预览",
+      lineSolo: "林光一跳一跳。把叶子或光斑放进林间。",
+      lineDuo: "模拟同伴在树影边加了痕迹。打开对比看看变化。",
+      defaultSolo: "光斑落在肩上就够了。",
+      defaultDuo: "【模拟·预设】我在树影边画了一小片绿。",
       bg: "yunnan",
-      deco: ["叶", "光", "苔", "风"],
-      colors: ["#1a3028", "#64aa78", "#d4b08a"]
+      tools: [{id:"leaf",icon:"🍃",label:"叶"},{id:"sun",icon:"☀️",label:"光斑"},{id:"moss",icon:"🟢",label:"苔"},{id:"bird",icon:"🕊️",label:"鸟影"}],
+      colors: ["#1a3028","#64aa78","#d4b08a"], audio: { base: 164, type: "triangle", mod: 0.22 }
     },
     onsen: {
-      name: "日本温泉",
-      label: "日本温泉 · 虚拟预览",
-      lineSolo: "热气从石缝里起来。你先把肩膀松开。",
-      lineDuo: "有人坐到你对面，共创卡多了一道蒸汽痕迹。",
-      mark1: "你留下：水温刚好，不用说话。",
-      mark2: "【模拟·预设】TA 补上：我把雾气描成第二层线。",
+      name: "日本温泉", label: "日本温泉 · 虚拟预览",
+      lineSolo: "热气从石缝里起来。放下石或灯，感受一下。",
+      lineDuo: "模拟同伴坐到对面，共创痕迹多了一层。",
+      defaultSolo: "水温刚好，不用说话。",
+      defaultDuo: "【模拟·预设】我把雾气描成第二层线。",
       bg: "onsen",
-      deco: ["气", "石", "汤", "灯"],
-      colors: ["#2a2030", "#d4b08a", "#6ec6c0"]
+      tools: [{id:"rock",icon:"🪨",label:"石"},{id:"lamp",icon:"🏮",label:"灯"},{id:"steam",icon:"♨️",label:"气"},{id:"cup",icon:"🍵",label:"茶"}],
+      colors: ["#2a2030","#d4b08a","#6ec6c0"], audio: { base: 98, type: "sine", mod: 0.12 }
     },
     thai: {
-      name: "泰国（暖地）",
-      label: "泰国 · 虚拟预览",
-      lineSolo: "空气暖而慢。你先找一块能坐下的阴影。",
-      lineDuo: "第二个人过来后，共创卡上多了一抹晚色。",
-      mark1: "你留下：慢一点，也算一种休息。",
-      mark2: "【模拟·预设】TA 补上：我加了一笔海边的暖黄。",
+      name: "泰国海边", label: "泰国海边 · 虚拟预览",
+      lineSolo: "空气暖而慢。把贝壳或椰影放到岸边。",
+      lineDuo: "模拟同伴过来后，场景多了一抹晚色痕迹。",
+      defaultSolo: "慢一点，也算一种休息。",
+      defaultDuo: "【模拟·预设】我加了一笔海边的暖黄。",
       bg: "thai",
-      deco: ["浪", "椰", "暖", "影"],
-      colors: ["#1a3048", "#ffc878", "#6ec6c0"]
+      tools: [{id:"shell",icon:"🐚",label:"贝壳"},{id:"palm",icon:"🌴",label:"椰"},{id:"wave",icon:"🌊",label:"浪"},{id:"sun2",icon:"🌅",label:"晚色"}],
+      colors: ["#1a3048","#ffc878","#6ec6c0"], audio: { base: 130, type: "sine", mod: 0.28 }
     }
   };
-
   function $(id) { return document.getElementById(id); }
-
   function show(id) {
-    ["s0", "s1", "s2", "s3", "s4", "s5"].forEach(function (s) {
-      $(s).classList.toggle("hidden", s !== id);
-    });
+    ["s0","s1","s2","s3","s4","s5"].forEach(function(s){ $(s).classList.toggle("hidden", s !== id); });
     window.scrollTo({ top: 0, behavior: "smooth" });
+    if (id === "s3") requestAnimationFrame(function(){ resizeFxCanvas(); startFxLoop(); });
   }
-
   function toast(msg) {
-    var t = $("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(function () { t.classList.remove("show"); }, 2400);
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast._timer); toast._timer = setTimeout(function(){ t.classList.remove("show"); }, 2400);
+  }
+  function makeWorkId() { return "hb-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,7); }
+
+  var audio = { ctx: null, nodes: [], playing: false, unavailable: false };
+  function stopAudio() {
+    audio.nodes.forEach(function(n){ try{n.stop&&n.stop();}catch(e){} try{n.disconnect&&n.disconnect();}catch(e){} });
+    audio.nodes = []; audio.playing = false; updateAudioChip();
+  }
+  function updateAudioChip() {
+    var btn = $("btnAudio"); if (!btn) return;
+    btn.classList.remove("muted","no-audio");
+    if (audio.unavailable) { btn.classList.add("no-audio"); btn.textContent = "无音频"; return; }
+    if (audio.playing) btn.textContent = "环境声开";
+    else { btn.classList.add("muted"); btn.textContent = "静音"; }
+  }
+  function startAmbient() {
+    var p = PLACES[state.placeId]; if (!p) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) { audio.unavailable = true; updateAudioChip(); return; }
+      if (!audio.ctx) audio.ctx = new AC();
+      if (audio.ctx.state === "suspended") {
+        audio.ctx.resume().catch(function(){ audio.unavailable = true; updateAudioChip(); toast("浏览器未允许音频 · 可继续无声体验"); });
+      }
+      stopAudio();
+      var ctx = audio.ctx;
+      var master = ctx.createGain(); master.gain.value = 0.045; master.connect(ctx.destination);
+      var osc = ctx.createOscillator(); osc.type = p.audio.type; osc.frequency.value = p.audio.base;
+      var lfo = ctx.createOscillator(); lfo.frequency.value = p.audio.mod;
+      var lfoGain = ctx.createGain(); lfoGain.gain.value = p.audio.base * 0.08;
+      lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+      var osc2 = ctx.createOscillator(); osc2.type = "sine"; osc2.frequency.value = p.audio.base * 1.5;
+      var g2 = ctx.createGain(); g2.gain.value = 0.35;
+      osc.connect(master); osc2.connect(g2); g2.connect(master);
+      osc.start(); osc2.start(); lfo.start();
+      audio.nodes = [osc, osc2, lfo, master, g2, lfoGain];
+      audio.playing = true; audio.unavailable = false; updateAudioChip();
+    } catch (err) {
+      audio.unavailable = true; audio.playing = false; updateAudioChip();
+      toast("环境声不可用 · 可继续无声体验");
+    }
+  }
+  function toggleAudio() {
+    if (audio.unavailable) { toast("此设备无可用音频 · 场景仍可操作"); return; }
+    if (audio.playing) { stopAudio(); toast("已静音"); }
+    else { startAmbient(); if (audio.playing) toast("环境声已开（本机生成，非录音）"); }
   }
 
-  function makeWorkId() {
-    return "hb-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+  var fxAnim = 0, fxParticles = [];
+  function resizeFxCanvas() {
+    var c = $("fxCanvas"), shell = $("sceneShell"); if (!c || !shell) return;
+    var r = shell.getBoundingClientRect(); var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.floor(r.width * dpr); c.height = Math.floor(r.height * dpr);
+    c.style.width = r.width + "px"; c.style.height = r.height + "px";
+  }
+  function seedParticles() {
+    fxParticles = [];
+    for (var i=0;i<28;i++) fxParticles.push({ x:Math.random(), y:Math.random(), r:0.5+Math.random()*2.2,
+      vx:(Math.random()-0.5)*0.0015, vy:-0.0004-Math.random()*0.0012, a:0.15+Math.random()*0.35 });
+  }
+  function drawFx(ts) {
+    var c = $("fxCanvas"); if (!c) return;
+    var ctx = c.getContext("2d"); var w=c.width, h=c.height; ctx.clearRect(0,0,w,h);
+    var wind=state.fx.wind?1:0, light=state.fx.light?1:0, mist=state.fx.mist?1:0, pulse=state.fx.pulse?1:0;
+    if (!(wind||light||mist||pulse)) return;
+    var t=(ts||0)/1000;
+    fxParticles.forEach(function(p){
+      p.x += p.vx + wind*0.0012*Math.sin(t + p.y*8);
+      p.y += p.vy*(1+pulse*0.8);
+      if (p.y<-0.05){p.y=1.05;p.x=Math.random();}
+      if (p.x<-0.05)p.x=1.05; if (p.x>1.05)p.x=-0.05;
+      var alpha = p.a*(0.4+mist*0.5+light*0.35);
+      ctx.beginPath();
+      ctx.fillStyle = light ? ("rgba(255,230,170,"+alpha+")") : ("rgba(200,230,230,"+alpha+")");
+      ctx.arc(p.x*w, p.y*h, p.r*(1+light*0.8)*(window.devicePixelRatio||1), 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+  function startFxLoop() {
+    cancelAnimationFrame(fxAnim);
+    if (!fxParticles.length) seedParticles();
+    function loop(ts){ drawFx(ts); fxAnim = requestAnimationFrame(loop); }
+    fxAnim = requestAnimationFrame(loop);
+  }
+  function applyFxClasses() {
+    var bg=$("sceneBg"), mist=$("sceneMist"); if(!bg) return;
+    bg.classList.toggle("light-on", !!state.fx.light);
+    bg.classList.toggle("wind-on", !!state.fx.wind);
+    if (mist) mist.classList.toggle("steam-on", !!state.fx.mist || !!state.fx.pulse);
+    document.querySelectorAll("#fxTools .tool").forEach(function(btn){
+      btn.classList.toggle("on", !!state.fx[btn.getAttribute("data-fx")]);
+    });
+    updateMarkCount();
   }
 
-  function buildWorkPayload(opts) {
-    opts = opts || {};
-    var forPublic = !!opts.forPublic;
-    var p = PLACES[state.placeId] || {};
-    var payload = {
-      schema: "healoa-base-cocreate/v1",
-      workId: state.workId || makeWorkId(),
-      externalName: "HeaLoa Base",
-      prototype: true,
-      previewVersion: "v2026-09-23-b",
-      notProductLock: true,
-      createdAt: new Date().toISOString(),
-      savedAt: state.savedAt || null,
-      place: {
-        id: state.placeId,
-        name: p.name || null
-      },
-      cocreate: {
-        multiplayer: "simulated",
-        joinedSecondPerson: !!state.joined,
-        secondPersonNote: "本机按钮模拟；TA 文案为预设，非真实用户贡献",
-        mark1: p.mark1 || null,
-        mark2: state.joined ? (p.mark2 || null) : null
-      },
-      lightFeel: state.feel,
-      disclaimer: "可看原型 · 非正式产品 · 时长与玩法未锁定 · 第二人加入为模拟 · 预览 v2026-09-23-b"
+  var drag = { el:null, moved:false };
+  function updateMarkCount() {
+    var fxOn = Object.keys(state.fx).filter(function(k){ return state.fx[k]; });
+    $("markCount").textContent = "痕迹 "+state.marks.length+" / "+MAX_MARKS+" · 气氛"+(fxOn.length?("："+fxOn.join("+")):"未开")+(state.soloText?" · 已写短句":"");
+  }
+  function renderMarkTools() {
+    var p=PLACES[state.placeId], row=$("markTools"); row.innerHTML=""; if(!p) return;
+    p.tools.forEach(function(t){
+      var btn=document.createElement("button"); btn.type="button";
+      btn.className="tool"+(state.activeTool===t.id?" on":"");
+      btn.setAttribute("data-tool", t.id); btn.textContent=t.icon+" "+t.label;
+      btn.addEventListener("click", function(){
+        state.activeTool = (state.activeTool===t.id)?null:t.id;
+        renderMarkTools();
+        $("stageHint").classList.toggle("hide", state.marks.length>0 && !state.activeTool);
+        if (state.activeTool) toast("已选「"+t.label+"」· 点场景放下");
+      });
+      row.appendChild(btn);
+    });
+  }
+  function clearStageMarks(){ $("playStage").querySelectorAll(".drop-mark").forEach(function(el){ el.remove(); }); }
+  function toolMeta(toolId){
+    var p=PLACES[state.placeId]; if(!p) return {icon:"·",label:toolId};
+    for (var i=0;i<p.tools.length;i++) if(p.tools[i].id===toolId) return p.tools[i];
+    return {icon:"·",label:toolId};
+  }
+  function placeMarkEl(mark){
+    var stage=$("playStage"), meta=toolMeta(mark.tool);
+    var el=document.createElement("div");
+    el.className="drop-mark"+(mark.from==="p2"?" p2":"");
+    el.textContent=meta.icon; el.style.left=mark.x+"%"; el.style.top=mark.y+"%";
+    el.style.transform="translate(-50%,-50%)"; el.setAttribute("data-id", mark.id);
+    el.title=(mark.from==="p2"?"模拟同伴 · ":"你的 · ")+meta.label;
+    function pointerDown(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      var pt=ev.touches?ev.touches[0]:ev;
+      drag.el=el; drag.moved=false; el.classList.add("selected");
+    }
+    el.addEventListener("mousedown", pointerDown);
+    el.addEventListener("touchstart", pointerDown, {passive:false});
+    stage.appendChild(el);
+  }
+  function syncMarkPosition(el){
+    var id=el.getAttribute("data-id"), left=parseFloat(el.style.left), top=parseFloat(el.style.top);
+    state.marks.forEach(function(m){ if(m.id===id){ m.x=left; m.y=top; } });
+  }
+  function onPointerMove(ev){
+    if(!drag.el) return; ev.preventDefault();
+    var rect=$("playStage").getBoundingClientRect();
+    var pt=ev.touches?ev.touches[0]:ev;
+    var x=((pt.clientX-rect.left)/rect.width)*100;
+    var y=((pt.clientY-rect.top)/rect.height)*100;
+    x=Math.max(6,Math.min(94,x)); y=Math.max(8,Math.min(92,y));
+    drag.el.style.left=x+"%"; drag.el.style.top=y+"%"; drag.moved=true;
+  }
+  function onPointerUp(){
+    if(!drag.el) return; syncMarkPosition(drag.el); drag.el.classList.remove("selected"); drag.el=null;
+    if(state.joined) refreshCompare();
+  }
+  document.addEventListener("mousemove", onPointerMove);
+  document.addEventListener("mouseup", onPointerUp);
+  document.addEventListener("touchmove", onPointerMove, {passive:false});
+  document.addEventListener("touchend", onPointerUp);
+
+  function addMarkAt(pctX, pctY, toolId, from){
+    if (from!=="p2" && state.marks.filter(function(m){return m.from!=="p2";}).length>=MAX_MARKS){
+      toast("最多 "+MAX_MARKS+" 个痕迹 · 可拖动已有的"); return null;
+    }
+    var mark={ id:"m-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,5), tool:toolId, x:pctX, y:pctY, from:from||"solo" };
+    state.marks.push(mark); placeMarkEl(mark); $("stageHint").classList.add("hide"); updateMarkCount(); return mark;
+  }
+  $("playStage").addEventListener("click", function(ev){
+    if(drag.moved){ drag.moved=false; return; }
+    if(!state.activeTool){ toast("先选一个痕迹工具"); return; }
+    var myCount=state.marks.filter(function(m){return m.from!=="p2";}).length;
+    if(myCount>=MAX_MARKS){ toast("已达 "+MAX_MARKS+" 个 · 可拖动调整"); return; }
+    var rect=$("playStage").getBoundingClientRect();
+    addMarkAt(((ev.clientX-rect.left)/rect.width)*100, ((ev.clientY-rect.top)/rect.height)*100, state.activeTool, "solo");
+    toast("已放下痕迹");
+  });
+
+  function publicMarks(){
+    return state.marks.map(function(m){ return {tool:m.tool,x:Math.round(m.x*10)/10,y:Math.round(m.y*10)/10,from:m.from}; });
+  }
+  function buildWorkPayload(opts){
+    opts=opts||{}; var forPublic=!!opts.forPublic; var p=PLACES[state.placeId]||{};
+    var payload={
+      schema:"healoa-base-cocreate/v2", workId:state.workId||makeWorkId(), externalName:"HeaLoa Base",
+      prototype:true, previewVersion:VERSION, notProductLock:true,
+      createdAt:new Date().toISOString(), savedAt:state.savedAt||null,
+      place:{id:state.placeId,name:p.name||null},
+      scene:{ soloText:state.soloText||p.defaultSolo||"", marks:publicMarks(),
+        fx:{wind:!!state.fx.wind,light:!!state.fx.light,mist:!!state.fx.mist,pulse:!!state.fx.pulse} },
+      cocreate:{ multiplayer:"simulated", joinedSecondPerson:!!state.joined,
+        secondPersonNote:"本机按钮模拟；TA 痕迹与文案为预设，非真实用户贡献",
+        duoText:state.joined?(p.defaultDuo||null):null },
+      lightFeel:state.feel,
+      disclaimer:"可看原型 · 非正式产品 · 时长与玩法未锁定 · 第二人加入为模拟 · 预览 "+VERSION
     };
-    if (!forPublic) {
-      payload.questions = {
-        bodyFeeling: state.body,
-        season: state.season,
-        optional: true,
-        note: "可选自述，仅存本机；非医疗结论；不会进入分享文案"
-      };
+    if(!forPublic){
+      payload.questions={ bodyFeeling:state.body, season:state.season, optional:true,
+        note:"可选自述，仅存本机；非医疗结论；不会进入分享文案" };
     } else {
-      payload.privacy = {
-        bodyFeelingIncluded: false,
-        seasonIncluded: false,
-        note: "公开导出已去除身体自述与季节字段"
-      };
+      payload.privacy={ bodyFeelingIncluded:false, seasonIncluded:false,
+        note:"公开导出已去除身体自述与季节字段" };
     }
     return payload;
   }
-
-  function syncChips(containerId, key) {
-    var root = $(containerId);
-    root.querySelectorAll(".chip").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        root.querySelectorAll(".chip").forEach(function (b) { b.classList.remove("on"); });
-        btn.classList.add("on");
-        state[key] = btn.getAttribute("data-v");
-        maybeEnablePlaces();
+  function syncChips(containerId, key){
+    var root=$(containerId);
+    root.querySelectorAll(".chip").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        root.querySelectorAll(".chip").forEach(function(b){ b.classList.remove("on"); });
+        btn.classList.add("on"); state[key]=btn.getAttribute("data-v"); maybeEnablePlaces();
       });
     });
   }
-
-  function maybeEnablePlaces() {
-    $("btnToPlaces").disabled = !(state.body && state.season);
-  }
-
-  function goToPlacesEcho() {
-    if (state.body && state.season) {
-      $("answersEcho").innerHTML =
-        "你刚答的是：身体「" + state.body + "」、季节「" + state.season +
-        "」（仅本机参考，不会进入分享）。下面地点由你选——不是系统替你下结论。";
+  function maybeEnablePlaces(){ $("btnToPlaces").disabled=!(state.body&&state.season); }
+  function goToPlacesEcho(){
+    if(state.body&&state.season){
+      $("answersEcho").innerHTML="你刚答的是：身体「"+state.body+"」、季节「"+state.season+"」（仅本机参考，不会进入分享）。下面地点由你选——不是系统替你下结论。";
     } else {
-      $("answersEcho").innerHTML =
-        "你选择了先随便进场景（身体/季节自述已跳过，可选）。下面地点由你选——不是系统替你下结论。";
+      $("answersEcho").innerHTML="你选择了先随便进场景（身体/季节自述已跳过）。下面地点由你选——不是系统替你下结论。";
     }
     show("s2");
   }
-
-  syncChips("bodyChips", "body");
-  syncChips("seasonChips", "season");
-
-  $("btnStart").addEventListener("click", function () { show("s1"); });
-
-  $("btnSkipIn").addEventListener("click", function () {
-    state.body = null;
-    state.season = null;
-    document.querySelectorAll("#bodyChips .chip.on, #seasonChips .chip.on").forEach(function (el) {
-      el.classList.remove("on");
-    });
-    $("btnToPlaces").disabled = true;
-    goToPlacesEcho();
+  syncChips("bodyChips","body"); syncChips("seasonChips","season");
+  $("btnStart").addEventListener("click", function(){ show("s1"); });
+  $("btnSkipIn").addEventListener("click", function(){
+    state.body=null; state.season=null;
+    document.querySelectorAll("#bodyChips .chip.on, #seasonChips .chip.on").forEach(function(el){ el.classList.remove("on"); });
+    $("btnToPlaces").disabled=true; goToPlacesEcho();
   });
-
-  $("btnSkipAnswers").addEventListener("click", function () {
-    goToPlacesEcho();
-  });
-
-  $("btnToPlaces").addEventListener("click", function () {
-    goToPlacesEcho();
-  });
-
-  document.querySelectorAll(".place").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      document.querySelectorAll(".place").forEach(function (b) { b.classList.remove("on"); });
-      btn.classList.add("on");
-      state.placeId = btn.getAttribute("data-id");
-      $("btnEnter").disabled = false;
+  $("btnSkipAnswers").addEventListener("click", goToPlacesEcho);
+  $("btnToPlaces").addEventListener("click", goToPlacesEcho);
+  document.querySelectorAll(".place").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll(".place").forEach(function(b){ b.classList.remove("on"); });
+      btn.classList.add("on"); state.placeId=btn.getAttribute("data-id"); $("btnEnter").disabled=false;
     });
   });
 
-  function paintScene(duo) {
-    var p = PLACES[state.placeId];
-    if (!p) return;
-    var bg = $("sceneBg");
-    bg.className = "scene-bg " + p.bg;
-    $("sceneLabel").textContent = p.label;
-    $("sceneName").textContent = p.name;
-    $("sceneLine").textContent = duo ? p.lineDuo : p.lineSolo;
-    $("mark1").textContent = p.mark1;
-    $("mark2").textContent = p.mark2;
-
-    var deco = $("sceneDeco");
-    deco.innerHTML = "";
-    var positions = [
-      [12, 18], [78, 22], [20, 72], [70, 68], [48, 40]
-    ];
-    p.deco.forEach(function (ch, i) {
-      var el = document.createElement("div");
-      el.className = "deco";
-      el.textContent = ch;
-      el.style.left = positions[i][0] + "%";
-      el.style.top = positions[i][1] + "%";
-      el.style.opacity = String(0.25 + (i % 3) * 0.12);
-      deco.appendChild(el);
+  function snapshotSolo(){
+    state.soloSnapshot={
+      marks:state.marks.filter(function(m){return m.from!=="p2";}).map(function(m){return {tool:m.tool,x:m.x,y:m.y,from:m.from,id:m.id};}),
+      soloText:state.soloText, fx:JSON.parse(JSON.stringify(state.fx)),
+      markCount:state.marks.filter(function(m){return m.from!=="p2";}).length
+    };
+  }
+  function summarizeFx(fx){
+    if(!fx) return "未开";
+    var on=Object.keys(fx).filter(function(k){return fx[k];});
+    return on.length?on.join("+"):"未开";
+  }
+  function applyCompareVisual(mode){
+    $("playStage").querySelectorAll(".drop-mark").forEach(function(el){
+      var id=el.getAttribute("data-id"), mark=null;
+      state.marks.forEach(function(m){ if(m.id===id) mark=m; });
+      if(!mark) return;
+      if(mode==="solo" && mark.from==="p2"){ el.style.opacity="0.15"; el.style.filter="grayscale(1)"; }
+      else { el.style.opacity="1"; el.style.filter="none"; }
     });
-
-    $("simNote").style.display = "block";
-    if (duo) {
-      $("avatarP2").classList.add("show");
-      $("presenceText").textContent = "1 人 + 1 模拟同伴";
-      $("mark2").classList.add("show");
-      $("layerHint").classList.add("hide");
-      $("artifact").classList.add("changed");
-      $("artifactTag").textContent = "两人共创 · 第二人模拟";
-      $("artifactTag").classList.add("live");
-      $("sceneHeading").textContent = "模拟第二人已加入";
-      $("sceneSub").textContent = "注意共创场景卡：第二笔是预设演示文案，不是真实用户贡献。同一场景里作品被改写——不是代币、不是配对、不是真多人。";
-      $("joinRow").classList.add("hidden");
-      $("afterJoinRow").classList.remove("hidden");
+  }
+  function refreshCompare(){
+    var box=$("compareBox");
+    if(!state.joined){ box.classList.add("hidden"); return; }
+    box.classList.remove("hidden");
+    var p=PLACES[state.placeId]||{};
+    var solo=state.soloSnapshot||{markCount:0,soloText:"",fx:{}};
+    var view=$("compareView");
+    if(state.compareMode==="solo"){
+      view.textContent="【独自时】\n短句："+(solo.soloText||p.defaultSolo||"（未写）")+"\n痕迹数："+(solo.markCount||0)+"（仅你的）\n气氛："+summarizeFx(solo.fx)+"\n在场：1 人";
+      applyCompareVisual("solo");
     } else {
-      $("avatarP2").classList.remove("show");
-      $("presenceText").textContent = "1 人在场";
-      $("mark2").classList.remove("show");
-      $("layerHint").classList.remove("hide");
-      $("artifact").classList.remove("changed");
-      $("artifactTag").textContent = "仅你的痕迹";
-      $("artifactTag").classList.remove("live");
-      $("sceneHeading").textContent = "你已进入「" + p.name + "」";
-      $("sceneSub").textContent = "现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」（模拟），看同一张共创物怎么变——不会连上真人。";
-      $("joinRow").classList.remove("hidden");
-      $("afterJoinRow").classList.add("hidden");
+      var total=state.marks.length, p2n=state.marks.filter(function(m){return m.from==="p2";}).length;
+      view.textContent="【双人后 · 第二人=模拟】\n你的短句："+(state.soloText||p.defaultSolo||"（未写）")+"\nTA 补上："+(p.defaultDuo||"")+"\n痕迹数："+total+"（你的 "+(total-p2n)+" + 模拟 "+p2n+"）\n气氛："+summarizeFx(state.fx)+"\n在场：1 人 + 1 模拟同伴 · 场景痕迹可见增加";
+      applyCompareVisual("duo");
     }
   }
-
-  $("btnEnter").addEventListener("click", function () {
-    state.joined = false;
-    state.workId = makeWorkId();
-    paintScene(false);
-    show("s3");
-  });
-
-  $("btnJoin").addEventListener("click", function () {
-    if (state.joined) return;
-    state.joined = true;
-    paintScene(true);
-    toast("第二人已加入（模拟）· 共创卡出现变化");
-  });
-
-  function fillSaveSummary() {
-    var p = PLACES[state.placeId] || {};
-    $("saveSummary").textContent =
-      "场景：" + (p.name || "—") +
-      "\n共创：你的痕迹 + " + (state.joined ? "第二人一笔（本机模拟 · 预设文案）" : "尚未加入第二人") +
-      "\n身体/季节自述：仅存本机（若有），不会进入分享或公开导出" +
-      "\n作品编号：" + (state.workId || "—") +
-      "\n版本：预览 v2026-09-23-b";
+  function paintScene(duo){
+    var p=PLACES[state.placeId]; if(!p) return;
+    $("sceneBg").className="scene-bg "+p.bg;
+    $("sceneLabel").textContent=p.label; $("sceneName").textContent=p.name;
+    $("sceneLine").textContent=duo?p.lineDuo:p.lineSolo;
+    $("simNote").style.display="block"; $("soloLine").value=state.soloText||"";
+    renderMarkTools(); applyFxClasses(); resizeFxCanvas(); startFxLoop();
+    if(duo){
+      $("avatarP2").classList.add("show"); $("presenceText").textContent="1 人 + 1 模拟同伴";
+      $("sceneHeading").textContent="模拟第二人已加入 · 看可见变化";
+      $("sceneSub").textContent="下方「独自 vs 双人」可切换对比。TA 的痕迹与文案是预设演示，不是真实用户。";
+      $("joinRow").classList.add("hidden"); $("afterJoinRow").classList.remove("hidden"); refreshCompare();
+    } else {
+      $("avatarP2").classList.remove("show"); $("presenceText").textContent="1 人在场";
+      $("sceneHeading").textContent="你已进入「"+p.name+"」· 马上可玩";
+      $("sceneSub").textContent="选痕迹点场景放下，可拖动；开关风/光/雾气/律动；写一句短句。没有第二人也能独自保存。";
+      $("joinRow").classList.remove("hidden"); $("afterJoinRow").classList.add("hidden"); $("compareBox").classList.add("hidden");
+    }
+    updateMarkCount();
   }
-
-  $("btnToSave").addEventListener("click", function () {
-    fillSaveSummary();
-    $("saveStatus").textContent = "";
-    show("s4");
+  function enterScene(){
+    state.joined=false; state.workId=makeWorkId(); state.marks=[];
+    state.fx={wind:false,light:false,mist:false,pulse:false};
+    state.activeTool=null; state.soloText=""; state.soloSnapshot=null; state.compareMode="duo";
+    clearStageMarks(); $("stageHint").classList.remove("hide");
+    $("cmpSolo").classList.remove("on"); $("cmpDuo").classList.add("on");
+    paintScene(false); show("s3"); updateAudioChip();
+  }
+  $("btnEnter").addEventListener("click", enterScene);
+  $("btnAudio").addEventListener("click", function(ev){ ev.stopPropagation(); toggleAudio(); });
+  document.querySelectorAll("#fxTools .tool").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var key=btn.getAttribute("data-fx"); state.fx[key]=!state.fx[key]; applyFxClasses();
+      if(state.joined) refreshCompare();
+      toast((state.fx[key]?"已开":"已关")+" · "+btn.textContent.trim());
+    });
   });
+  $("btnSetLine").addEventListener("click", function(){
+    state.soloText=($("soloLine").value||"").trim(); updateMarkCount();
+    if(state.joined) refreshCompare(); toast(state.soloText?"已写下这句":"已清空短句");
+  });
+  $("btnJoin").addEventListener("click", function(){
+    if(state.joined) return;
+    if(!state.soloText){ var p0=PLACES[state.placeId]; state.soloText=(p0&&p0.defaultSolo)||""; $("soloLine").value=state.soloText; }
+    snapshotSolo();
+    var p=PLACES[state.placeId];
+    var t1=p.tools[1]?p.tools[1].id:p.tools[0].id;
+    var t2=p.tools[2]?p.tools[2].id:p.tools[0].id;
+    addMarkAt(72,38,t1,"p2"); addMarkAt(58,70,t2,"p2");
+    if(!state.fx.light && !state.fx.mist){ state.fx.mist=true; applyFxClasses(); }
+    state.joined=true; state.compareMode="duo";
+    $("cmpSolo").classList.remove("on"); $("cmpDuo").classList.add("on");
+    paintScene(true); toast("第二人已加入（模拟）· 痕迹与气氛有可见变化");
+  });
+  $("cmpSolo").addEventListener("click", function(){ state.compareMode="solo"; $("cmpSolo").classList.add("on"); $("cmpDuo").classList.remove("on"); refreshCompare(); });
+  $("cmpDuo").addEventListener("click", function(){ state.compareMode="duo"; $("cmpDuo").classList.add("on"); $("cmpSolo").classList.remove("on"); refreshCompare(); });
 
-  $("btnSaveLocal").addEventListener("click", function () {
+  function fillSaveSummary(){
+    var p=PLACES[state.placeId]||{};
+    var myMarks=state.marks.filter(function(m){return m.from!=="p2";}).length;
+    var p2Marks=state.marks.filter(function(m){return m.from==="p2";}).length;
+    $("saveSummary").textContent="场景："+(p.name||"—")+"\n短句："+(state.soloText||p.defaultSolo||"（未写）")+"\n痕迹：你的 "+myMarks+(state.joined?(" + 模拟同伴 "+p2Marks):"（独自）")+"\n气氛："+summarizeFx(state.fx)+"\n共创："+(state.joined?"第二人已加入（本机模拟 · 预设）":"独自完成 · 未加入第二人")+"\n身体/季节自述：仅存本机（若有），不会进入分享或公开导出\n作品编号："+(state.workId||"—")+"\n版本：预览 "+VERSION;
+  }
+  function goSave(){
+    if(!state.soloText){ var p=PLACES[state.placeId]; state.soloText=(p&&p.defaultSolo)||""; $("soloLine").value=state.soloText; }
+    fillSaveSummary(); $("saveStatus").textContent=""; stopAudio(); show("s4");
+  }
+  $("btnToSave").addEventListener("click", goSave);
+  $("btnSoloSave").addEventListener("click", function(){ goSave(); toast("独自路径 · 可保存"); });
+
+  $("btnSaveLocal").addEventListener("click", function(){
     try {
-      state.savedAt = new Date().toISOString();
-      var payload = buildWorkPayload({ forPublic: false });
-      state.workId = payload.workId;
+      state.savedAt=new Date().toISOString();
+      var payload=buildWorkPayload({forPublic:false});
+      state.workId=payload.workId;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      $("saveStatus").textContent = "已写入本机 localStorage（键：" + STORAGE_KEY + "）。刷新后可在首页点「重开找回」。身体自述（若有）只留在本机，不会进入分享。";
-      toast("已保存到本机 · 可重开找回");
-      fillSaveSummary();
-      refreshRestoreEntry();
-    } catch (err) {
-      $("saveStatus").textContent = "保存失败：" + (err && err.message ? err.message : "浏览器拒绝写入");
+      $("saveStatus").textContent="已写入本机 localStorage（键："+STORAGE_KEY+"）。刷新后可在首页点「重开找回」。身体自述（若有）只留在本机，不会进入分享。";
+      toast("已保存到本机 · 可重开找回"); fillSaveSummary(); refreshRestoreEntry();
+    } catch(err) {
+      $("saveStatus").textContent="保存失败："+(err&&err.message?err.message:"浏览器拒绝写入");
     }
   });
-
-  function downloadBlob(filename, blob) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  function downloadBlob(filename, blob){
+    var url=URL.createObjectURL(blob); var a=document.createElement("a");
+    a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
   }
-
-  $("btnDownloadJson").addEventListener("click", function () {
-    state.savedAt = state.savedAt || new Date().toISOString();
-    var payload = buildWorkPayload({ forPublic: true });
-    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    var name = "HeaLoa-Base-共创-" + (payload.place.name || "scene") + "-" + payload.workId + ".json";
-    downloadBlob(name, blob);
-    $("saveStatus").textContent = "已触发 JSON 下载（公开导出，不含身体自述/季节字段）。";
+  $("btnDownloadJson").addEventListener("click", function(){
+    state.savedAt=state.savedAt||new Date().toISOString();
+    var payload=buildWorkPayload({forPublic:true});
+    var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    downloadBlob("HeaLoa-Base-共创-"+(payload.place.name||"scene")+"-"+payload.workId+".json", blob);
+    $("saveStatus").textContent="已触发 JSON 下载（公开导出，不含身体自述/季节字段）。";
     toast("JSON 已开始下载（无身体字段）");
   });
-
-  function drawShareCard() {
-    var canvas = $("cardCanvas");
-    var ctx = canvas.getContext("2d");
-    var p = PLACES[state.placeId] || { name: "场景", mark1: "", mark2: "", colors: ["#0a1218", "#6ec6c0", "#d4b08a"] };
-    var w = canvas.width, h = canvas.height;
-
-    var g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, p.colors[0]);
-    g.addColorStop(1, "#0a1218");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-
-    ctx.fillStyle = "rgba(110,198,192,0.15)";
-    ctx.beginPath();
-    ctx.arc(w * 0.75, h * 0.18, 160, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#d4b08a";
-    ctx.font = "600 22px sans-serif";
-    ctx.fillText("HeaLoa Base · 可看原型", 48, 64);
-
-    ctx.fillStyle = "#eef4f8";
-    ctx.font = "650 42px sans-serif";
-    ctx.fillText(p.name || "共创场景", 48, 130);
-
-    ctx.fillStyle = "#8aa0b2";
-    ctx.font = "22px sans-serif";
-    ctx.fillText(state.joined ? "共创卡 · 第二人为本机模拟（非真人）" : "共创卡 · 仅你的痕迹", 48, 175);
-
-    // card panel
-    roundRect(ctx, 48, 220, w - 96, 420, 28);
-    ctx.fillStyle = "rgba(8,14,18,0.62)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.14)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.fillStyle = "#d4b08a";
-    ctx.font = "600 24px sans-serif";
-    ctx.fillText("共创场景卡", 80, 270);
-
-    ctx.fillStyle = "#c8ebe8";
-    ctx.font = "22px sans-serif";
-    wrapText(ctx, p.mark1 || "", 80, 320, w - 160, 32);
-
-    if (state.joined) {
-      ctx.fillStyle = "#f0e0c8";
-      wrapText(ctx, p.mark2 || "", 80, 430, w - 160, 32);
-      ctx.fillStyle = "#6ec6c0";
-      ctx.font = "20px sans-serif";
-      ctx.fillText("两人共创（第二人为本机模拟）", 80, 560);
+  function drawShareCard(){
+    var canvas=$("cardCanvas"), ctx=canvas.getContext("2d");
+    var p=PLACES[state.placeId]||{name:"场景",defaultSolo:"",defaultDuo:"",colors:["#0a1218","#6ec6c0","#d4b08a"]};
+    var w=canvas.width, h=canvas.height;
+    var g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,p.colors[0]); g.addColorStop(1,"#0a1218");
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    ctx.fillStyle="rgba(110,198,192,0.15)"; ctx.beginPath(); ctx.arc(w*0.75,h*0.18,160,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#d4b08a"; ctx.font="600 22px sans-serif"; ctx.fillText("HeaLoa Base · 可看原型",48,64);
+    ctx.fillStyle="#eef4f8"; ctx.font="650 42px sans-serif"; ctx.fillText(p.name||"共创场景",48,130);
+    ctx.fillStyle="#8aa0b2"; ctx.font="22px sans-serif";
+    ctx.fillText(state.joined?"可操作场景 · 第二人为本机模拟":"可操作场景 · 独自作品",48,175);
+    roundRect(ctx,48,210,w-96,480,28); ctx.fillStyle="rgba(8,14,18,0.62)"; ctx.fill();
+    ctx.strokeStyle="rgba(255,255,255,0.14)"; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle="#d4b08a"; ctx.font="600 24px sans-serif"; ctx.fillText("场景作品卡",80,260);
+    ctx.fillStyle="#c8ebe8"; ctx.font="22px sans-serif";
+    wrapText(ctx,"你留下："+(state.soloText||p.defaultSolo||""),80,310,w-160,32);
+    var myMarks=state.marks.filter(function(m){return m.from!=="p2";});
+    ctx.fillStyle="#8aa0b2"; ctx.font="20px sans-serif";
+    ctx.fillText("痕迹 ×"+myMarks.length+" · 气氛 "+summarizeFx(state.fx),80,400);
+    myMarks.slice(0,4).forEach(function(m,i){ var meta=toolMeta(m.tool); ctx.font="36px sans-serif"; ctx.fillText(meta.icon,80+i*56,460); });
+    if(state.joined){
+      ctx.fillStyle="#f0e0c8"; ctx.font="22px sans-serif"; wrapText(ctx,p.defaultDuo||"",80,510,w-160,30);
+      ctx.fillStyle="#6ec6c0"; ctx.font="20px sans-serif"; ctx.fillText("两人共创（第二人为本机模拟）",80,620);
     } else {
-      ctx.fillStyle = "#8aa0b2";
-      ctx.font = "20px sans-serif";
-      ctx.fillText("仅你的痕迹", 80, 430);
+      ctx.fillStyle="#8aa0b2"; ctx.font="20px sans-serif"; ctx.fillText("独自完成",80,520);
     }
-
-    ctx.fillStyle = "#8aa0b2";
-    ctx.font = "18px sans-serif";
-    ctx.fillText("非正式产品 · 预览 v2026-09-23-b · 时长未锁定", 48, h - 120);
-    ctx.fillText("作品编号：" + (state.workId || "—"), 48, h - 88);
-    ctx.fillText("自愿分享 · 不含身体自述 · 无病毒承诺", 48, h - 56);
-
+    ctx.fillStyle="#8aa0b2"; ctx.font="18px sans-serif";
+    ctx.fillText("非正式产品 · 预览 "+VERSION+" · 时长未锁定",48,h-120);
+    ctx.fillText("作品编号："+(state.workId||"—"),48,h-88);
+    ctx.fillText("自愿分享 · 不含身体自述 · 无病毒承诺",48,h-56);
     return canvas;
   }
-
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
   }
-
-  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-    var chars = String(text).split("");
-    var line = "";
-    var yy = y;
-    for (var i = 0; i < chars.length; i++) {
-      var test = line + chars[i];
-      if (ctx.measureText(test).width > maxWidth && line) {
-        ctx.fillText(line, x, yy);
-        line = chars[i];
-        yy += lineHeight;
-      } else {
-        line = test;
-      }
+  function wrapText(ctx,text,x,y,maxWidth,lineHeight){
+    var chars=String(text).split(""), line="", yy=y;
+    for(var i=0;i<chars.length;i++){
+      var test=line+chars[i];
+      if(ctx.measureText(test).width>maxWidth && line){ ctx.fillText(line,x,yy); line=chars[i]; yy+=lineHeight; }
+      else line=test;
     }
-    if (line) ctx.fillText(line, x, yy);
+    if(line) ctx.fillText(line,x,yy);
   }
-
-  function downloadPng(filename) {
-    var canvas = drawShareCard();
-    canvas.toBlob(function (blob) {
-      if (!blob) {
-        toast("图片生成失败");
-        return;
-      }
-      downloadBlob(filename, blob);
-    }, "image/png");
+  function downloadPng(filename){
+    var canvas=drawShareCard();
+    canvas.toBlob(function(blob){ if(!blob){toast("图片生成失败");return;} downloadBlob(filename,blob); }, "image/png");
   }
-
-  $("btnDownloadPng").addEventListener("click", function () {
-    var p = PLACES[state.placeId] || {};
-    downloadPng("HeaLoa-Base-共创卡-" + (p.name || "scene") + ".png");
-    $("saveStatus").textContent = "已触发图片卡下载（PNG）。";
-    toast("图片卡已开始下载");
+  $("btnDownloadPng").addEventListener("click", function(){
+    var p=PLACES[state.placeId]||{};
+    downloadPng("HeaLoa-Base-共创卡-"+(p.name||"scene")+".png");
+    $("saveStatus").textContent="已触发图片卡下载（PNG · 无身体自述）。"; toast("图片卡已开始下载");
   });
-
-  function shareText() {
-    var p = PLACES[state.placeId] || {};
-    return (
-      "【HeaLoa Base · 可看原型 · 预览 v2026-09-23-b】\n" +
-      "我在「" + (p.name || "场景") + "」留下了一张共创场景卡" +
-      (state.joined ? "（第二人为本机模拟，非真人连线）" : "") + "。\n" +
-      (p.mark1 || "") + "\n" +
-      (state.joined ? (p.mark2 || "") + "\n" : "") +
-      "——非正式原型演示，不是产品定论；分享完全自愿；不含身体自述。"
-    );
+  function shareText(){
+    var p=PLACES[state.placeId]||{};
+    var myMarks=state.marks.filter(function(m){return m.from!=="p2";}).length;
+    return "【HeaLoa Base · 可看原型 · 预览 "+VERSION+"】\n我在「"+(p.name||"场景")+"」留下了一份可操作场景作品"+(state.joined?"（第二人为本机模拟，非真人连线）":"（独自）")+"。\n你留下："+(state.soloText||p.defaultSolo||"")+"\n痕迹 ×"+myMarks+" · 气氛 "+summarizeFx(state.fx)+"\n"+(state.joined?(p.defaultDuo||"")+"\n":"")+"——非正式原型演示，不是产品定论；分享完全自愿；不含身体自述。";
   }
-
-  $("btnToShare").addEventListener("click", function () {
-    $("sharePreview").textContent = shareText();
-    $("shareStatus").textContent = "";
-    show("s5");
+  function refreshShareImgPreview(){
+    try { var canvas=drawShareCard(); var img=$("shareImgPreview"); img.src=canvas.toDataURL("image/png"); img.classList.add("show"); }
+    catch(e){ toast("预览图生成失败"); }
+  }
+  $("btnToShare").addEventListener("click", function(){
+    $("sharePreview").textContent=shareText(); $("shareStatus").textContent=""; refreshShareImgPreview(); show("s5");
   });
-
-  $("btnShareNative").addEventListener("click", function () {
-    var text = shareText();
-    if (navigator.share) {
-      navigator.share({
-        title: "HeaLoa Base · 共创场景卡",
-        text: text
-      }).then(function () {
-        $("shareStatus").textContent = "已调用系统分享面板（是否发出去由你决定）。";
-      }).catch(function (err) {
-        if (err && err.name === "AbortError") {
-          $("shareStatus").textContent = "你取消了系统分享。";
-        } else {
-          $("shareStatus").textContent = "系统分享不可用，请改用「复制文案」或「下载分享卡」。";
-        }
+  $("btnRefreshShareImg").addEventListener("click", function(){ refreshShareImgPreview(); toast("已刷新分享卡预览"); });
+  $("btnShareNative").addEventListener("click", function(){
+    var text=shareText();
+    if(navigator.share){
+      navigator.share({title:"HeaLoa Base · 场景作品卡", text:text}).then(function(){
+        $("shareStatus").textContent="已调用系统分享面板（是否发出去由你决定）。上方预览即所分享文案。";
+      }).catch(function(err){
+        if(err&&err.name==="AbortError") $("shareStatus").textContent="你取消了系统分享。可以继续复制或下载。";
+        else $("shareStatus").textContent="系统分享不可用，请改用「复制文案」或「下载分享卡」。";
       });
     } else {
-      $("shareStatus").textContent = "当前浏览器不支持 Web Share API。请用「复制文案」或「下载分享卡」。";
+      $("shareStatus").textContent="当前浏览器不支持 Web Share API。请用「复制文案」或「下载分享卡」。";
       toast("此设备无系统分享，请复制或下载");
     }
   });
-
-  $("btnCopyText").addEventListener("click", function () {
-    var text = shareText();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        $("shareStatus").textContent = "文案已复制到剪贴板。可贴到你想发的地方——本原型不会代发。";
-        toast("已复制文案");
-      }).catch(function () {
-        fallbackCopy(text);
-      });
-    } else {
-      fallbackCopy(text);
-    }
+  $("btnCopyText").addEventListener("click", function(){
+    var text=shareText();
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        $("shareStatus").textContent="文案已复制（与上方预览一致 · 无身体自述）。本原型不会代发。"; toast("已复制文案");
+      }).catch(function(){ fallbackCopy(text); });
+    } else fallbackCopy(text);
   });
-
-  function fallbackCopy(text) {
-    var ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed";
-    ta.style.left = "-9999px";
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      document.execCommand("copy");
-      $("shareStatus").textContent = "文案已复制到剪贴板。";
-      toast("已复制文案");
-    } catch (e) {
-      $("shareStatus").textContent = "复制失败，请长按上方文案手动选择。";
-    }
+  function fallbackCopy(text){
+    var ta=document.createElement("textarea"); ta.value=text; ta.setAttribute("readonly","");
+    ta.style.position="fixed"; ta.style.left="-9999px"; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); $("shareStatus").textContent="文案已复制到剪贴板。"; toast("已复制文案"); }
+    catch(e){ $("shareStatus").textContent="复制失败，请长按上方文案手动选择。"; }
     ta.remove();
   }
-
-  $("btnShareDownload").addEventListener("click", function () {
-    var p = PLACES[state.placeId] || {};
-    downloadPng("HeaLoa-Base-分享卡-" + (p.name || "scene") + ".png");
-    $("shareStatus").textContent = "分享卡 PNG 已开始下载。发不发、发到哪，都由你决定。";
+  $("btnShareDownload").addEventListener("click", function(){
+    var p=PLACES[state.placeId]||{};
+    downloadPng("HeaLoa-Base-分享卡-"+(p.name||"scene")+".png");
+    $("shareStatus").textContent="分享卡 PNG 已开始下载（与预览图一致 · 无身体自述）。发不发由你决定。";
     toast("分享卡已开始下载");
   });
-
-  $("btnHandoff").addEventListener("click", function () {
-    window.open("https://healoa.com/circles", "_blank", "noopener,noreferrer");
-    toast("已打开主站 · 看真人光圈（可选）");
+  $("btnHandoff").addEventListener("click", function(){
+    window.open("https://healoa.com/circles","_blank","noopener,noreferrer");
+    toast("已打开主站 · 现实中的圈（可选 · 无场次承诺）");
   });
-
-  $("btnHandoffHome").addEventListener("click", function () {
-    window.open("https://healoa.com/", "_blank", "noopener,noreferrer");
+  $("btnHandoffHome").addEventListener("click", function(){
+    window.open("https://healoa.com/","_blank","noopener,noreferrer");
     toast("已在新标签打开 healoa.com");
   });
-
-  function resetFlow() {
-    state = { body: null, season: null, placeId: null, joined: false, feel: null, savedAt: null, workId: null };
-    document.querySelectorAll(".chip.on, .place.on, .feel.on").forEach(function (el) {
-      el.classList.remove("on");
-    });
-    $("btnToPlaces").disabled = true;
-    $("btnEnter").disabled = true;
-    $("feelAckText").style.display = "none";
-    $("saveStatus").textContent = "";
-    $("shareStatus").textContent = "";
-    refreshRestoreEntry();
-    show("s0");
+  function resetFlow(){
+    stopAudio();
+    state={ body:null,season:null,placeId:null,joined:false,feel:null,savedAt:null,workId:null,soloText:"",marks:[],
+      fx:{wind:false,light:false,mist:false,pulse:false}, activeTool:null, compareMode:"duo", soloSnapshot:null };
+    document.querySelectorAll(".chip.on, .place.on, .feel.on").forEach(function(el){ el.classList.remove("on"); });
+    clearStageMarks(); $("btnToPlaces").disabled=true; $("btnEnter").disabled=true;
+    $("feelAckText").style.display="none"; $("saveStatus").textContent=""; $("shareStatus").textContent="";
+    $("shareImgPreview").classList.remove("show"); refreshRestoreEntry(); show("s0");
   }
-
-  function readSavedPayload() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      var data = JSON.parse(raw);
-      if (!data || !data.place || !data.place.id) return null;
-      return data;
-    } catch (e) {
-      return null;
-    }
+  function readSavedPayload(){
+    try { var raw=localStorage.getItem(STORAGE_KEY); if(!raw) return null; var data=JSON.parse(raw);
+      if(!data||!data.place||!data.place.id) return null; return data; } catch(e){ return null; }
   }
-
-  function refreshRestoreEntry() {
-    var data = readSavedPayload();
-    var btn = $("btnRestore");
-    var hint = $("restoreHint");
-    if (!btn || !hint) return;
-    if (!data) {
-      btn.classList.add("hidden");
-      hint.classList.add("hidden");
-      hint.textContent = "";
-      return;
-    }
-    btn.classList.remove("hidden");
-    hint.classList.remove("hidden");
-    var when = data.savedAt || data.createdAt || "";
-    var placeName = (data.place && data.place.name) || "场景";
-    hint.textContent = "本机有一份已保存作品：「" + placeName + "」" +
-      (when ? " · " + when : "") +
-      "。点「重开找回」可回到保存页继续下载 / 分享（同一浏览器）。";
+  function refreshRestoreEntry(){
+    var data=readSavedPayload(), btn=$("btnRestore"), hint=$("restoreHint");
+    if(!btn||!hint) return;
+    if(!data){ btn.classList.add("hidden"); hint.classList.add("hidden"); hint.textContent=""; return; }
+    btn.classList.remove("hidden"); hint.classList.remove("hidden");
+    var when=data.savedAt||data.createdAt||""; var placeName=(data.place&&data.place.name)||"场景";
+    hint.textContent="本机有一份已保存作品：「"+placeName+"」"+(when?" · "+when:"")+"。点「重开找回」可回到保存页继续下载 / 分享（同一浏览器）。";
   }
-
-  function restoreFromLocal() {
-    var data = readSavedPayload();
-    if (!data) {
-      toast("没有找到本机保存");
-      refreshRestoreEntry();
-      return;
+  function restoreFromLocal(){
+    var data=readSavedPayload();
+    if(!data){ toast("没有找到本机保存"); refreshRestoreEntry(); return; }
+    state.placeId=data.place.id;
+    state.joined=!!(data.cocreate&&data.cocreate.joinedSecondPerson);
+    state.workId=data.workId||makeWorkId();
+    state.savedAt=data.savedAt||data.createdAt||null;
+    state.feel=data.lightFeel||null;
+    if(data.questions){ state.body=data.questions.bodyFeeling||null; state.season=data.questions.season||null; }
+    else { state.body=null; state.season=null; }
+    if(data.scene){
+      state.soloText=data.scene.soloText||"";
+      state.marks=(data.scene.marks||[]).map(function(m,i){ return {id:"restored-"+i,tool:m.tool,x:m.x,y:m.y,from:m.from||"solo"}; });
+      state.fx=Object.assign({wind:false,light:false,mist:false,pulse:false}, data.scene.fx||{});
+    } else { state.soloText=""; state.marks=[]; state.fx={wind:false,light:false,mist:false,pulse:false}; }
+    document.querySelectorAll("#bodyChips .chip").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-v")===state.body); });
+    document.querySelectorAll("#seasonChips .chip").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-v")===state.season); });
+    document.querySelectorAll(".place").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-id")===state.placeId); });
+    $("btnEnter").disabled=!state.placeId; maybeEnablePlaces();
+    if(!PLACES[state.placeId]){ toast("保存的场景已失效，请重新选"); return; }
+    clearStageMarks(); state.marks.forEach(placeMarkEl);
+    if(state.marks.length) $("stageHint").classList.add("hide");
+    if(state.joined){
+      state.soloSnapshot={ marks:state.marks.filter(function(m){return m.from!=="p2";}), soloText:state.soloText,
+        fx:JSON.parse(JSON.stringify(state.fx)), markCount:state.marks.filter(function(m){return m.from!=="p2";}).length };
     }
-    state.placeId = data.place.id;
-    state.joined = !!(data.cocreate && data.cocreate.joinedSecondPerson);
-    state.workId = data.workId || makeWorkId();
-    state.savedAt = data.savedAt || data.createdAt || null;
-    state.feel = data.lightFeel || null;
-    if (data.questions) {
-      state.body = data.questions.bodyFeeling || null;
-      state.season = data.questions.season || null;
-    } else {
-      state.body = null;
-      state.season = null;
-    }
-    document.querySelectorAll("#bodyChips .chip").forEach(function (b) {
-      b.classList.toggle("on", b.getAttribute("data-v") === state.body);
-    });
-    document.querySelectorAll("#seasonChips .chip").forEach(function (b) {
-      b.classList.toggle("on", b.getAttribute("data-v") === state.season);
-    });
-    document.querySelectorAll(".place").forEach(function (b) {
-      b.classList.toggle("on", b.getAttribute("data-id") === state.placeId);
-    });
-    $("btnEnter").disabled = !state.placeId;
-    maybeEnablePlaces();
-    if (!PLACES[state.placeId]) {
-      toast("保存的场景已失效，请重新选");
-      return;
-    }
-    paintScene(!!state.joined);
-    fillSaveSummary();
-    $("saveStatus").textContent = "已从本机读回（键：" + STORAGE_KEY + "）。可继续下载或去自愿分享。";
-    $("sharePreview").textContent = shareText();
-    show("s4");
-    toast("已重开找回本机作品");
+    paintScene(!!state.joined); fillSaveSummary();
+    $("saveStatus").textContent="已从本机读回（键："+STORAGE_KEY+"）。可继续下载或去自愿分享。";
+    $("sharePreview").textContent=shareText(); show("s4"); toast("已重开找回本机作品");
   }
-
-  $("btnRestore").addEventListener("click", restoreFromLocal);
-  refreshRestoreEntry();
-
+  $("btnRestore").addEventListener("click", restoreFromLocal); refreshRestoreEntry();
   $("btnReplay").addEventListener("click", resetFlow);
   $("btnEndReplay").addEventListener("click", resetFlow);
-
-  document.querySelectorAll("[data-back]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      show(btn.getAttribute("data-back"));
+  document.querySelectorAll("[data-back]").forEach(function(btn){
+    btn.addEventListener("click", function(){ var target=btn.getAttribute("data-back"); if(target!=="s3") stopAudio(); show(target); });
+  });
+  $("feelRow").querySelectorAll(".feel").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      $("feelRow").querySelectorAll(".feel").forEach(function(b){ b.classList.remove("on"); });
+      btn.classList.add("on"); state.feel=btn.getAttribute("data-v");
+      $("feelAckText").style.display="block";
+      $("feelAckText").textContent="你选了「"+state.feel+"」。仅作原型轻反馈——不等于 Choose Again，不会跳注册。";
     });
   });
-
-  $("feelRow").querySelectorAll(".feel").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      $("feelRow").querySelectorAll(".feel").forEach(function (b) { b.classList.remove("on"); });
-      btn.classList.add("on");
-      state.feel = btn.getAttribute("data-v");
-      $("feelAckText").style.display = "block";
-      $("feelAckText").textContent =
-        "你选了「" + state.feel + "」。仅作原型里的轻反馈示意——不会跳注册，也不会当成主站指标。";
-    });
-  });
+  window.addEventListener("resize", function(){ if(!$("s3").classList.contains("hidden")) resizeFxCanvas(); });
+  updateAudioChip();
 })();
 </script>
 </body>
