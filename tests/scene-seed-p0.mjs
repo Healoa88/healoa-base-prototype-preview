@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + primary CTA skips body + short 发给朋友 share-tail (default-ready) (v2026-09-24-f)
+ * Scene Seed P0 + primary CTA skips body + short 发给朋友 share-tail (default-ready) (v2026-09-24-g)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -18,10 +18,31 @@ const RESULTS = path.join(EVIDENCE, "14-test-results.json");
 fs.mkdirSync(EVIDENCE, { recursive: true });
 
 function startServer() {
-  const html = fs.readFileSync(INDEX);
+  const TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".css": "text/css",
+    ".js": "text/javascript",
+    ".mjs": "text/javascript",
+    ".json": "application/json",
+    ".svg": "image/svg+xml",
+  };
   const server = http.createServer((req, res) => {
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end(html);
+    let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
+    if (urlPath === "/" || urlPath === "") urlPath = "/index.html";
+    const rel = urlPath.replace(/^\/+/, "");
+    const filePath = path.resolve(ROOT, rel);
+    if (!filePath.startsWith(ROOT + path.sep) && filePath !== ROOT) {
+      res.writeHead(403); res.end("forbidden"); return;
+    }
+    fs.readFile(filePath, (err, data) => {
+      if (err) { res.writeHead(404); res.end("not found"); return; }
+      const ext = path.extname(filePath).toLowerCase();
+      res.writeHead(200, { "Content-Type": TYPES[ext] || "application/octet-stream" });
+      res.end(data);
+    });
   });
   return new Promise((resolve) => {
     server.listen(0, "127.0.0.1", () => {
@@ -83,18 +104,26 @@ async function main() {
   };
 
   try {
+    const wudangHero = path.join(ROOT, "assets/places/wudang/02-terrace-sunrise.jpg");
+    const wudangThumbFile = path.join(ROOT, "assets/places/wudang/01-cloud-sea-sun.jpg");
+    record("wudang-asset-hero-exists", fs.existsSync(wudangHero) && fs.statSync(wudangHero).size > 1000, wudangHero);
+    record("wudang-asset-thumb-exists", fs.existsSync(wudangThumbFile) && fs.statSync(wudangThumbFile).size > 1000, wudangThumbFile);
     const senderCtx = await browser.newContext();
     const sender = await senderCtx.newPage();
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-f"), banner);
+    record("version-banner", banner.includes("v2026-09-24-g"), banner);
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
-    record("homepage-explains-app", homeH1.includes("美的地方") && homeH1.includes("邀请"), homeH1);
+    record("homepage-explains-app", (homeH1.includes("美的地方") || homeH1.includes("气氛") || homeH1.includes("太极")) && homeH1.includes("邀请"), homeH1);
     record("homepage-pain-point", homePain.includes("不用先填") || homePain.includes("不用真的先飞"), homePain.slice(0, 120));
     record("homepage-primary-cta", homeCta.includes("走进场景"), homeCta);
+    const skipLabel = await sender.locator("#btnSkipIn").innerText();
+    record("default-skip-is-wudang", skipLabel.includes("武当"), skipLabel);
+    const homeLead = await sender.locator("#s0 .lead").innerText();
+    record("homepage-feel-flow", homeLead.includes("气氛") && homeLead.includes("留下一笔"), homeLead.slice(0, 160));
     await shot(sender, "landing");
 
     // Primary CTA must NOT require body chips — goes to place pick
@@ -117,6 +146,47 @@ async function main() {
       onS1 === 0 && bodyRequired.s2Visible && bodyChipsOn === 0,
       JSON.stringify({ onS1, bodyChipsOn, ...bodyRequired })
     );
+    // Wudang place card must be photo-first
+    const wudangThumb = await sender.evaluate(() => {
+      const icon = document.querySelector('.place[data-id="wudang"] .place-icon');
+      if (!icon) return { ok: false };
+      const cs = getComputedStyle(icon);
+      const bg = cs.backgroundImage || "";
+      return {
+        ok: icon.classList.contains("photo") && bg.includes("assets/places/wudang/"),
+        cls: icon.className,
+        bg: bg.slice(0, 180),
+      };
+    });
+    record("wudang-place-card-photo", wudangThumb.ok, JSON.stringify(wudangThumb));
+    // Enter Wudang first: real photo must paint scene-bg
+    await sender.click('.place[data-id="wudang"]');
+    await sender.waitForSelector("#s3:not(.hidden)");
+    await sender.waitForTimeout(400);
+    const wudangScene = await sender.evaluate(() => {
+      const bg = document.getElementById("sceneBg");
+      const cs = getComputedStyle(bg);
+      const inline = bg.style.backgroundImage || "";
+      const sheet = cs.backgroundImage || "";
+      const combined = inline + " " + sheet;
+      return {
+        className: bg.className,
+        hasPhoto: combined.includes("assets/places/wudang/") && bg.classList.contains("wudang"),
+        assetNote: (document.getElementById("assetNote") || {}).innerText || "",
+        footer: (document.querySelector("#s3 .footer-meta, .footer-meta") || {}).innerText || "",
+      };
+    });
+    record("wudang-scene-photo-bg", wudangScene.hasPhoto, JSON.stringify(wudangScene));
+    record(
+      "wudang-honesty-note",
+      wudangScene.assetNote.includes("实景") && wudangScene.assetNote.includes("武当"),
+      wudangScene.assetNote.slice(0, 160)
+    );
+    await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, "wudang-scene-shell.png") });
+    await shot(sender, "wudang-scene");
+    // return to place pick, then continue yunnan share-path coverage
+    await sender.click('[data-back="s2"]');
+    await sender.waitForSelector("#s2:not(.hidden)");
     // one-tap place → scene (no body)
     await sender.click('.place[data-id="yunnan"]');
     await sender.waitForSelector("#s3:not(.hidden)");
@@ -451,7 +521,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-f",
+    version: "v2026-09-24-g",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
