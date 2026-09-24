@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + Wudang path chooser + Harbin + primary CTA skips body (v2026-09-24-j)
+ * Scene Seed P0 + Wudang/Forest path chooser + Harbin + primary CTA skips body (v2026-09-24-k)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -68,10 +68,10 @@ async function goSoloToShare(page, lineText) {
   // Primary CTA → place pick (no body); one-tap place enters scene
   await page.click("#btnStart");
   await page.waitForSelector("#s2:not(.hidden)");
-  await page.click('.place[data-id="yunnan"]');
+  await page.click('.place[data-id="onsen"]');
   await page.waitForSelector("#s3:not(.hidden)");
-  const leafOn = await page.locator('#markTools .tool[data-tool="leaf"].on').count();
-  if (!leafOn) await page.click('#markTools .tool[data-tool="leaf"]');
+  const toolOn = await page.locator('#markTools .tool.on').count();
+  if (!toolOn) await page.locator('#markTools .tool').first().click();
   const stage = page.locator("#playStage");
   const box = await stage.boundingBox();
   await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.45);
@@ -124,12 +124,27 @@ async function main() {
     record("harbin-asset-hero-exists", fs.existsSync(harbinHero) && fs.statSync(harbinHero).size > 1000, harbinHero);
     record("harbin-asset-thumb-exists", fs.existsSync(harbinThumbFile) && fs.statSync(harbinThumbFile).size > 1000, harbinThumbFile);
     record("harbin-asset-food-exists", fs.existsSync(harbinFood) && fs.statSync(harbinFood).size > 1000, harbinFood);
+    const forestAssets = [
+      ["forest-path-porch-lava", "assets/places/forest/porch/01-lava-porch.jpg"],
+      ["forest-path-leaf-tunnel", "assets/places/forest/path/01-leaf-tunnel.jpg"],
+      ["forest-path-monstera", "assets/places/forest/path/02-monstera-tunnel.jpg"],
+      ["forest-path-canopy", "assets/places/forest/path/03-canopy-drive.jpg"],
+      ["forest-cabin-desk", "assets/places/cabin/03-desk-notebook-window.jpg"],
+      ["forest-cabin-porch-frost", "assets/places/cabin/01-porch-frost-forest.jpg"],
+      ["forest-cabin-birch", "assets/places/cabin/02-cabin-through-birch.jpg"],
+      ["forest-cabin-soup", "assets/places/cabin/04-soup-window-warm.jpg"],
+      ["forest-cabin-aurora", "assets/places/cabin/05-aurora-forest-night.jpg"],
+    ];
+    for (const [name, rel] of forestAssets) {
+      const fp = path.join(ROOT, rel);
+      record(name + "-exists", fs.existsSync(fp) && fs.statSync(fp).size > 1000, fp);
+    }
     const senderCtx = await browser.newContext();
     const sender = await senderCtx.newPage();
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-j"), banner);
+    record("version-banner", banner.includes("v2026-09-24-k"), banner);
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
@@ -389,13 +404,132 @@ async function main() {
     }
     await shot(sender, "wudang-share-card");
 
-    // --- Harbin real-photo place (additional; default hero stays Wudang) ---
-    await sender.click("#btnEndReplay");
+    // --- Forest top-level place → path chooser (mirror Wudang) ---
+    await sender.goto(base);
+    await sender.click("#btnStart");
+    await sender.waitForSelector("#s2:not(.hidden)");
+    const forestThumb = await sender.evaluate(() => {
+      const icon = document.querySelector('.place[data-id="forest"] .place-icon');
+      if (!icon) return { ok: false };
+      const cs = getComputedStyle(icon);
+      const bg = cs.backgroundImage || "";
+      return {
+        ok: icon.classList.contains("photo") && bg.includes("assets/places/forest/"),
+        cls: icon.className,
+        bg: bg.slice(0, 180),
+      };
+    });
+    record("forest-place-card-photo", forestThumb.ok, JSON.stringify(forestThumb));
+    await sender.click('.place[data-id="forest"]');
+    await sender.waitForSelector("#s2f:not(.hidden)");
+    const onS1AfterForest = await sender.locator("#s1:not(.hidden)").count();
+    const onS3AfterForest = await sender.locator("#s3:not(.hidden)").count();
+    const forestPathCards = await sender.locator("#forestPathList .path-card").count();
+    const forestPathLabels = await sender.locator("#forestPathList").innerText();
+    record(
+      "forest-path-chooser-visible",
+      onS1AfterForest === 0 && onS3AfterForest === 0 && forestPathCards === 3,
+      JSON.stringify({ onS1AfterForest, onS3AfterForest, forestPathCards, labels: forestPathLabels.slice(0, 200) })
+    );
+    record(
+      "forest-path-chooser-copy",
+      forestPathLabels.includes("廊前远望") && forestPathLabels.includes("林中路") && forestPathLabels.includes("屋里创作") && forestPathLabels.includes("想站在廊前望远") && forestPathLabels.includes("想走进绿隧道") && forestPathLabels.includes("想安静写点什么"),
+      forestPathLabels.slice(0, 280)
+    );
+    record(
+      "forest-cabin-honesty-badge",
+      forestPathLabels.includes("窗外可能很冷") && forestPathLabels.includes("非医疗"),
+      forestPathLabels.slice(0, 220)
+    );
+    await shot(sender, "forest-path-chooser");
+    await sender.locator("#s2f").screenshot({ path: path.join(EVIDENCE, "forest-path-chooser.png") });
+
+    const forestPathChecks = [
+      {
+        id: "forest-porch",
+        needle: "forest/porch/01-lava-porch",
+        bgClass: "forest-porch",
+        shot: "forest-path-porch",
+        nameBits: ["廊前", "远望"],
+      },
+      {
+        id: "forest-path",
+        needle: "forest/path/01-leaf-tunnel",
+        bgClass: "forest-path",
+        shot: "forest-path-path",
+        nameBits: ["林中", "绿隧道", "林"],
+      },
+      {
+        id: "forest-cabin",
+        needle: "cabin/03-desk-notebook-window",
+        bgClass: "forest-cabin",
+        shot: "forest-path-cabin",
+        nameBits: ["屋里", "创作"],
+      },
+    ];
+    for (const pc of forestPathChecks) {
+      await sender.goto(base);
+      await sender.click("#btnStart");
+      await sender.waitForSelector("#s2:not(.hidden)");
+      await sender.click('.place[data-id="forest"]');
+      await sender.waitForSelector("#s2f:not(.hidden)");
+      await sender.click(`.path-card[data-path="${pc.id}"]`);
+      await sender.waitForSelector("#s3:not(.hidden)");
+      await sender.waitForTimeout(350);
+      const scene = await sender.evaluate((expect) => {
+        const bg = document.getElementById("sceneBg");
+        const cs = getComputedStyle(bg);
+        const inline = bg.style.backgroundImage || "";
+        const sheet = cs.backgroundImage || "";
+        const combined = inline + " " + sheet;
+        const label = (document.getElementById("sceneLabel") || {}).innerText || "";
+        const line = (document.getElementById("sceneLine") || {}).innerText || "";
+        const note = (document.getElementById("assetNote") || {}).innerText || "";
+        const heading = (document.getElementById("sceneHeading") || {}).innerText || "";
+        return {
+          className: bg.className,
+          hasPhoto: combined.includes(expect.needle) && bg.classList.contains(expect.bgClass),
+          combined: combined.slice(0, 240),
+          label, line, note, heading,
+          markTools: document.querySelectorAll("#markTools .tool").length,
+        };
+      }, pc);
+      record(
+        "forest-path-" + pc.id.replace("forest-", "") + "-enters-scene",
+        !!(scene.hasPhoto && scene.markTools >= 3),
+        JSON.stringify(scene)
+      );
+      const nameOk = pc.nameBits.some((b) => (scene.label + scene.heading + scene.line).includes(b));
+      record("forest-path-" + pc.id.replace("forest-", "") + "-copy", nameOk, (scene.label + " | " + scene.line).slice(0, 160));
+      if (pc.id === "forest-cabin") {
+        record(
+          "forest-cabin-scene-honesty",
+          scene.line.includes("冷") || scene.line.includes("医疗") || scene.line.includes("药"),
+          (scene.label + " | " + scene.line).slice(0, 200)
+        );
+      }
+      record(
+        "forest-path-" + pc.id.replace("forest-", "") + "-honesty-note",
+        scene.note.includes("实景") && (scene.note.includes("森林") || scene.note.includes("廊前") || scene.note.includes("林中") || scene.note.includes("屋里") || scene.note.includes("创作")),
+        scene.note.slice(0, 160)
+      );
+      await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, pc.shot + ".png") });
+      await shot(sender, pc.shot);
+    }
+    // Return home before Harbin suite (forest ends on s3)
+    await sender.goto(base);
     await sender.waitForSelector("#s0:not(.hidden)");
+
+    // --- Harbin real-photo place (additional; default hero stays Wudang) ---
     const homeMulti = await sender.locator("#s0 .home-badge-row").innerText();
     record(
       "homepage-mentions-harbin-wudang",
       homeMulti.includes("哈尔滨") && homeMulti.includes("武当"),
+      homeMulti.slice(0, 160)
+    );
+    record(
+      "homepage-mentions-forest",
+      homeMulti.includes("森林"),
       homeMulti.slice(0, 160)
     );
     const skipStillWudang = await sender.locator("#btnSkipIn").innerText();
@@ -512,13 +646,13 @@ async function main() {
     }
     await shot(sender, "harbin-share-card");
 
-    // reset to continue yunnan share-path coverage
+    // reset to continue onsen (procedural) share-path coverage
     await sender.click("#btnEndReplay");
     await sender.waitForSelector("#s0:not(.hidden)");
     await sender.click("#btnStart");
     await sender.waitForSelector("#s2:not(.hidden)");
     // one-tap place → scene (no body)
-    await sender.click('.place[data-id="yunnan"]');
+    await sender.click('.place[data-id="onsen"]');
     await sender.waitForSelector("#s3:not(.hidden)");
     const reachedSceneNoBody = await sender.evaluate(() => {
       const s3 = document.getElementById("s3");
@@ -590,8 +724,8 @@ async function main() {
     const sendDisabledBefore = await sender.locator("#btnSendFriend").isDisabled();
     record("send-friend-disabled-before-mark", sendDisabledBefore, "disabled=" + sendDisabledBefore);
 
-    const leafOn0 = await sender.locator('#markTools .tool[data-tool="leaf"].on').count();
-    if (!leafOn0) await sender.click('#markTools .tool[data-tool="leaf"]');
+    const toolOn0 = await sender.locator('#markTools .tool.on').count();
+    if (!toolOn0) await sender.locator('#markTools .tool').first().click();
     const stage0 = sender.locator("#playStage");
     const box0 = await stage0.boundingBox();
     await sender.mouse.click(box0.x + box0.width * 0.4, box0.y + box0.height * 0.45);
@@ -656,16 +790,16 @@ async function main() {
     const ogNote = honest.includes("页内 PNG") || honest.includes("富卡片") || honest.includes("OG");
     record("inpage-png-vs-og-honesty", previewHas && ogNote, "png=" + previewHas + " ogNote=" + ogNote);
 
-    const yunnanExport = await sender.evaluate(() => window.__healoaSeedTest.inspectShareCard("vertical"));
+    const onsenExport = await sender.evaluate(() => window.__healoaSeedTest.inspectShareCard("vertical"));
     record(
-      "yunnan-share-png-no-fake-wudang-hero",
-      !!(yunnanExport && yunnanExport.placeId === "yunnan" && yunnanExport.usedPhoto === false && !(yunnanExport.heroSrc || "").includes("wudang")),
-      JSON.stringify({ placeId: yunnanExport && yunnanExport.placeId, usedPhoto: yunnanExport && yunnanExport.usedPhoto, heroSrc: yunnanExport && yunnanExport.heroSrc })
+      "onsen-share-png-no-fake-wudang-hero",
+      !!(onsenExport && onsenExport.placeId === "onsen" && onsenExport.usedPhoto === false && !(onsenExport.heroSrc || "").includes("wudang")),
+      JSON.stringify({ placeId: onsenExport && onsenExport.placeId, usedPhoto: onsenExport && onsenExport.usedPhoto, heroSrc: onsenExport && onsenExport.heroSrc })
     );
     record(
-      "yunnan-share-png-still-crisp",
-      !!(yunnanExport && yunnanExport.width >= 1080 && yunnanExport.isPngDataUrl),
-      JSON.stringify({ w: yunnanExport && yunnanExport.width, h: yunnanExport && yunnanExport.height, isPng: yunnanExport && yunnanExport.isPngDataUrl })
+      "onsen-share-png-still-crisp",
+      !!(onsenExport && onsenExport.width >= 1080 && onsenExport.isPngDataUrl),
+      JSON.stringify({ w: onsenExport && onsenExport.width, h: onsenExport && onsenExport.height, isPng: onsenExport && onsenExport.isPngDataUrl })
     );
 
     const nativeDupCheck = await sender.evaluate(() => {
@@ -767,7 +901,9 @@ async function main() {
     await sender.waitForSelector("#s3:not(.hidden)");
     const heading = await sender.locator("#sceneHeading").innerText();
     record("sim-enter-label", heading.includes("模拟"), heading);
-    await sender.click('#markTools .tool[data-tool="sun"]');
+    // Ensure a tool is ON (auto-coach may already select first; clicking again would toggle OFF)
+    const toolArmed = await sender.locator('#markTools .tool.on').count();
+    if (!toolArmed) await sender.locator('#markTools .tool').first().click();
     const stage2 = sender.locator("#playStage");
     const box2 = await stage2.boundingBox();
     const beforeSim = await sender.evaluate(() => window.__healoaSeedTest.getState().marks.length);
@@ -809,7 +945,8 @@ async function main() {
       await pageB.click("#btnSeedEnter");
       await pageB.waitForSelector("#s3:not(.hidden)");
       const marksBeforeFriend = await pageB.evaluate(() => window.__healoaSeedTest.getState().marks.length);
-      await pageB.click('#markTools .tool[data-tool="moss"]');
+      const armedB = await pageB.locator('#markTools .tool.on').count();
+      if (!armedB) await pageB.locator('#markTools .tool').first().click();
       const st = pageB.locator("#playStage");
       const bb = await st.boundingBox();
       await pageB.mouse.click(bb.x + bb.width * 0.7, bb.y + bb.height * 0.4);
@@ -873,7 +1010,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-j",
+    version: "v2026-09-24-k",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
