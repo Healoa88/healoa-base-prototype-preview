@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + Wudang/Forest path chooser + Harbin + primary CTA skips body (v2026-09-24-l)
+ * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-24-m)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -62,6 +62,28 @@ async function shot(page, name) {
   const dest = path.join(EVIDENCE, `14-${name}.png`);
   await page.screenshot({ path: dest, fullPage: true });
   return dest;
+}
+
+async function markAndInspectShare(page, lineText) {
+  const anyOn = await page.locator("#markTools .tool.on").count();
+  if (!anyOn) await page.click("#markTools .tool").first();
+  const stage = page.locator("#playStage");
+  const box = await stage.boundingBox();
+  await page.mouse.click(box.x + box.width * 0.42, box.y + box.height * 0.48);
+  await page.fill("#soloLine", lineText);
+  await page.click("#btnSetLine");
+  await page.click("#btnSendFriend");
+  await page.waitForSelector("#s5:not(.hidden)");
+  await page.evaluate(async () => {
+    if (window.__healoaSeedTest && window.__healoaSeedTest.ensureSharePhotoReady) {
+      await window.__healoaSeedTest.ensureSharePhotoReady();
+    }
+    if (window.__healoaSeedTest && window.__healoaSeedTest.paintShareImgPreviewNow) {
+      window.__healoaSeedTest.paintShareImgPreviewNow();
+    }
+  });
+  await page.waitForTimeout(200);
+  return page.evaluate(() => window.__healoaSeedTest.inspectShareCard("vertical"));
 }
 
 async function goSoloToShare(page, lineText) {
@@ -156,7 +178,37 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-l"), banner);
+    record("version-banner", banner.includes("v2026-09-24-m"), banner);
+
+    const heroMap = await sender.evaluate(() => window.__healoaSeedTest.placePhotoHeroMap());
+    const expectedHeroes = {
+      wudang: "assets/places/wudang/02-terrace-sunrise.jpg",
+      "wudang-homestay": "assets/places/wudang/homestay/01-courtyard-house.jpg",
+      "wudang-vista": "assets/places/wudang/vista/01-cliff-pavilion.jpg",
+      "wudang-bustle": "assets/places/wudang/bustle/01-stairs-cable-crowd.jpg",
+      harbin: "assets/places/harbin/01-night-snow-roofs.jpg",
+      forest: "assets/places/forest/porch/01-lava-porch.jpg",
+      "forest-porch": "assets/places/forest/porch/01-lava-porch.jpg",
+      "forest-path": "assets/places/forest/path/01-leaf-tunnel.jpg",
+      "forest-cabin": "assets/places/cabin/03-desk-notebook-window.jpg",
+      thai: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
+      "thai-pool": "assets/places/thai/pool/01-infinity-coast.jpg",
+      "thai-market": "assets/places/thai/market/01-floating-market-boat.jpg",
+      "thai-dive": "assets/places/thai/dive/01-scuba-pair.jpg",
+      "thai-sunset": "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
+    };
+    let mapOk = true;
+    const mapMiss = [];
+    for (const [id, hero] of Object.entries(expectedHeroes)) {
+      if (heroMap[id] !== hero) {
+        mapOk = false;
+        mapMiss.push(id + "=>" + (heroMap[id] || "(missing)"));
+      }
+    }
+    record("share-hero-map-covers-photo-places", mapOk, mapMiss.join("; ") || "all " + Object.keys(expectedHeroes).length + " keys match");
+    const noOnsen = !heroMap.onsen;
+    record("share-hero-map-no-onsen-photo", noOnsen, "onsen=" + (heroMap.onsen || "(none)"));
+
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
@@ -367,11 +419,12 @@ async function main() {
     });
     record(
       "wudang-share-png-uses-hero",
-      !!(exportMeta && exportMeta.usedPhoto && String(exportMeta.heroSrc || "").includes("assets/places/wudang/")),
+      !!(exportMeta && exportMeta.usedPhoto && exportMeta.placeId === "wudang-vista" && String(exportMeta.heroSrc || "").includes("assets/places/wudang/vista/01-cliff-pavilion")),
       JSON.stringify({
         usedPhoto: exportMeta && exportMeta.usedPhoto,
         heroSrc: exportMeta && exportMeta.heroSrc,
         placeId: exportMeta && exportMeta.placeId,
+        expectedHero: exportMeta && exportMeta.expectedHero,
       })
     );
     record(
@@ -528,6 +581,34 @@ async function main() {
       await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, pc.shot + ".png") });
       await shot(sender, pc.shot);
     }
+
+    // Forest share PNG: cabin path must use cabin desk hero (not Wudang terrace)
+    await sender.goto(base);
+    await sender.click("#btnStart");
+    await sender.waitForSelector("#s2:not(.hidden)");
+    await sender.click('.place[data-id="forest"]');
+    await sender.waitForSelector("#s2f:not(.hidden)");
+    await sender.click('.path-card[data-path="forest-cabin"]');
+    await sender.waitForSelector("#s3:not(.hidden)");
+    await sender.waitForTimeout(300);
+    const forestExport = await markAndInspectShare(sender, "屋里先写下这一句。");
+    record(
+      "forest-share-png-uses-cabin-hero",
+      !!(forestExport && forestExport.usedPhoto && forestExport.placeId === "forest-cabin" && String(forestExport.heroSrc || "").includes("assets/places/cabin/03-desk-notebook-window")),
+      JSON.stringify({
+        usedPhoto: forestExport && forestExport.usedPhoto,
+        heroSrc: forestExport && forestExport.heroSrc,
+        placeId: forestExport && forestExport.placeId,
+        expectedHero: forestExport && forestExport.expectedHero,
+      })
+    );
+    record(
+      "forest-share-png-no-wudang-borrow",
+      !!(forestExport && !(String(forestExport.heroSrc || "").includes("wudang"))),
+      JSON.stringify({ heroSrc: forestExport && forestExport.heroSrc })
+    );
+    await shot(sender, "forest-share-card");
+
     // --- Thai top-level place → path chooser (mirror Wudang/Forest) ---
     await sender.goto(base);
     await sender.click("#btnStart");
@@ -652,6 +733,34 @@ async function main() {
       await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, pc.shot + ".png") });
       await shot(sender, pc.shot);
     }
+
+
+    // Thai share PNG: pool path must use infinity-coast hero (not Wudang / Forest)
+    await sender.goto(base);
+    await sender.click("#btnStart");
+    await sender.waitForSelector("#s2:not(.hidden)");
+    await sender.click('.place[data-id="thai"]');
+    await sender.waitForSelector("#s2t:not(.hidden)");
+    await sender.click('.path-card[data-path="thai-pool"]');
+    await sender.waitForSelector("#s3:not(.hidden)");
+    await sender.waitForTimeout(300);
+    const thaiExport = await markAndInspectShare(sender, "泳池边看一眼海。");
+    record(
+      "thai-share-png-uses-pool-hero",
+      !!(thaiExport && thaiExport.usedPhoto && thaiExport.placeId === "thai-pool" && String(thaiExport.heroSrc || "").includes("assets/places/thai/pool/01-infinity-coast")),
+      JSON.stringify({
+        usedPhoto: thaiExport && thaiExport.usedPhoto,
+        heroSrc: thaiExport && thaiExport.heroSrc,
+        placeId: thaiExport && thaiExport.placeId,
+        expectedHero: thaiExport && thaiExport.expectedHero,
+      })
+    );
+    record(
+      "thai-share-png-no-wudang-borrow",
+      !!(thaiExport && !(String(thaiExport.heroSrc || "").includes("wudang"))),
+      JSON.stringify({ heroSrc: thaiExport && thaiExport.heroSrc })
+    );
+    await shot(sender, "thai-share-card");
 
     // Return home before Harbin suite (thai ends on s3)
     await sender.goto(base);
@@ -815,21 +924,31 @@ async function main() {
       !!reachedSceneNoBody.activeTool,
       "activeTool=" + reachedSceneNoBody.activeTool
     );
-    // Fix B: scene must not be blank on enter (wait for fx canvas paint; longer suite/Thai can delay rAF)
+    // Fix B: scene must not be blank on enter (wait for fx canvas paint; longer suite / share PNG paths can delay rAF)
+    await sender.evaluate(() => {
+      // Nudge ambient fx after a long path-chooser + share suite
+      try {
+        const mist = document.getElementById("fxMist");
+        const light = document.getElementById("fxLight");
+        if (mist && !mist.classList.contains("on")) mist.click();
+        if (light && !light.classList.contains("on")) light.click();
+      } catch (e) {}
+    });
     await sender.waitForFunction(() => {
       const c = document.getElementById("fxCanvas");
       if (!(c && c.width > 40 && c.height > 40)) return false;
       const ctx = c.getContext("2d");
       let maxA = 0;
-      for (let i = 0; i < 64; i++) {
-        const x = Math.floor(c.width * (0.05 + (i % 16) * 0.055));
-        const y = Math.floor(c.height * (0.12 + Math.floor(i / 16) * 0.18));
+      // denser sample grid — wash + particles after long suite
+      for (let i = 0; i < 128; i++) {
+        const x = Math.floor(c.width * (0.04 + (i % 16) * 0.058));
+        const y = Math.floor(c.height * (0.08 + Math.floor(i / 16) * 0.11));
         const d = ctx.getImageData(x, y, 1, 1).data;
         if (d[3] > maxA) maxA = d[3];
       }
       return maxA >= 20;
-    }, null, { timeout: 8000 }).catch(() => {});
-    await sender.waitForTimeout(400);
+    }, null, { timeout: 12000 }).catch(() => {});
+    await sender.waitForTimeout(600);
     const blankCheck = await sender.evaluate(() => {
       const bg = document.getElementById("sceneBg");
       const stage = document.getElementById("playStage");
@@ -1161,7 +1280,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-l",
+    version: "v2026-09-24-m",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
