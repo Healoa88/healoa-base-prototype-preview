@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-g）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-h）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -237,7 +237,7 @@
   .asset-note { font-size:0.7rem; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45; }
   .proto-banner .line2 { display:block; margin-top:4px; font-size:10px; color:rgba(138,160,178,0.95); }
 
-  /* v2026-09-24-g · primary CTA → place/scene; body optional */
+  /* v2026-09-24-h · primary CTA → place/scene; body optional · share PNG polish */
   .scene-shell { min-height: 520px; }
   .scene-landmark {
     position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -337,7 +337,7 @@
     radial-gradient(ellipse at 28% 88%, rgba(90,200,220,0.4), transparent 40%),
     linear-gradient(180deg, #183848 0%, #204860 28%, #307878 60%, #1e4850 100%); }
 
-  /* Scene Seed · 场景种子 card & invite (v2026-09-24-g) · P0 invite honesty · short 发给朋友 tail */
+  /* Scene Seed · 场景种子 card & invite (v2026-09-24-h) · P0 invite honesty · short 发给朋友 tail · share PNG Wudang hero */
   .seed-badge { display:inline-block; font-size:10px; padding:3px 9px; border-radius:999px;
     background:linear-gradient(135deg,rgba(110,198,192,0.22),rgba(212,176,138,0.18));
     color:var(--aqua); border:1px solid rgba(110,198,192,0.35); letter-spacing:0.06em;
@@ -367,11 +367,15 @@
   .seed-card-live.place-wudang {
     background-color:#152238;
     background-image:
-      linear-gradient(165deg, rgba(8,14,22,0.55) 0%, rgba(21,34,56,0.72) 42%, rgba(10,18,24,0.92) 100%),
+      linear-gradient(180deg, rgba(8,14,22,0.62) 0%, rgba(8,14,22,0.28) 36%, rgba(8,14,22,0.55) 62%, rgba(6,10,16,0.92) 100%),
       url("assets/places/wudang/02-terrace-sunrise.jpg");
     background-size:cover; background-position:center;
   }
-  .seed-card-live.place-wudang.has-photo::before { opacity:0.35; }
+  .seed-card-live.place-wudang.has-photo::before { opacity:0.22; }
+  .seed-card-live.place-wudang .seed-title { text-shadow:0 2px 14px rgba(0,0,0,0.55); }
+  .seed-card-live.place-wudang .seed-line,
+  .seed-card-live.place-wudang .seed-invite,
+  .seed-card-live.place-wudang .seed-foot { text-shadow:0 1px 8px rgba(0,0,0,0.45); }
   .seed-card-live.place-yunnan { background:linear-gradient(165deg,#142820 0%,#1e3428 40%,#0a1218 100%); }
   .seed-card-live.place-onsen { background:linear-gradient(165deg,#241828 0%,#342838 40%,#0a1218 100%); }
   .seed-card-live.place-thai { background:linear-gradient(165deg,#152838 0%,#1c3850 40%,#0a1218 100%); }
@@ -396,7 +400,7 @@
 <body>
 
 <div class="proto-banner quiet-chrome">
-  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-g</strong>
+  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-h</strong>
   <span>先感受气氛 · 留下一笔 · 邀请朋友加一笔</span>
   <span class="line2">第二人=模拟 · 朋友打开=副本 · 非正式 healoa.app</span>
 </div>
@@ -656,7 +660,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-g</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-h</span>
         </div>
         <div class="seed-foot" id="seedLiveFoot">默认分享作品 · 不含身体自述</div>
       </div>
@@ -734,7 +738,7 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-24-g · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
+    <p class="footer-meta">预览 v2026-09-24-h · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
   </section>
 
   <section id="sSeed" class="screen hidden">
@@ -751,7 +755,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-g</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-h</span>
         </div>
         <div class="seed-foot">默认只开作品 · 不含身体/隐私</div>
       </div>
@@ -763,14 +767,14 @@
     <p class="footer-meta">#seed= 可打开副本 · 双方共享持续更新 = UNKNOWN · 非正式远程双人直播</p>
   </section>
 </div>
-<canvas id="cardCanvas" width="720" height="960" aria-hidden="true"></canvas>
-<canvas id="cardCanvasSq" width="720" height="720" aria-hidden="true"></canvas>
+<canvas id="cardCanvas" width="1080" height="1440" aria-hidden="true"></canvas>
+<canvas id="cardCanvasSq" width="1080" height="1080" aria-hidden="true"></canvas>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-g";
+  var VERSION = "v2026-09-24-h";
   var MAX_MARKS = 6;
   var state = {
     body: null, season: null, placeId: null, joined: false, feel: null,
@@ -848,10 +852,13 @@
     }
   };
   var placePhotoImgs = {};
+  var lastShareExport = { usedPhoto:false, heroSrc:"", width:0, height:0, format:"vertical" };
   function preloadPlacePhotos(){
     Object.keys(PLACE_PHOTOS).forEach(function(id){
       var info = PLACE_PHOTOS[id];
-      var list = (info.cycle && info.cycle.length) ? info.cycle : [info.hero];
+      var list = (info.cycle && info.cycle.length) ? info.cycle.slice() : [];
+      if(info.hero && list.indexOf(info.hero)<0) list.unshift(info.hero);
+      if(info.thumb && list.indexOf(info.thumb)<0) list.push(info.thumb);
       list.forEach(function(src){
         if(!src || placePhotoImgs[src]) return;
         var img = new Image();
@@ -862,6 +869,51 @@
     });
   }
   preloadPlacePhotos();
+  function getPlaceHeroImg(placeId){
+    var info = PLACE_PHOTOS[placeId];
+    if(!info || !info.hero) return null;
+    var img = placePhotoImgs[info.hero];
+    if(!img){
+      img = new Image();
+      img.decoding = "async";
+      img.src = info.hero;
+      placePhotoImgs[info.hero] = img;
+    }
+    return img;
+  }
+  function placeHeroReady(placeId){
+    var img = getPlaceHeroImg(placeId);
+    return !!(img && img.complete && img.naturalWidth > 0);
+  }
+  function ensurePlacePhotoReady(placeId, timeoutMs){
+    placeId = placeId || state.placeId;
+    timeoutMs = timeoutMs == null ? 2800 : timeoutMs;
+    return new Promise(function(resolve){
+      var info = PLACE_PHOTOS[placeId];
+      if(!info || !info.hero){ resolve({ ok:false, reason:"no_photo" }); return; }
+      var img = getPlaceHeroImg(placeId);
+      if(img && img.complete && img.naturalWidth > 0){
+        resolve({ ok:true, src:info.hero, w:img.naturalWidth, h:img.naturalHeight });
+        return;
+      }
+      var settled = false;
+      function finish(ok){
+        if(settled) return; settled = true;
+        if(ok && img && img.naturalWidth > 0){
+          resolve({ ok:true, src:info.hero, w:img.naturalWidth, h:img.naturalHeight });
+        } else {
+          resolve({ ok:false, reason:"load_timeout_or_error", src:info.hero });
+        }
+      }
+      var onLoad = function(){ finish(true); };
+      var onErr = function(){ finish(false); };
+      img.addEventListener("load", onLoad, { once:true });
+      img.addEventListener("error", onErr, { once:true });
+      // re-kick decode/load for cached but incomplete edges
+      try { if(img.decode) img.decode().then(function(){ finish(true); }).catch(function(){}); } catch(e){}
+      setTimeout(function(){ finish(!!(img.complete && img.naturalWidth > 0)); }, timeoutMs);
+    });
+  }
   var wudangCycleTimer = null;
   var wudangCycleIdx = 0;
   function stopWudangCycle(){
@@ -1867,68 +1919,103 @@
     fmt=fmt||state.seedFormat||"vertical";
     var canvas = fmt==="square" ? $("cardCanvasSq") : $("cardCanvas");
     if(!canvas) canvas=$("cardCanvas");
+    // Keep export crisp for save/send: bump backing store if markup is older
+    var targetW = fmt==="square" ? 1080 : 1080;
+    var targetH = fmt==="square" ? 1080 : 1440;
+    if(canvas.width !== targetW || canvas.height !== targetH){
+      canvas.width = targetW; canvas.height = targetH;
+    }
     var ctx=canvas.getContext("2d");
     var p=PLACES[state.placeId]||{name:"场景",defaultSolo:"",defaultDuo:"",colors:["#0a1218","#6ec6c0","#d4b08a"],seedTitle:"场景 · 种子"};
     var w=canvas.width, h=canvas.height;
     var photoInfo = PLACE_PHOTOS[state.placeId];
-    var photoImg = photoInfo && placePhotoImgs[photoInfo.hero];
+    var photoImg = photoInfo ? getPlaceHeroImg(state.placeId) : null;
     var usedPhoto = !!(photoImg && photoImg.complete && photoImg.naturalWidth > 0);
+    var heroSrc = (usedPhoto && photoInfo) ? photoInfo.hero : "";
+    ctx.clearRect(0,0,w,h);
     if(usedPhoto){
-      // cover-draw real place photo
+      // cover-draw real place photo (Wudang demo asset) — not a fake leaf/placeholder
       var iw=photoImg.naturalWidth, ih=photoImg.naturalHeight;
       var scale=Math.max(w/iw, h/ih);
       var dw=iw*scale, dh=ih*scale;
       var dx=(w-dw)/2, dy=(h-dh)/2;
       ctx.drawImage(photoImg, dx, dy, dw, dh);
+      // Readable scrim: darker top/bottom, keep mid photo visible
       var og=ctx.createLinearGradient(0,0,0,h);
-      og.addColorStop(0,"rgba(8,14,22,0.55)");
-      og.addColorStop(0.45,"rgba(8,14,22,0.35)");
-      og.addColorStop(1,"rgba(8,14,22,0.78)");
+      og.addColorStop(0,"rgba(6,10,16,0.72)");
+      og.addColorStop(0.22,"rgba(6,10,16,0.38)");
+      og.addColorStop(0.52,"rgba(6,10,16,0.28)");
+      og.addColorStop(0.78,"rgba(6,10,16,0.58)");
+      og.addColorStop(1,"rgba(6,10,16,0.88)");
       ctx.fillStyle=og; ctx.fillRect(0,0,w,h);
+      // soft vignette for edges
+      var vg=ctx.createRadialGradient(w*0.5,h*0.42, Math.min(w,h)*0.18, w*0.5,h*0.5, Math.max(w,h)*0.72);
+      vg.addColorStop(0,"rgba(0,0,0,0)");
+      vg.addColorStop(1,"rgba(0,0,0,0.28)");
+      ctx.fillStyle=vg; ctx.fillRect(0,0,w,h);
     } else {
       var g=ctx.createLinearGradient(0,0,w*0.2,h);
       g.addColorStop(0,p.colors[0]||"#0a1218");
       g.addColorStop(0.55, p.colors[1]||"#1a3028");
       g.addColorStop(1,"#070c10");
       ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
-      // soft orbs
+      // soft orbs (procedural places only — not a leaf fake for Wudang)
       ctx.fillStyle="rgba(110,198,192,0.14)"; ctx.beginPath(); ctx.arc(w*0.82,h*0.16, Math.min(w,h)*0.28,0,Math.PI*2); ctx.fill();
       ctx.fillStyle="rgba(212,176,138,0.12)"; ctx.beginPath(); ctx.arc(w*0.18,h*0.72, Math.min(w,h)*0.22,0,Math.PI*2); ctx.fill();
     }
     // frame
-    ctx.strokeStyle="rgba(255,255,255,0.14)"; ctx.lineWidth=2;
-    roundRect(ctx,28,28,w-56,h-56,28); ctx.stroke();
-    ctx.fillStyle="#d4b08a"; ctx.font="600 20px sans-serif";
-    ctx.fillText("SCENE SEED · 场景种子",48,70);
-    ctx.fillStyle="rgba(110,198,192,0.9)"; ctx.font="12px sans-serif";
-    ctx.fillText("LIVING EDITIONS · APP",48,94);
+    ctx.strokeStyle="rgba(255,255,255,0.16)"; ctx.lineWidth=2.5;
+    roundRect(ctx,42,42,w-84,h-84,36); ctx.stroke();
+    // kicker with shadow for photo contrast
+    ctx.save();
+    ctx.shadowColor="rgba(0,0,0,0.45)"; ctx.shadowBlur=10; ctx.shadowOffsetY=2;
+    ctx.fillStyle="#d4b08a"; ctx.font="600 28px sans-serif";
+    ctx.fillText("SCENE SEED · 场景种子",68,102);
+    ctx.fillStyle="rgba(110,198,192,0.95)"; ctx.font="16px sans-serif";
+    ctx.fillText("LIVING EDITIONS · APP",68,132);
     var title=poeticTitle(state.placeId);
-    ctx.fillStyle="#eef4f8"; ctx.font="650 36px serif";
-    wrapText(ctx, title, 48, 150, w-96, 44);
-    // public line panel
-    var panelY = fmt==="square" ? 250 : 280;
-    var panelH = fmt==="square" ? 220 : 360;
-    roundRect(ctx,48,panelY,w-96,panelH,22);
-    ctx.fillStyle="rgba(8,14,18,0.55)"; ctx.fill();
-    ctx.strokeStyle="rgba(255,255,255,0.10)"; ctx.stroke();
-    ctx.fillStyle="#8aa0b2"; ctx.font="16px sans-serif"; ctx.fillText("公开的一行",72,panelY+36);
-    ctx.fillStyle="#c8ebe8"; ctx.font="22px sans-serif";
-    wrapText(ctx, publicLine(), 72, panelY+78, w-144, 32);
+    ctx.fillStyle="#eef4f8"; ctx.font="650 52px serif";
+    wrapText(ctx, title, 68, 198, w-136, 62);
+    ctx.restore();
+    // public line panel — stronger glass for readability on photo
+    var panelY = fmt==="square" ? 360 : 390;
+    var panelH = fmt==="square" ? 300 : 480;
+    roundRect(ctx,68,panelY,w-136,panelH,28);
+    ctx.fillStyle= usedPhoto ? "rgba(6,10,16,0.62)" : "rgba(8,14,18,0.55)";
+    ctx.fill();
+    ctx.strokeStyle="rgba(255,255,255,0.12)"; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle="#8aa0b2"; ctx.font="22px sans-serif"; ctx.fillText("公开的一行",96,panelY+48);
+    ctx.fillStyle="#c8ebe8"; ctx.font="30px sans-serif";
+    wrapText(ctx, publicLine(), 96, panelY+100, w-200, 42);
     var myMarks=state.marks.filter(function(m){return m.from!=="p2";});
-    ctx.fillStyle="#8aa0b2"; ctx.font="18px sans-serif";
-    ctx.fillText("痕迹 ×"+myMarks.length+" · 气氛 "+summarizeFx(state.fx),72,panelY+panelH-70);
-    myMarks.slice(0,5).forEach(function(m,i){ var meta=toolMeta(m.tool); ctx.font="34px sans-serif"; ctx.fillText(meta.icon,72+i*48,panelY+panelH-28); });
+    ctx.fillStyle="#8aa0b2"; ctx.font="24px sans-serif";
+    ctx.fillText("痕迹 ×"+myMarks.length+" · 气氛 "+summarizeFx(state.fx),96,panelY+panelH-92);
+    myMarks.slice(0,5).forEach(function(m,i){ var meta=toolMeta(m.tool); ctx.font="44px sans-serif"; ctx.fillText(meta.icon,96+i*62,panelY+panelH-36); });
     // invite
-    var inviteY = fmt==="square" ? h-150 : h-180;
-    ctx.fillStyle="#6ec6c0"; ctx.font="italic 20px sans-serif";
-    wrapText(ctx, "「"+INVITE_LINE+"」", 48, inviteY, w-96, 28);
+    var inviteY = fmt==="square" ? h-210 : h-250;
+    ctx.save();
+    ctx.shadowColor="rgba(0,0,0,0.4)"; ctx.shadowBlur=8; ctx.shadowOffsetY=1;
+    ctx.fillStyle="#6ec6c0"; ctx.font="italic 28px sans-serif";
+    wrapText(ctx, "「"+INVITE_LINE+"」", 68, inviteY, w-136, 36);
+    ctx.restore();
     if(state.joined){
-      ctx.fillStyle="#d4b08a"; ctx.font="16px sans-serif";
-      ctx.fillText("含模拟第二人痕迹 · 非远程真人",48, inviteY+48);
+      ctx.fillStyle="#d4b08a"; ctx.font="20px sans-serif";
+      ctx.fillText("含模拟第二人痕迹 · 非远程真人",68, inviteY+56);
     }
-    ctx.fillStyle="#8aa0b2"; ctx.font="15px sans-serif";
-    ctx.fillText("预览 "+VERSION+" · 非正式 healoa.app",48,h-78);
-    ctx.fillText(usedPhoto?"场景照片=演示用实景（武当）· 非正式付费素材包":"默认分享作品 · 不含身体自述 · 副本非实时同步",48,h-52);
+    ctx.fillStyle="#8aa0b2"; ctx.font="20px sans-serif";
+    ctx.fillText("预览 "+VERSION+" · 非正式 healoa.app",68,h-110);
+    var foot = usedPhoto
+      ? "场景照片=演示用实景（武当）· 非正式付费素材包 · 页内PNG≠链接富卡片"
+      : "默认分享作品 · 不含身体自述 · 副本非实时同步";
+    ctx.fillText(foot,68,h-76);
+    lastShareExport = {
+      usedPhoto: usedPhoto,
+      heroSrc: heroSrc,
+      width: w,
+      height: h,
+      format: fmt,
+      placeId: state.placeId || ""
+    };
     return canvas;
   }
   function roundRect(ctx,x,y,w,h,r){
@@ -1945,8 +2032,13 @@
     if(line) ctx.fillText(line,x,yy);
   }
   function downloadPng(filename){
-    var canvas=drawShareCard(state.seedFormat);
-    canvas.toBlob(function(blob){ if(!blob){toast("图片生成失败");return;} downloadBlob(filename,blob); }, "image/png");
+    function emit(){
+      var canvas=drawShareCard(state.seedFormat);
+      canvas.toBlob(function(blob){ if(!blob){toast("图片生成失败");return;} downloadBlob(filename,blob); }, "image/png");
+    }
+    if(PLACE_PHOTOS[state.placeId] && !placeHeroReady(state.placeId)){
+      ensurePlacePhotoReady(state.placeId).then(function(){ emit(); });
+    } else emit();
   }
   $("btnDownloadPng").addEventListener("click", function(){
     var p=PLACES[state.placeId]||{};
@@ -1971,13 +2063,29 @@
       + (url ? ("打开种子（你的副本）："+url+"\n") : "（无可用 #seed= 邀请链接 — 请改用 JSON/PNG）\n")
       + "——已实现：朋友可在自己的副本继续创作 · UNKNOWN：双方共享持续更新 · 页内 PNG≠微信/WhatsApp 富链 · 自愿 · 不含身体自述 · 非正式产品";
   }
-  function refreshShareImgPreview(){
+  function paintShareImgPreviewNow(){
     try {
       var canvas=drawShareCard(state.seedFormat);
       var img=$("shareImgPreview");
+      if(!img) return lastShareExport;
       img.src=canvas.toDataURL("image/png");
       img.classList.add("show");
-    } catch(e){ toast("预览图生成失败"); }
+      return lastShareExport;
+    } catch(e){ toast("预览图生成失败"); return lastShareExport; }
+  }
+  function refreshShareImgPreview(){
+    if(PLACE_PHOTOS[state.placeId] && !placeHeroReady(state.placeId)){
+      ensurePlacePhotoReady(state.placeId).then(function(res){
+        paintShareImgPreviewNow();
+        if(res && res.ok && $("s5") && !$("s5").classList.contains("hidden")){
+          // silent re-paint once hero lands — keeps 发给朋友 preview honest
+        }
+      });
+      // paint procedural fallback immediately so UI is not blank while loading
+      paintShareImgPreviewNow();
+      return;
+    }
+    paintShareImgPreviewNow();
   }
   $("btnToShare").addEventListener("click", function(){
     silentSaveLocal();
@@ -2299,13 +2407,34 @@
     validateCompact: validateCompact,
     utf8ToB64url: utf8ToB64url,
     b64urlToUtf8: b64urlToUtf8,
+    ensureSharePhotoReady: function(placeId){ return ensurePlacePhotoReady(placeId||state.placeId); },
+    refreshShareImgPreview: refreshShareImgPreview,
+    paintShareImgPreviewNow: paintShareImgPreviewNow,
+    drawShareCard: function(fmt){ return drawShareCard(fmt||state.seedFormat); },
+    inspectShareCard: function(fmt){
+      var canvas = drawShareCard(fmt||state.seedFormat);
+      var meta = {
+        usedPhoto: !!lastShareExport.usedPhoto,
+        heroSrc: lastShareExport.heroSrc || "",
+        width: canvas.width,
+        height: canvas.height,
+        format: lastShareExport.format || fmt || "vertical",
+        placeId: lastShareExport.placeId || state.placeId || "",
+        dataUrl: ""
+      };
+      try { meta.dataUrl = canvas.toDataURL("image/png"); } catch(e){ meta.dataUrl = ""; }
+      meta.pngBytesHint = meta.dataUrl ? meta.dataUrl.length : 0;
+      meta.isPngDataUrl = !!(meta.dataUrl && meta.dataUrl.indexOf("data:image/png")===0);
+      return meta;
+    },
     getState: function(){ return {
       marks: state.marks.slice(), placeId: state.placeId, soloText: state.soloText,
       recipientMode: state.recipientMode, joined: state.joined,
       privacyLineConfirmed: state.privacyLineConfirmed,
       lastSeedUrlOk: !!(state.lastSeedUrlResult&&state.lastSeedUrlResult.ok),
       lastSeedUrlReason: state.lastSeedUrlResult&&state.lastSeedUrlResult.reason,
-      workId: state.workId
+      workId: state.workId,
+      lastShareExport: Object.assign({}, lastShareExport)
     }; },
     forceOverlongSeed: function(){
       // Inflate public line / marks so URL exceeds safe length; never emits seedId invite
