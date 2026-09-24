@@ -3,23 +3,24 @@
 **Not** a formal App launch. **Not** aurora-companions / healoa.com website work.
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- Version stamp: **预览 v2026-09-24-h** · **Scene Seed / 场景种子**
+- Version stamp: **预览 v2026-09-24-i** · **Scene Seed / 场景种子**
 - Single-file offline HTML demo + local place photos: pick a place → see/hear/operate a scene → solo create → optional **simulated** second person → save / restore → emit a **Scene Seed** (`#seed=` reopenable work URL) → friend opens **their own copy** and can add a stroke
 
 App social currency (Living Editions · App side) = **Scene Seed** — “我发现了一个美的地方，并把创作邀请给你”.
 
-## v2026-09-24-h UX (武当实景 · share-card PNG polish)
+## v2026-09-24-i UX (哈尔滨冰雪实景 + 武当 · share PNG)
 
-- **Default hero place = 武当**（「直接进 · 武当」）when Wudang exists in `PLACES`.
-- Wudang place card + scene shell + Scene Seed card/PNG use **real demo photos** under `assets/places/wudang/` (relative paths for GitHub Pages).
-- Share-card PNG export (竖版/方版): waits for Wudang hero load, cover-draws **real photo** (not leaf/placeholder), stronger scrim for readable text, **1080×1440 / 1080×1080** canvas for crisp save/send. Honesty foot: 演示用实景 · 页内PNG≠链接富卡片.
-- Homepage customer voice: 先感受太极好去处的气氛 → 留下一笔 → 邀请朋友加一笔 → 以后再决定要不要真去. Keep: 不用先填一堆表，也不用真的先飞过去.
-- Honesty: **场景照片为演示用实景（武当）· 非正式付费素材包 · 非正式 healoa.app** — not medical claims; no Keeper / Choose Again / Circle signup on customer UI.
+- **Default hero place stays 武当**（「直接进 · 武当」）. Harbin is **additional**.
+- **Real-photo places**: 武当 + **哈尔滨冰雪** under `assets/places/{wudang,harbin}/` (relative paths for GitHub Pages).
+- Harbin place card: photo thumb + cold / ~2-month / 雪乡奶茶／暖食 bullets (customer-readable in ~3s). Scene feel copy is honest (约零下28℃ · 并不适合每个人 · 年开约两月) — **not** a medical prescription.
+- Scene shell / Scene Seed live card / share PNG: `PLACE_PHOTOS` + `ensurePlacePhotoReady` cover-draw hero (same path as Wudang).
+- Homepage badge: **多地实景（武当太极／哈尔滨冰雪）** without lengthening the form wall.
+- Honesty: **演示用实景（武当／哈尔滨）· 非正式付费素材包 · 页内PNG≠富卡片** — no Keeper / Choose Again / Circle signup; no Track B.
 - Other places may stay procedural for now.
-- Scope note: this stamp polishes **seed/share PNG export only**; place cards / scene bg / CTA→scene / startViaPlaces left as in g (`5e0b81c`).
 
-## Prior (v2026-09-24-g / f)
+## Prior (v2026-09-24-h / g / f)
 
+- h: polish share-card PNG with real Wudang hero.
 - g: embed real Wudang photos as default hero place.
 - f: Primary CTA「走进场景试试」goes to place pick; body×season optional.
 - Share-tail: after one mark →「发给朋友」; P0 honesty (copy ≠ live shared work / UNKNOWN). No `#seedId=` fake invites.
@@ -42,4 +43,4 @@ npx playwright install chromium   # once
 npm run test:scene-seed
 ```
 
-Evidence: `/workspace/docs/demo-evidence-2026-09-24/` (`wudang-*.png`, `14-*`).
+Evidence: `/workspace/docs/demo-evidence-2026-09-24/` (`harbin-*.png`, `wudang-*.png`, `14-*`).

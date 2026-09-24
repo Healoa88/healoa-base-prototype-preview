@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-h）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-i）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -70,6 +70,7 @@
   .place-icon.onsen { background: rgba(212,176,138,0.22); }
   .place-icon.thai { background: rgba(110,170,210,0.18); }
   .place-icon.wudang { background: rgba(140,160,200,0.2); }
+  .place-icon.harbin { background: rgba(120,160,210,0.22); }
   .place-icon.photo {
     background-size: cover; background-position: center; background-repeat: no-repeat;
     border: 1px solid rgba(255,255,255,0.18); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
@@ -77,6 +78,9 @@
   }
   .place-icon.wudang.photo {
     background-image: url("assets/places/wudang/01-cloud-sea-sun.jpg");
+  }
+  .place-icon.harbin.photo {
+    background-image: url("assets/places/harbin/03-day-milk-tea-village.jpg");
   }
   .place b { display: block; font-size: 0.98rem; font-weight: 650; margin-bottom: 3px; }
   .place span { display: block; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
@@ -89,6 +93,14 @@
     background-image:
       linear-gradient(180deg, rgba(8,14,22,0.58) 0%, rgba(8,14,22,0.28) 38%, rgba(8,14,22,0.62) 100%),
       url("assets/places/wudang/02-terrace-sunrise.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  .scene-bg.harbin {
+    background-color: #0e1a2c;
+    background-image:
+      linear-gradient(180deg, rgba(6,12,22,0.62) 0%, rgba(6,12,22,0.32) 38%, rgba(6,12,22,0.68) 100%),
+      url("assets/places/harbin/01-night-snow-roofs.jpg");
     background-size: cover;
     background-position: center;
   }
@@ -216,6 +228,14 @@
     background-size: cover;
     background-position: center;
   }
+  .scene-bg.harbin {
+    background-color: #0e1a2c;
+    background-image:
+      linear-gradient(180deg, rgba(6,12,22,0.62) 0%, rgba(6,12,22,0.32) 38%, rgba(6,12,22,0.68) 100%),
+      url("assets/places/harbin/01-night-snow-roofs.jpg");
+    background-size: cover;
+    background-position: center;
+  }
   .scene-bg.yunnan { background:
     radial-gradient(ellipse at 28% 65%, rgba(90,180,110,0.42), transparent 42%),
     radial-gradient(ellipse at 80% 20%, rgba(180,220,140,0.18), transparent 35%),
@@ -237,7 +257,7 @@
   .asset-note { font-size:0.7rem; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45; }
   .proto-banner .line2 { display:block; margin-top:4px; font-size:10px; color:rgba(138,160,178,0.95); }
 
-  /* v2026-09-24-h · primary CTA → place/scene; body optional · share PNG polish */
+  /* v2026-09-24-i · primary CTA → place/scene; body optional · Harbin + Wudang real photos · share PNG polish */
   .scene-shell { min-height: 520px; }
   .scene-landmark {
     position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -324,6 +344,14 @@
     background-size: cover;
     background-position: center;
   }
+  .scene-bg.harbin {
+    background-color: #0e1a2c;
+    background-image:
+      linear-gradient(180deg, rgba(6,12,22,0.62) 0%, rgba(6,12,22,0.32) 38%, rgba(6,12,22,0.68) 100%),
+      url("assets/places/harbin/01-night-snow-roofs.jpg");
+    background-size: cover;
+    background-position: center;
+  }
   .scene-bg.yunnan { background:
     radial-gradient(ellipse at 30% 60%, rgba(100,200,130,0.55), transparent 40%),
     radial-gradient(ellipse at 78% 18%, rgba(200,240,150,0.28), transparent 34%),
@@ -337,7 +365,7 @@
     radial-gradient(ellipse at 28% 88%, rgba(90,200,220,0.4), transparent 40%),
     linear-gradient(180deg, #183848 0%, #204860 28%, #307878 60%, #1e4850 100%); }
 
-  /* Scene Seed · 场景种子 card & invite (v2026-09-24-h) · P0 invite honesty · short 发给朋友 tail · share PNG Wudang hero */
+  /* Scene Seed · 场景种子 card & invite (v2026-09-24-i) · P0 invite honesty · short 发给朋友 tail · share PNG real-photo hero */
   .seed-badge { display:inline-block; font-size:10px; padding:3px 9px; border-radius:999px;
     background:linear-gradient(135deg,rgba(110,198,192,0.22),rgba(212,176,138,0.18));
     color:var(--aqua); border:1px solid rgba(110,198,192,0.35); letter-spacing:0.06em;
@@ -376,6 +404,18 @@
   .seed-card-live.place-wudang .seed-line,
   .seed-card-live.place-wudang .seed-invite,
   .seed-card-live.place-wudang .seed-foot { text-shadow:0 1px 8px rgba(0,0,0,0.45); }
+  .seed-card-live.place-harbin {
+    background-color:#0e1a2c;
+    background-image:
+      linear-gradient(180deg, rgba(6,12,22,0.66) 0%, rgba(6,12,22,0.30) 36%, rgba(6,12,22,0.58) 62%, rgba(4,8,14,0.92) 100%),
+      url("assets/places/harbin/01-night-snow-roofs.jpg");
+    background-size:cover; background-position:center;
+  }
+  .seed-card-live.place-harbin.has-photo::before { opacity:0.2; }
+  .seed-card-live.place-harbin .seed-title { text-shadow:0 2px 14px rgba(0,0,0,0.55); }
+  .seed-card-live.place-harbin .seed-line,
+  .seed-card-live.place-harbin .seed-invite,
+  .seed-card-live.place-harbin .seed-foot { text-shadow:0 1px 8px rgba(0,0,0,0.45); }
   .seed-card-live.place-yunnan { background:linear-gradient(165deg,#142820 0%,#1e3428 40%,#0a1218 100%); }
   .seed-card-live.place-onsen { background:linear-gradient(165deg,#241828 0%,#342838 40%,#0a1218 100%); }
   .seed-card-live.place-thai { background:linear-gradient(165deg,#152838 0%,#1c3850 40%,#0a1218 100%); }
@@ -400,7 +440,7 @@
 <body>
 
 <div class="proto-banner quiet-chrome">
-  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-h</strong>
+  <strong>可看原型 · 非正式 Demo · 预览 v2026-09-24-i</strong>
   <span>先感受气氛 · 留下一笔 · 邀请朋友加一笔</span>
   <span class="line2">第二人=模拟 · 朋友打开=副本 · 非正式 healoa.app</span>
 </div>
@@ -413,6 +453,7 @@
     <div class="home-badge-row">
       <span class="trial-badge">非正式 · 可看 Demo</span>
       <span class="sim-badge">第二人=模拟</span>
+      <span class="trial-badge">多地实景（武当太极／哈尔滨冰雪）</span>
     </div>
     <div class="btn-row">
       <button class="primary" type="button" id="btnStart">走进场景试试</button>
@@ -425,7 +466,7 @@
     <details class="reviewer-notes" id="homeReviewerNotes" style="margin-top:18px">
       <summary>说明（给评审 / 非首屏）</summary>
       <p class="sub" style="margin-top:10px">身体与季节是<strong>可选</strong>自述，默认跳过，不作诊断。默认分享的是作品，不是身体/隐私。朋友打开的是自己的<strong>副本</strong>——双方共享持续更新仍是 UNKNOWN。</p>
-      <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />不是 Circle Edition · 不是 Wrapped · 不对顾客称「Life Maps」· 不是 Choose Again / 第二圈 OS · 不做 Keeper<br />本页不接注册、不替你预约 · 第二人=模拟（若同机）<br />可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移<br />场景照片为<strong>演示用实景（武当）</strong>· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN） · Living Editions · App</p>
+      <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />不是 Circle Edition · 不是 Wrapped · 不对顾客称「Life Maps」· 不是 Choose Again / 第二圈 OS · 不做 Keeper<br />本页不接注册、不替你预约 · 第二人=模拟（若同机）<br />可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移<br />场景照片为<strong>演示用实景（武当／哈尔滨）</strong>· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN） · Living Editions · App</p>
     </details>
   </section>
 
@@ -505,6 +546,7 @@
     <p class="note">下列地点是示例目的地，不是系统替你算出来的处方。</p>
     <div class="places" id="placeList">
       <button type="button" class="place" data-id="wudang"><div class="place-icon wudang photo" aria-hidden="true" title="武当实景">山</div><div><b>武当山</b><span>云海石阶 · 实景预览 · 可放足迹/松针</span></div></button>
+      <button type="button" class="place" data-id="harbin"><div class="place-icon harbin photo" aria-hidden="true" title="哈尔滨实景">冰</div><div><b>哈尔滨冰雪</b><span>约−28℃ · 年开约两月 · 雪乡奶茶／暖食 · 实景</span></div></button>
       <button type="button" class="place" data-id="yunnan"><div class="place-icon forest" aria-hidden="true">林</div><div><b>云南森林</b><span>林光与湿润空气 · 可放叶/光斑</span></div></button>
       <button type="button" class="place" data-id="onsen"><div class="place-icon onsen" aria-hidden="true">泉</div><div><b>日本温泉</b><span>热气与石阶 · 可放石/灯</span></div></button>
       <button type="button" class="place" data-id="thai"><div class="place-icon thai" aria-hidden="true">海</div><div><b>泰国海边</b><span>暖、慢、浪声 · 可放贝壳/椰影</span></div></button>
@@ -660,7 +702,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-h</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-i</span>
         </div>
         <div class="seed-foot" id="seedLiveFoot">默认分享作品 · 不含身体自述</div>
       </div>
@@ -738,7 +780,7 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-24-h · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
+    <p class="footer-meta">预览 v2026-09-24-i · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 无医疗主张 · 第二人默认=模拟<br />场景照片为演示用实景（武当／哈尔滨）· 非正式付费素材包 · 非正式 healoa.app · 朋友打开=副本（共享持续更新=UNKNOWN）</p>
   </section>
 
   <section id="sSeed" class="screen hidden">
@@ -755,7 +797,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-h</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-i</span>
         </div>
         <div class="seed-foot">默认只开作品 · 不含身体/隐私</div>
       </div>
@@ -774,7 +816,7 @@
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-h";
+  var VERSION = "v2026-09-24-i";
   var MAX_MARKS = 6;
   var state = {
     body: null, season: null, placeId: null, joined: false, feel: null,
@@ -802,6 +844,17 @@
       bg: "wudang",
       tools: [{id:"foot",icon:"👣",label:"足迹"},{id:"pine",icon:"🌲",label:"松"},{id:"stone",icon:"🪨",label:"石"},{id:"cloud",icon:"☁️",label:"云"}],
       colors: ["#1a2840","#6ec6c0","#d4b08a"], audio: { base: 110, type: "sine", mod: 0.15 }
+    },
+    harbin: {
+      name: "哈尔滨冰雪", label: "哈尔滨冰雪 · 实景预览",
+      seedTitle: "哈尔滨冰雪 · 一场尚未写完的冬夜",
+      lineSolo: "先感受哈尔滨冰雪世界。灯火与雪屋顶是气氛；雪乡奶茶／暖食也是乐趣的一部分。约零下28℃，并不适合每个人；每年大约只开放两个月——所以更值得先在这里感受，再决定要不要真去。",
+      lineDuo: "模拟同伴也在雪灯旁放下了一笔。看对比：场景痕迹变了。",
+      defaultSolo: "先感受这里，再想想暖食与要不要真去。",
+      defaultDuo: "【模拟·预设】我在雪灯旁加了一笔暖色。",
+      bg: "harbin",
+      tools: [{id:"snow",icon:"❄️",label:"雪"},{id:"lantern",icon:"🏮",label:"灯"},{id:"tea",icon:"🧋",label:"奶茶"},{id:"boot",icon:"🥾",label:"靴痕"}],
+      colors: ["#0e1a2c","#7eb6e8","#d4b08a"], audio: { base: 96, type: "sine", mod: 0.18 }
     },
     yunnan: {
       name: "云南森林", label: "云南森林 · 虚拟预览",
@@ -848,6 +901,16 @@
         "assets/places/wudang/02-terrace-sunrise.jpg",
         "assets/places/wudang/01-cloud-sea-sun.jpg",
         "assets/places/wudang/03-crane-peaks.jpg"
+      ]
+    },
+    harbin: {
+      hero: "assets/places/harbin/01-night-snow-roofs.jpg",
+      thumb: "assets/places/harbin/03-day-milk-tea-village.jpg",
+      cycle: [
+        "assets/places/harbin/01-night-snow-roofs.jpg",
+        "assets/places/harbin/02-night-lanterns-snowman.jpg",
+        "assets/places/harbin/03-day-milk-tea-village.jpg",
+        "assets/places/harbin/04-stairs-street-blue-sky.jpg"
       ]
     }
   };
@@ -914,46 +977,58 @@
       setTimeout(function(){ finish(!!(img.complete && img.naturalWidth > 0)); }, timeoutMs);
     });
   }
-  var wudangCycleTimer = null;
-  var wudangCycleIdx = 0;
-  function stopWudangCycle(){
-    if(wudangCycleTimer){ clearInterval(wudangCycleTimer); wudangCycleTimer=null; }
+  var placePhotoCycleTimer = null;
+  var placePhotoCycleIdx = 0;
+  var placePhotoCyclePlaceId = null;
+  var PLACE_PHOTO_OVERLAY = {
+    wudang: "linear-gradient(180deg, rgba(8,14,22,0.58) 0%, rgba(8,14,22,0.28) 38%, rgba(8,14,22,0.62) 100%)",
+    harbin: "linear-gradient(180deg, rgba(6,12,22,0.62) 0%, rgba(6,12,22,0.32) 38%, rgba(6,12,22,0.68) 100%)"
+  };
+  function stopPlacePhotoCycle(){
+    if(placePhotoCycleTimer){ clearInterval(placePhotoCycleTimer); placePhotoCycleTimer=null; }
+    placePhotoCyclePlaceId = null;
   }
-  function startWudangCycle(){
-    stopWudangCycle();
-    var info = PLACE_PHOTOS.wudang;
+  function stopWudangCycle(){ stopPlacePhotoCycle(); }
+  function photoOverlayFor(placeId){
+    return PLACE_PHOTO_OVERLAY[placeId] || "linear-gradient(180deg, rgba(8,14,22,0.58) 0%, rgba(8,14,22,0.28) 38%, rgba(8,14,22,0.62) 100%)";
+  }
+  function startPlacePhotoCycle(placeId){
+    stopPlacePhotoCycle();
+    var info = PLACE_PHOTOS[placeId];
     if(!info || !info.cycle || info.cycle.length < 2) return;
-    wudangCycleIdx = 0;
-    wudangCycleTimer = setInterval(function(){
-      if(state.placeId !== "wudang"){ stopWudangCycle(); return; }
-      var bg = $("sceneBg"); if(!bg || !bg.classList.contains("wudang")) return;
-      wudangCycleIdx = (wudangCycleIdx + 1) % info.cycle.length;
-      var src = info.cycle[wudangCycleIdx];
-      bg.style.backgroundImage =
-        'linear-gradient(180deg, rgba(8,14,22,0.58) 0%, rgba(8,14,22,0.28) 38%, rgba(8,14,22,0.62) 100%), url("'+src+'")';
+    placePhotoCycleIdx = 0;
+    placePhotoCyclePlaceId = placeId;
+    placePhotoCycleTimer = setInterval(function(){
+      if(state.placeId !== placeId){ stopPlacePhotoCycle(); return; }
+      var bg = $("sceneBg"); if(!bg || !bg.classList.contains(placeId)) return;
+      placePhotoCycleIdx = (placePhotoCycleIdx + 1) % info.cycle.length;
+      var src = info.cycle[placePhotoCycleIdx];
+      bg.style.backgroundImage = photoOverlayFor(placeId)+', url("'+src+'")';
       bg.style.backgroundSize = "cover";
       bg.style.backgroundPosition = "center";
     }, 14000);
   }
+  function startWudangCycle(){ startPlacePhotoCycle("wudang"); }
   function applyPlacePhotoBg(){
     var bg = $("sceneBg"); if(!bg) return;
-    if(state.placeId === "wudang" && PLACE_PHOTOS.wudang){
-      var src = PLACE_PHOTOS.wudang.hero;
-      bg.style.backgroundImage =
-        'linear-gradient(180deg, rgba(8,14,22,0.58) 0%, rgba(8,14,22,0.28) 38%, rgba(8,14,22,0.62) 100%), url("'+src+'")';
+    var pid = state.placeId;
+    var info = PLACE_PHOTOS[pid];
+    if(info && info.hero){
+      bg.style.backgroundImage = photoOverlayFor(pid)+', url("'+info.hero+'")';
       bg.style.backgroundSize = "cover";
       bg.style.backgroundPosition = "center";
-      startWudangCycle();
+      startPlacePhotoCycle(pid);
     } else {
-      stopWudangCycle();
+      stopPlacePhotoCycle();
       bg.style.backgroundImage = "";
     }
     var note = $("assetNote");
     if(note){
-      if(state.placeId === "wudang"){
-        note.innerHTML = "场景照片为<strong>演示用实景（武当）</strong>· 非正式付费素材包 · 粒子/痕迹仍为程序叠加";
+      if(info && info.hero){
+        var nm = (PLACES[pid] && PLACES[pid].name) || pid;
+        note.innerHTML = "场景照片为<strong>演示用实景（"+nm+"）</strong>· 非正式付费素材包 · 粒子/痕迹仍为程序叠加";
       } else {
-        note.innerHTML = "本场景气氛画面为<strong>程序生成预览</strong>· 非正式付费素材包 · 武当处可用实景";
+        note.innerHTML = "本场景气氛画面为<strong>程序生成预览</strong>· 非正式付费素材包 · 武当／哈尔滨处可用实景";
       }
     }
   }
@@ -1267,13 +1342,15 @@
         secondPersonNote:"本机按钮模拟；TA 痕迹与文案为预设，非真实用户贡献",
         duoText:state.joined?(p.defaultDuo||null):null },
       lightFeel:state.feel,
-      disclaimer:"可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 时长与身体深度为试探未锁定 · 第二人加入为模拟 · 场景照片为演示用实景（武当）· 非正式付费素材包 · 预览 "+VERSION
+      disclaimer:"可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 时长与身体深度为试探未锁定 · 第二人加入为模拟 · 场景照片为演示用实景（武当／哈尔滨）· 非正式付费素材包 · 预览 "+VERSION
     };
     payload.trials={
       duration:state.duration, bodyDepth:state.bodyDepth,
       note:"试探控件 · 未锁定为正式玩法 · 预览 "+VERSION
     };
-    payload.visualNote=(state.placeId==="wudang")?"演示用实景（武当）· 非正式付费素材包":"程序生成预览，非付费素材包";
+    payload.visualNote=(PLACE_PHOTOS[state.placeId]&&PLACE_PHOTOS[state.placeId].hero)
+      ?("演示用实景（"+((PLACES[state.placeId]&&PLACES[state.placeId].name)||state.placeId)+"）· 非正式付费素材包")
+      :"程序生成预览，非付费素材包";
     payload.launchNote="可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移";
     if(!forPublic){
       payload.questions={ bodyFeeling:state.body, season:state.season, optional:true,
@@ -1448,8 +1525,8 @@
   function paintLandmark(){
     var el=$("sceneLandmark"); if(!el) return;
     var id=state.placeId||"wudang";
-    // Real Wudang photos already carry the vista — skip procedural silhouette
-    if(id==="wudang" && PLACE_PHOTOS.wudang){ el.innerHTML=""; return; }
+    // Real place photos already carry the vista — skip procedural silhouette
+    if(PLACE_PHOTOS[id] && PLACE_PHOTOS[id].hero){ el.innerHTML=""; return; }
     el.innerHTML=LANDMARK_SVG[id]||LANDMARK_SVG.wudang;
   }
   function armFirstRunCoach(){
@@ -1605,7 +1682,7 @@
     var p2Marks=state.marks.filter(function(m){return m.from==="p2";}).length;
     var depthLabel=state.bodyDepth==="deep"?"深":"浅";
     var durLabel={short:"短逛",linger:"多待一会儿",free:"不限"}[state.duration]||state.duration;
-    $("saveSummary").textContent="场景："+(p.name||"—")+"\n短句："+(state.soloText||p.defaultSolo||"（未写）")+"\n痕迹：你的 "+myMarks+(state.joined?(" + 模拟同伴 "+p2Marks):"（独自）")+"\n气氛："+summarizeFx(state.fx)+"\n共创："+(state.joined?"第二人已加入（本机模拟 · 预设）":"独自完成 · 未加入第二人")+"\n试探时长："+durLabel+"（未锁定）\n身体深度试探："+depthLabel+"（未锁定）\n身体/季节自述：仅存本机（若有），不会进入分享或公开导出\n作品编号："+(state.workId||"—")+"\n版本：预览 "+VERSION+"\n说明：可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 场景照片=演示用实景（武当）· 非正式付费素材包";
+    $("saveSummary").textContent="场景："+(p.name||"—")+"\n短句："+(state.soloText||p.defaultSolo||"（未写）")+"\n痕迹：你的 "+myMarks+(state.joined?(" + 模拟同伴 "+p2Marks):"（独自）")+"\n气氛："+summarizeFx(state.fx)+"\n共创："+(state.joined?"第二人已加入（本机模拟 · 预设）":"独自完成 · 未加入第二人")+"\n试探时长："+durLabel+"（未锁定）\n身体深度试探："+depthLabel+"（未锁定）\n身体/季节自述：仅存本机（若有），不会进入分享或公开导出\n作品编号："+(state.workId||"—")+"\n版本：预览 "+VERSION+"\n说明：可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移 · 场景照片=演示用实景（武当／哈尔滨）· 非正式付费素材包";
   }
   function goSave(){
     if(!state.soloText){ var p=PLACES[state.placeId]; state.soloText=(p&&p.defaultSolo)||""; $("soloLine").value=state.soloText; }
@@ -1835,7 +1912,7 @@
     if(!seed) return;
     var pid=(seed.place&&seed.place.id)||state.placeId;
     if(card){
-      card.className="seed-card-live place-"+(pid||"yunnan")+(pid==="wudang"?" has-photo":"");
+      card.className="seed-card-live place-"+(pid||"yunnan")+((PLACE_PHOTOS[pid]&&PLACE_PHOTOS[pid].hero)?" has-photo":"");
     }
     var titleEl=$(prefix==="seedView"?"seedViewTitle":"seedLiveTitle");
     var lineEl=$(prefix==="seedView"?"seedViewLine":"seedLiveLine");
@@ -2005,7 +2082,7 @@
     ctx.fillStyle="#8aa0b2"; ctx.font="20px sans-serif";
     ctx.fillText("预览 "+VERSION+" · 非正式 healoa.app",68,h-110);
     var foot = usedPhoto
-      ? "场景照片=演示用实景（武当）· 非正式付费素材包 · 页内PNG≠链接富卡片"
+      ? "场景照片=演示用实景（"+(p.name||"实景")+"）· 非正式付费素材包 · 页内PNG≠链接富卡片"
       : "默认分享作品 · 不含身体自述 · 副本非实时同步";
     ctx.fillText(foot,68,h-76);
     lastShareExport = {

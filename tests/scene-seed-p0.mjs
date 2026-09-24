@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + primary CTA skips body + short 发给朋友 share-tail (default-ready) (v2026-09-24-h)
+ * Scene Seed P0 + Harbin/Wudang real photos + primary CTA skips body + short 发给朋友 share-tail (v2026-09-24-i)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -108,12 +108,18 @@ async function main() {
     const wudangThumbFile = path.join(ROOT, "assets/places/wudang/01-cloud-sea-sun.jpg");
     record("wudang-asset-hero-exists", fs.existsSync(wudangHero) && fs.statSync(wudangHero).size > 1000, wudangHero);
     record("wudang-asset-thumb-exists", fs.existsSync(wudangThumbFile) && fs.statSync(wudangThumbFile).size > 1000, wudangThumbFile);
+    const harbinHero = path.join(ROOT, "assets/places/harbin/01-night-snow-roofs.jpg");
+    const harbinThumbFile = path.join(ROOT, "assets/places/harbin/03-day-milk-tea-village.jpg");
+    const harbinFood = path.join(ROOT, "assets/places/harbin/03-day-milk-tea-village.jpg");
+    record("harbin-asset-hero-exists", fs.existsSync(harbinHero) && fs.statSync(harbinHero).size > 1000, harbinHero);
+    record("harbin-asset-thumb-exists", fs.existsSync(harbinThumbFile) && fs.statSync(harbinThumbFile).size > 1000, harbinThumbFile);
+    record("harbin-asset-food-exists", fs.existsSync(harbinFood) && fs.statSync(harbinFood).size > 1000, harbinFood);
     const senderCtx = await browser.newContext();
     const sender = await senderCtx.newPage();
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-h") || banner.includes("v2026-09-24-g"), banner);
+    record("version-banner", banner.includes("v2026-09-24-i"), banner);
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
@@ -261,6 +267,129 @@ async function main() {
       record("wudang-share-export-evidence-written", false, "no dataUrl");
     }
     await shot(sender, "wudang-share-card");
+
+    // --- Harbin real-photo place (additional; default hero stays Wudang) ---
+    await sender.click("#btnEndReplay");
+    await sender.waitForSelector("#s0:not(.hidden)");
+    const homeMulti = await sender.locator("#s0 .home-badge-row").innerText();
+    record(
+      "homepage-mentions-harbin-wudang",
+      homeMulti.includes("哈尔滨") && homeMulti.includes("武当"),
+      homeMulti.slice(0, 160)
+    );
+    const skipStillWudang = await sender.locator("#btnSkipIn").innerText();
+    record("default-skip-still-wudang-with-harbin", skipStillWudang.includes("武当") && !skipStillWudang.includes("哈尔滨"), skipStillWudang);
+    await sender.click("#btnStart");
+    await sender.waitForSelector("#s2:not(.hidden)");
+    const harbinThumb = await sender.evaluate(() => {
+      const btn = document.querySelector('.place[data-id="harbin"]');
+      const icon = btn && btn.querySelector(".place-icon");
+      if (!icon) return { ok: false };
+      const cs = getComputedStyle(icon);
+      const bg = cs.backgroundImage || "";
+      const span = (btn.querySelector("span") || {}).innerText || "";
+      return {
+        ok: icon.classList.contains("photo") && bg.includes("assets/places/harbin/"),
+        cls: icon.className,
+        bg: bg.slice(0, 200),
+        span: span.slice(0, 120),
+        cold: span.includes("28") || span.includes("−28") || span.includes("-28"),
+        months: span.includes("两月") || span.includes("两个月"),
+        food: span.includes("奶茶") || span.includes("暖食"),
+      };
+    });
+    record("harbin-place-card-photo", harbinThumb.ok, JSON.stringify(harbinThumb));
+    record(
+      "harbin-place-card-bullets",
+      !!(harbinThumb.cold && harbinThumb.months && harbinThumb.food),
+      JSON.stringify({ cold: harbinThumb.cold, months: harbinThumb.months, food: harbinThumb.food, span: harbinThumb.span })
+    );
+    await sender.click('.place[data-id="harbin"]');
+    await sender.waitForSelector("#s3:not(.hidden)");
+    await sender.waitForTimeout(400);
+    const harbinScene = await sender.evaluate(() => {
+      const bg = document.getElementById("sceneBg");
+      const cs = getComputedStyle(bg);
+      const inline = bg.style.backgroundImage || "";
+      const sheet = cs.backgroundImage || "";
+      const combined = inline + " " + sheet;
+      const line = (document.getElementById("sceneLine") || {}).innerText || "";
+      return {
+        className: bg.className,
+        hasPhoto: combined.includes("assets/places/harbin/") && bg.classList.contains("harbin"),
+        assetNote: (document.getElementById("assetNote") || {}).innerText || "",
+        line: line.slice(0, 220),
+        landmarkEmpty: !(document.getElementById("sceneLandmark") || {}).querySelector || !document.getElementById("sceneLandmark").querySelector("svg"),
+      };
+    });
+    record("harbin-scene-photo-bg", harbinScene.hasPhoto, JSON.stringify(harbinScene));
+    record(
+      "harbin-honesty-note",
+      harbinScene.assetNote.includes("实景") && (harbinScene.assetNote.includes("哈尔滨") || harbinScene.assetNote.includes("冰雪")),
+      harbinScene.assetNote.slice(0, 160)
+    );
+    record(
+      "harbin-scene-feel-copy",
+      harbinScene.line.includes("冰雪") && (harbinScene.line.includes("28") || harbinScene.line.includes("零下")) && (harbinScene.line.includes("两个月") || harbinScene.line.includes("两月")) && (harbinScene.line.includes("奶茶") || harbinScene.line.includes("暖食")),
+      harbinScene.line
+    );
+    await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, "harbin-scene-shell.png") });
+    await shot(sender, "harbin-scene");
+    // mark + share PNG must use Harbin hero
+    const anyOnH = await sender.locator("#markTools .tool.on").count();
+    if (!anyOnH) await sender.click("#markTools .tool").first();
+    const stageH = sender.locator("#playStage");
+    const boxH = await stageH.boundingBox();
+    await sender.mouse.click(boxH.x + boxH.width * 0.45, boxH.y + boxH.height * 0.5);
+    await sender.fill("#soloLine", "先感受冰雪，再想想暖食。");
+    await sender.click("#btnSetLine");
+    await sender.click("#btnSendFriend");
+    await sender.waitForSelector("#s5:not(.hidden)");
+    await sender.evaluate(async () => {
+      if (window.__healoaSeedTest && window.__healoaSeedTest.ensureSharePhotoReady) {
+        await window.__healoaSeedTest.ensureSharePhotoReady();
+      }
+      if (window.__healoaSeedTest && window.__healoaSeedTest.paintShareImgPreviewNow) {
+        window.__healoaSeedTest.paintShareImgPreviewNow();
+      }
+    });
+    await sender.waitForTimeout(200);
+    const harbinExport = await sender.evaluate(() => window.__healoaSeedTest.inspectShareCard("vertical"));
+    record(
+      "harbin-share-png-uses-hero",
+      !!(harbinExport && harbinExport.usedPhoto && String(harbinExport.heroSrc || "").includes("assets/places/harbin/") && harbinExport.placeId === "harbin"),
+      JSON.stringify({
+        usedPhoto: harbinExport && harbinExport.usedPhoto,
+        heroSrc: harbinExport && harbinExport.heroSrc,
+        placeId: harbinExport && harbinExport.placeId,
+      })
+    );
+    const harbinLiveCard = await sender.evaluate(() => {
+      const card = document.getElementById("seedCardLive");
+      if (!card) return { ok: false };
+      const cs = getComputedStyle(card);
+      const bg = (card.style.backgroundImage || "") + " " + (cs.backgroundImage || "");
+      return {
+        ok: card.classList.contains("place-harbin") && card.classList.contains("has-photo") && bg.includes("assets/places/harbin/"),
+        cls: card.className,
+        bg: bg.slice(0, 200),
+      };
+    });
+    record("harbin-live-seed-card-photo", harbinLiveCard.ok, JSON.stringify(harbinLiveCard));
+    const harbinDataUrl = await sender.evaluate(() => {
+      const api = window.__healoaSeedTest;
+      const meta = api.inspectShareCard("vertical");
+      return meta.dataUrl || "";
+    });
+    if (harbinDataUrl && harbinDataUrl.startsWith("data:image/png")) {
+      const b64 = harbinDataUrl.split(",", 2)[1] || "";
+      const buf = Buffer.from(b64, "base64");
+      fs.writeFileSync(path.join(EVIDENCE, "harbin-share-export.png"), buf);
+      record("harbin-share-export-evidence-written", buf.length > 20000, "bytes=" + buf.length);
+    } else {
+      record("harbin-share-export-evidence-written", false, "no dataUrl");
+    }
+    await shot(sender, "harbin-share-card");
 
     // reset to continue yunnan share-path coverage
     await sender.click("#btnEndReplay");
@@ -613,7 +742,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-h",
+    version: "v2026-09-24-i",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
