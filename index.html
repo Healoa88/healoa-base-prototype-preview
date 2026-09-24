@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a1218" />
+<title>HeaLoa Base · 场景共创原型（可看 · 非正式）</title>
+<style>
+  :root {
+    --bg: #0a1218;
+    --card: rgba(18, 30, 38, 0.92);
+    --text: #eef4f8;
+    --muted: #8aa0b2;
+    --aqua: #6ec6c0;
+    --aqua-dim: rgba(110, 198, 192, 0.16);
+    --gold: #d4b08a;
+    --gold-dim: rgba(212, 176, 138, 0.18);
+    --line: rgba(255, 255, 255, 0.10);
+    --ok: #8fd4a8;
+    --shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: "PingFang SC", "SF Pro Text", "Noto Sans SC", "Hiragino Sans GB",
+      system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(900px 480px at 50% -10%, rgba(40, 90, 100, 0.38), transparent 55%),
+      radial-gradient(700px 420px at 90% 80%, rgba(212, 176, 138, 0.08), transparent 50%),
+      var(--bg);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+  }
+
+  .proto-banner {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(10, 18, 24, 0.88);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+    text-align: center;
+  }
+  .proto-banner strong {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--gold);
+    font-weight: 650;
+  }
+  .proto-banner span {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .wrap {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 18px 18px max(40px, env(safe-area-inset-bottom));
+  }
+
+  .screen { animation: rise 0.38s var(--ease) both; }
+  .hidden { display: none !important; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .brand {
+    font-size: 12px;
+    color: var(--aqua);
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: 1.38rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    margin-bottom: 10px;
+  }
+  .lead {
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .lead strong { color: var(--aqua); }
+  .sub {
+    font-size: 0.84rem;
+    color: var(--muted);
+    margin-bottom: 18px;
+    line-height: 1.55;
+  }
+  .note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-left: 2px solid var(--gold);
+    padding: 6px 0 6px 10px;
+    margin-bottom: 18px;
+    background: var(--gold-dim);
+    border-radius: 0 8px 8px 0;
+  }
+  .note.ok {
+    border-left-color: var(--aqua);
+    background: var(--aqua-dim);
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    font-size: 0.95rem;
+    font-weight: 650;
+    margin-bottom: 10px;
+  }
+  .card .hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    font-family: inherit;
+  }
+  .chip:active { transform: scale(0.97); }
+  .chip.on {
+    border-color: rgba(110, 198, 192, 0.55);
+    background: var(--aqua-dim);
+    color: var(--aqua);
+  }
+
+  button.primary, button.ghost, button.warm, button.soft {
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 15px 18px;
+    font-size: 1rem;
+    font-weight: 650;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.15s var(--ease);
+    font-family: inherit;
+  }
+  button.primary:active, button.ghost:active, button.warm:active, button.soft:active {
+    transform: scale(0.975);
+  }
+  button.primary {
+    background: linear-gradient(180deg, #7fd4ce, var(--aqua));
+    color: #04201c;
+    box-shadow: 0 8px 26px rgba(110, 198, 192, 0.28);
+  }
+  button.primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  button.ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--line);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  button.warm {
+    background: linear-gradient(180deg, #e0c4a0, var(--gold));
+    color: #2a1a08;
+    box-shadow: 0 8px 26px rgba(212, 176, 138, 0.28);
+  }
+  button.soft {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    border: 1px solid var(--line);
+    font-weight: 550;
+    margin-top: 8px;
+  }
+  .btn-row { margin-top: 6px; }
+  .btn-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-pair button { margin-top: 0; }
+
+  .places { display: flex; flex-direction: column; gap: 10px; }
+  .place {
+    appearance: none;
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--line);
+    background: linear-gradient(145deg, rgba(22, 36, 44, 0.95), rgba(14, 28, 34, 0.9));
+    border-radius: 16px;
+    padding: 14px;
+    color: var(--text);
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 12px;
+    align-items: center;
+    transition: border-color 0.15s, transform 0.12s;
+    font-family: inherit;
+  }
+  .place:active { transform: scale(0.985); }
+  .place.on {
+    border-color: rgba(110, 198, 192, 0.55);
+    box-shadow: 0 0 0 1px rgba(110, 198, 192, 0.25);
+  }
+  .place-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    font-size: 1.45rem;
+    background: var(--aqua-dim);
+  }
+  .place-icon.forest { background: rgba(100, 170, 120, 0.18); }
+  .place-icon.onsen { background: rgba(212, 176, 138, 0.22); }
+  .place-icon.thai { background: rgba(110, 170, 210, 0.18); }
+  .place-icon.wudang { background: rgba(140, 160, 200, 0.2); }
+  .place b { display: block; font-size: 0.98rem; font-weight: 650; margin-bottom: 3px; }
+  .place span { display: block; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+  .scene-shell {
+    position: relative;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    min-height: 340px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .scene-bg {
+    position: absolute; inset: 0;
+    transition: background 0.5s var(--ease);
+  }
+  .scene-bg.wudang {
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(180, 200, 230, 0.25), transparent 50%),
+      linear-gradient(180deg, #1a2840 0%, #243850 35%, #2a4050 60%, #1a3028 100%);
+  }
+  .scene-bg.yunnan {
+    background:
+      radial-gradient(ellipse at 30% 70%, rgba(80, 160, 100, 0.35), transparent 45%),
+      linear-gradient(180deg, #1a3028 0%, #243828 40%, #1e4030 70%, #152820 100%);
+  }
+  .scene-bg.onsen {
+    background:
+      radial-gradient(ellipse at 50% 85%, rgba(212, 176, 138, 0.35), transparent 45%),
+      linear-gradient(180deg, #2a2030 0%, #3a3040 30%, #4a3840 55%, #2a2830 100%);
+  }
+  .scene-bg.thai {
+    background:
+      radial-gradient(ellipse at 70% 30%, rgba(255, 200, 120, 0.2), transparent 40%),
+      linear-gradient(180deg, #1a3048 0%, #204058 35%, #286068 65%, #1a4040 100%);
+  }
+
+  .scene-mist {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,255,255,0.08), transparent 55%);
+    pointer-events: none;
+  }
+  .scene-decoration {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .deco {
+    position: absolute;
+    opacity: 0.55;
+    font-size: 1.6rem;
+    filter: blur(0.2px);
+  }
+
+  .scene-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 14px 0;
+  }
+  .scene-label {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--line);
+    color: var(--gold);
+    backdrop-filter: blur(6px);
+  }
+  .presence {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.35);
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(110, 198, 192, 0.5);
+    color: #04201c;
+    transition: transform 0.35s var(--ease), opacity 0.35s;
+  }
+  .avatar.p2 {
+    background: rgba(212, 176, 138, 0.7);
+    color: #2a1a08;
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  .avatar.p2.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .presence-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.75);
+    background: rgba(0,0,0,0.28);
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+
+  .scene-body {
+    position: relative;
+    z-index: 2;
+    padding: 28px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .scene-title { text-align: center; }
+  .scene-title h2 {
+    font-size: 1.2rem;
+    font-weight: 650;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .scene-title p {
+    font-size: 0.82rem;
+    color: rgba(238, 244, 248, 0.78);
+  }
+
+  .artifact {
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(8, 14, 18, 0.55);
+    backdrop-filter: blur(8px);
+    padding: 14px;
+    transition: box-shadow 0.4s, border-color 0.4s;
+  }
+  .artifact.changed {
+    border-color: rgba(110, 198, 192, 0.45);
+    box-shadow: 0 0 28px rgba(110, 198, 192, 0.22);
+  }
+  .artifact-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .artifact-head b {
+    font-size: 0.82rem;
+    color: var(--gold);
+  }
+  .artifact-head .tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+  }
+  .artifact-head .tag.live {
+    background: var(--aqua-dim);
+    color: var(--aqua);
+  }
+
+  .collage {
+    position: relative;
+    height: 120px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.12);
+    overflow: hidden;
+  }
+  .mark {
+    position: absolute;
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    max-width: 58%;
+    transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
+  }
+  .mark.m1 {
+    left: 10px; top: 14px;
+    background: rgba(110, 198, 192, 0.22);
+    border: 1px solid rgba(110, 198, 192, 0.35);
+    color: #c8ebe8;
+  }
+  .mark.m2 {
+    right: 10px; bottom: 12px;
+    background: rgba(212, 176, 138, 0.25);
+    border: 1px solid rgba(212, 176, 138, 0.4);
+    color: #f0e0c8;
+    opacity: 0;
+    transform: translateY(12px) scale(0.92);
+  }
+  .mark.m2.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .layer-hint {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.35);
+    white-space: nowrap;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .layer-hint.hide { opacity: 0; }
+
+  .join-pulse {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 8px 26px rgba(212, 176, 138, 0.28); }
+    50% { box-shadow: 0 8px 32px rgba(212, 176, 138, 0.5); }
+  }
+
+  .sim-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(212, 176, 138, 0.2);
+    color: var(--gold);
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .save-status {
+    font-size: 0.8rem;
+    color: var(--ok);
+    margin-top: 8px;
+    min-height: 1.2em;
+  }
+  .share-status {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 8px;
+    min-height: 1.2em;
+  }
+
+  .handoff-card {
+    border: 1px dashed rgba(110, 198, 192, 0.35);
+    background: rgba(110, 198, 192, 0.06);
+  }
+  .handoff-card .hint { margin-bottom: 10px; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: max(24px, env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(18, 30, 38, 0.96);
+    border: 1px solid rgba(110, 198, 192, 0.4);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 0.84rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s var(--ease);
+    z-index: 80;
+    max-width: calc(100% - 40px);
+    text-align: center;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .feel-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .feel {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 14px 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .feel.on {
+    border-color: rgba(110, 198, 192, 0.55);
+    background: var(--aqua-dim);
+    color: var(--aqua);
+  }
+
+  .footer-meta {
+    margin-top: 22px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.5;
+  }
+  .sep {
+    height: 1px;
+    background: var(--line);
+    margin: 16px 0;
+  }
+
+  .steps {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .steps span {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    border: 1px solid transparent;
+  }
+  .steps span.on {
+    color: var(--aqua);
+    border-color: rgba(110, 198, 192, 0.35);
+    background: var(--aqua-dim);
+  }
+
+  canvas#cardCanvas { display: none; }
+</style>
+</head>
+<body>
+
+<div class="proto-banner">
+  <strong>可看原型 · 非正式产品 · 时长与玩法未锁定</strong>
+  <span>HeaLoa Base · 一人进场景 → 第二人加入（模拟）→ 保存 → 自愿分享 → 可选看主站</span>
+</div>
+
+<div class="wrap">
+
+  <!-- S0: Landing -->
+  <section id="s0" class="screen">
+    <div class="brand">HEALOA BASE</div>
+    <h1>先走进一个疗愈场景，再让第二个人进来一起留下痕迹</h1>
+    <p class="lead">这是一份<strong>可点的演示</strong>：一个人进场景，另一个人加入后，屏幕上的共创作品会跟着变；你可以<strong>真正保存</strong>这份作品，并<strong>自愿分享</strong>。不是成品，也不是正式玩法锁。</p>
+    <p class="note">地点与说法来自 Cindy 本人提过的疗愈地（武当、云南森林、日本温泉、泰国等）。身体与季节在这里是<strong>你自己回答的问题</strong>，不是替你下健康结论、也不是自动把身体状态绑死到某个国家。</p>
+    <div class="btn-row">
+      <button class="primary" type="button" id="btnStart">开始看看</button>
+    </div>
+    <p class="footer-meta">对外名：HeaLoa Base · 不对顾客称「Life Maps」<br />本页不接注册、不替你预约、不做 Keeper</p>
+  </section>
+
+  <!-- S1: Body × Season as questions -->
+  <section id="s1" class="screen hidden">
+    <div class="steps" aria-hidden="true">
+      <span class="on">1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span>4 保存</span><span>5 分享</span>
+    </div>
+    <div class="brand">HEALOA BASE · 先问两句</div>
+    <h1>此刻身体感觉怎样？现在是什么季节？</h1>
+    <p class="sub">只是问题，帮你自己想清楚。答案不会被当成诊断，也不会自动判定「你该去哪国」。</p>
+
+    <div class="card">
+      <h2>1. 身体现在更接近哪一种？</h2>
+      <p class="hint">用户自述 · 非医疗结论</p>
+      <div class="chips" id="bodyChips" role="group" aria-label="身体感觉">
+        <button type="button" class="chip" data-v="累、想放空">累、想放空</button>
+        <button type="button" class="chip" data-v="肩颈紧、需要暖">肩颈紧、需要暖</button>
+        <button type="button" class="chip" data-v="闷、想透气走动">闷、想透气走动</button>
+        <button type="button" class="chip" data-v="还好，想换个环境">还好，想换个环境</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. 你现在所处的季节是？</h2>
+      <p class="hint">季节问题 · 不作健康处方</p>
+      <div class="chips" id="seasonChips" role="group" aria-label="季节">
+        <button type="button" class="chip" data-v="春">春</button>
+        <button type="button" class="chip" data-v="夏">夏</button>
+        <button type="button" class="chip" data-v="秋">秋</button>
+        <button type="button" class="chip" data-v="冬">冬</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="primary" type="button" id="btnToPlaces" disabled>接下来选一个场景</button>
+      <button class="ghost" type="button" data-back="s0">返回</button>
+    </div>
+  </section>
+
+  <!-- S2: Pick place -->
+  <section id="s2" class="screen hidden">
+    <div class="steps" aria-hidden="true">
+      <span>1 身体×季节</span><span class="on">2 选地方</span><span>3 共创</span><span>4 保存</span><span>5 分享</span>
+    </div>
+    <div class="brand">HEALOA BASE · 虚拟预览</div>
+    <h1>选一个想先「走进去」的地方</h1>
+    <p class="sub" id="answersEcho">先在线上感受一下气氛。Cindy 提过：虚拟预览在前，才更容易想去线下；亚洲这些地方也常被她当作成本更友好的减压例子。</p>
+    <p class="note">下列地点均为 Cindy 语音里点过名的例子，不是系统替你算出来的处方目的地。</p>
+
+    <div class="places" id="placeList">
+      <button type="button" class="place" data-id="wudang">
+        <div class="place-icon wudang" aria-hidden="true">山</div>
+        <div>
+          <b>武当山</b>
+          <span>山门前的静气 · 适合先站一会儿、慢慢走</span>
+        </div>
+      </button>
+      <button type="button" class="place" data-id="yunnan">
+        <div class="place-icon forest" aria-hidden="true">林</div>
+        <div>
+          <b>云南森林</b>
+          <span>林间光斑与湿润空气 · 森林疗愈的例子</span>
+        </div>
+      </button>
+      <button type="button" class="place" data-id="onsen">
+        <div class="place-icon onsen" aria-hidden="true">泉</div>
+        <div>
+          <b>日本温泉</b>
+          <span>热气与石阶 · onsen 式放松的例子</span>
+        </div>
+      </button>
+      <button type="button" class="place" data-id="thai">
+        <div class="place-icon thai" aria-hidden="true">海</div>
+        <div>
+          <b>泰国（暖地例子）</b>
+          <span>暖、慢、成本相对友好的减压例子</span>
+        </div>
+      </button>
+    </div>
+
+    <div class="btn-row" style="margin-top:16px">
+      <button class="primary" type="button" id="btnEnter" disabled>一个人走进去</button>
+      <button class="ghost" type="button" data-back="s1">返回</button>
+    </div>
+  </section>
+
+  <!-- S3: Scene solo → P2 joins -->
+  <section id="s3" class="screen hidden">
+    <div class="steps" aria-hidden="true">
+      <span>1 身体×季节</span><span>2 选地方</span><span class="on">3 共创</span><span>4 保存</span><span>5 分享</span>
+    </div>
+    <div class="brand">HEALOA BASE · 同一场景</div>
+    <h1 id="sceneHeading">你已进入场景</h1>
+    <p class="sub" id="sceneSub">现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」，看同一张共创物怎么变。</p>
+    <p class="note" id="simNote" style="display:none">第二人加入是<strong>本机模拟</strong>（点按钮触发），不是真实多人连线。<span class="sim-badge">仅演示</span></p>
+
+    <div class="scene-shell" id="sceneShell">
+      <div class="scene-bg wudang" id="sceneBg"></div>
+      <div class="scene-mist"></div>
+      <div class="scene-decoration" id="sceneDeco" aria-hidden="true"></div>
+
+      <div class="scene-top">
+        <div class="scene-label" id="sceneLabel">武当山 · 虚拟预览</div>
+        <div class="presence">
+          <div class="avatar" title="你">你</div>
+          <div class="avatar p2" id="avatarP2" title="第二人">TA</div>
+          <div class="presence-text" id="presenceText">1 人在场</div>
+        </div>
+      </div>
+
+      <div class="scene-body">
+        <div class="scene-title">
+          <h2 id="sceneName">武当山</h2>
+          <p id="sceneLine">云气很淡。你先在这里站稳。</p>
+        </div>
+
+        <div class="artifact" id="artifact">
+          <div class="artifact-head">
+            <b>共创场景卡</b>
+            <span class="tag" id="artifactTag">仅你的痕迹</span>
+          </div>
+          <div class="collage" id="collage" aria-live="polite">
+            <div class="mark m1" id="mark1">你留下：今天先把脚步放慢。</div>
+            <div class="mark m2" id="mark2">TA 补上：我在同一片气里，加了一笔暖色。</div>
+            <div class="layer-hint" id="layerHint">等待第二人留下一笔…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row" id="joinRow">
+      <button class="warm join-pulse" type="button" id="btnJoin">第二人加入<span class="sim-badge">模拟</span></button>
+      <button class="ghost" type="button" data-back="s2">换一个场景</button>
+    </div>
+    <div class="btn-row hidden" id="afterJoinRow">
+      <button class="primary" type="button" id="btnToSave">保存这份共创作品</button>
+      <button class="ghost" type="button" id="btnReplay">从头再看一遍</button>
+    </div>
+  </section>
+
+  <!-- S4: SAVE (real localStorage + download) -->
+  <section id="s4" class="screen hidden">
+    <div class="steps" aria-hidden="true">
+      <span>1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span class="on">4 保存</span><span>5 分享</span>
+    </div>
+    <div class="brand">HEALOA BASE · 保存</div>
+    <h1>把共创作品留下来</h1>
+    <p class="sub">下面两个动作是<strong>真的可用</strong>：写入本机浏览器，或下载一份 JSON / 图片卡片。不会上传到服务器，也不会替你发帖。</p>
+
+    <div class="card">
+      <h2 id="saveSummaryTitle">共创摘要</h2>
+      <p class="hint" id="saveSummary" style="color:var(--text);font-size:0.9rem;line-height:1.55;margin:0"></p>
+    </div>
+
+    <div class="btn-row">
+      <button class="primary" type="button" id="btnSaveLocal">保存到本机（localStorage）</button>
+      <div class="btn-pair">
+        <button class="soft" type="button" id="btnDownloadJson">下载 JSON</button>
+        <button class="soft" type="button" id="btnDownloadPng">下载图片卡</button>
+      </div>
+      <p class="save-status" id="saveStatus" aria-live="polite"></p>
+    </div>
+
+    <div class="btn-row" style="margin-top:14px">
+      <button class="warm" type="button" id="btnToShare">下一步：自愿分享</button>
+      <button class="ghost" type="button" data-back="s3">返回场景</button>
+    </div>
+  </section>
+
+  <!-- S5: SHARE (voluntary, honest) -->
+  <section id="s5" class="screen hidden">
+    <div class="steps" aria-hidden="true">
+      <span>1 身体×季节</span><span>2 选地方</span><span>3 共创</span><span>4 保存</span><span class="on">5 分享</span>
+    </div>
+    <div class="brand">HEALOA BASE · 自愿分享</div>
+    <h1>想分享的话，可以自己发出去</h1>
+    <p class="sub">分享完全自愿。本原型<strong>不会</strong>自动发帖，也<strong>不做</strong>「会火 / 病毒传播」一类承诺——只提供系统分享、复制文案、或再下一次图片卡。</p>
+
+    <div class="card">
+      <h2>将分享的文案预览</h2>
+      <p class="hint" id="sharePreview" style="color:var(--text);font-size:0.88rem;line-height:1.55;margin:0;white-space:pre-wrap"></p>
+    </div>
+
+    <div class="btn-row">
+      <button class="primary" type="button" id="btnShareNative">用系统分享（若设备支持）</button>
+      <div class="btn-pair">
+        <button class="soft" type="button" id="btnCopyText">复制文案</button>
+        <button class="soft" type="button" id="btnShareDownload">下载分享卡</button>
+      </div>
+      <p class="share-status" id="shareStatus" aria-live="polite"></p>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="card handoff-card">
+      <h2>可选 · 想去真实的地方看看</h2>
+      <p class="hint">这是<strong>可选跳转</strong>：打开 HeaLoa 主站看看真实地方的介绍。App 原型本身<strong>不</strong>做注册、不代为预约、不做 Keeper。去不去、登不登录，都由你决定。</p>
+      <button class="warm" type="button" id="btnHandoff">想去真实的地方看看 → healoa.com/circles</button>
+      <button class="ghost" type="button" id="btnHandoffHome" style="margin-top:8px">或打开 healoa.com 首页</button>
+    </div>
+
+    <div class="card" style="margin-top:4px">
+      <h2>可选轻问（非主站链路）</h2>
+      <p class="hint">刚才一起体验开心吗？仅原型里的轻反馈，不接报名。</p>
+      <div class="feel-row" id="feelRow">
+        <button type="button" class="feel" data-v="开心">开心</button>
+        <button type="button" class="feel" data-v="还好">还好</button>
+        <button type="button" class="feel" data-v="一般">一般</button>
+      </div>
+      <p class="hint" id="feelAckText" style="margin-top:10px;margin-bottom:0;display:none;color:var(--text)"></p>
+    </div>
+
+    <div class="btn-row">
+      <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
+    </div>
+    <p class="footer-meta">2026-09-23 · 可看原型 · 非正式产品<br />不锁时长 · 不锁 Circle Season / Keeper · 无医疗主张</p>
+  </section>
+
+</div>
+
+<canvas id="cardCanvas" width="720" height="960" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  var STORAGE_KEY = "healoa_base_cocreate_v1";
+  var state = {
+    body: null,
+    season: null,
+    placeId: null,
+    joined: false,
+    feel: null,
+    savedAt: null,
+    workId: null
+  };
+
+  var PLACES = {
+    wudang: {
+      name: "武当山",
+      label: "武当山 · 虚拟预览",
+      lineSolo: "云气很淡。你先在这里站稳。",
+      lineDuo: "两个人站在同一道山门前，卡上多了一笔。",
+      mark1: "你留下：今天先把脚步放慢。",
+      mark2: "TA 补上：我在同一片气里，加了一笔暖色。",
+      bg: "wudang",
+      deco: ["雾", "阶", "松", "云"],
+      colors: ["#1a2840", "#6ec6c0", "#d4b08a"]
+    },
+    yunnan: {
+      name: "云南森林",
+      label: "云南森林 · 虚拟预览",
+      lineSolo: "林光一跳一跳。你听见叶子自己在响。",
+      lineDuo: "第二个人进来后，林间那张共创卡亮了一层。",
+      mark1: "你留下：光斑落在肩上就够了。",
+      mark2: "TA 补上：我在树影边画了一小片绿。",
+      bg: "yunnan",
+      deco: ["叶", "光", "苔", "风"],
+      colors: ["#1a3028", "#64aa78", "#d4b08a"]
+    },
+    onsen: {
+      name: "日本温泉",
+      label: "日本温泉 · 虚拟预览",
+      lineSolo: "热气从石缝里起来。你先把肩膀松开。",
+      lineDuo: "有人坐到你对面，共创卡多了一道蒸汽痕迹。",
+      mark1: "你留下：水温刚好，不用说话。",
+      mark2: "TA 补上：我把雾气描成第二层线。",
+      bg: "onsen",
+      deco: ["气", "石", "汤", "灯"],
+      colors: ["#2a2030", "#d4b08a", "#6ec6c0"]
+    },
+    thai: {
+      name: "泰国（暖地）",
+      label: "泰国 · 虚拟预览",
+      lineSolo: "空气暖而慢。你先找一块能坐下的阴影。",
+      lineDuo: "第二个人过来后，共创卡上多了一抹晚色。",
+      mark1: "你留下：慢一点，也算一种休息。",
+      mark2: "TA 补上：我加了一笔海边的暖黄。",
+      bg: "thai",
+      deco: ["浪", "椰", "暖", "影"],
+      colors: ["#1a3048", "#ffc878", "#6ec6c0"]
+    }
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  function show(id) {
+    ["s0", "s1", "s2", "s3", "s4", "s5"].forEach(function (s) {
+      $(s).classList.toggle("hidden", s !== id);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function () { t.classList.remove("show"); }, 2400);
+  }
+
+  function makeWorkId() {
+    return "hb-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+  }
+
+  function buildWorkPayload() {
+    var p = PLACES[state.placeId] || {};
+    return {
+      schema: "healoa-base-cocreate/v1",
+      workId: state.workId || makeWorkId(),
+      externalName: "HeaLoa Base",
+      prototype: true,
+      notProductLock: true,
+      createdAt: new Date().toISOString(),
+      savedAt: state.savedAt || null,
+      questions: {
+        bodyFeeling: state.body,
+        season: state.season,
+        note: "用户自选问题，非医疗结论、非自动目的地处方"
+      },
+      place: {
+        id: state.placeId,
+        name: p.name || null
+      },
+      cocreate: {
+        multiplayer: "simulated",
+        joinedSecondPerson: !!state.joined,
+        mark1: p.mark1 || null,
+        mark2: state.joined ? (p.mark2 || null) : null
+      },
+      lightFeel: state.feel,
+      disclaimer: "可看原型 · 非正式产品 · 时长与玩法未锁定 · 第二人加入为模拟"
+    };
+  }
+
+  function syncChips(containerId, key) {
+    var root = $(containerId);
+    root.querySelectorAll(".chip").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        root.querySelectorAll(".chip").forEach(function (b) { b.classList.remove("on"); });
+        btn.classList.add("on");
+        state[key] = btn.getAttribute("data-v");
+        maybeEnablePlaces();
+      });
+    });
+  }
+
+  function maybeEnablePlaces() {
+    $("btnToPlaces").disabled = !(state.body && state.season);
+  }
+
+  syncChips("bodyChips", "body");
+  syncChips("seasonChips", "season");
+
+  $("btnStart").addEventListener("click", function () { show("s1"); });
+
+  $("btnToPlaces").addEventListener("click", function () {
+    $("answersEcho").innerHTML =
+      "你刚答的是：身体「" + state.body + "」、季节「" + state.season +
+      "」。下面地点由你选——不是系统替你下结论。Cindy 还提过：先在虚拟空间感受，才更容易想去线下。";
+    show("s2");
+  });
+
+  document.querySelectorAll(".place").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".place").forEach(function (b) { b.classList.remove("on"); });
+      btn.classList.add("on");
+      state.placeId = btn.getAttribute("data-id");
+      $("btnEnter").disabled = false;
+    });
+  });
+
+  function paintScene(duo) {
+    var p = PLACES[state.placeId];
+    if (!p) return;
+    var bg = $("sceneBg");
+    bg.className = "scene-bg " + p.bg;
+    $("sceneLabel").textContent = p.label;
+    $("sceneName").textContent = p.name;
+    $("sceneLine").textContent = duo ? p.lineDuo : p.lineSolo;
+    $("mark1").textContent = p.mark1;
+    $("mark2").textContent = p.mark2;
+
+    var deco = $("sceneDeco");
+    deco.innerHTML = "";
+    var positions = [
+      [12, 18], [78, 22], [20, 72], [70, 68], [48, 40]
+    ];
+    p.deco.forEach(function (ch, i) {
+      var el = document.createElement("div");
+      el.className = "deco";
+      el.textContent = ch;
+      el.style.left = positions[i][0] + "%";
+      el.style.top = positions[i][1] + "%";
+      el.style.opacity = String(0.25 + (i % 3) * 0.12);
+      deco.appendChild(el);
+    });
+
+    if (duo) {
+      $("avatarP2").classList.add("show");
+      $("presenceText").textContent = "2 人在场 · 同场景（模拟）";
+      $("mark2").classList.add("show");
+      $("layerHint").classList.add("hide");
+      $("artifact").classList.add("changed");
+      $("artifactTag").textContent = "两人共创 · 已变化";
+      $("artifactTag").classList.add("live");
+      $("sceneHeading").textContent = "第二个人进来了";
+      $("sceneSub").textContent = "注意共创场景卡：第二笔痕迹出现了。同一场景里，作品被一起改写——不是代币、不是配对。";
+      $("simNote").style.display = "block";
+      $("joinRow").classList.add("hidden");
+      $("afterJoinRow").classList.remove("hidden");
+    } else {
+      $("avatarP2").classList.remove("show");
+      $("presenceText").textContent = "1 人在场";
+      $("mark2").classList.remove("show");
+      $("layerHint").classList.remove("hide");
+      $("artifact").classList.remove("changed");
+      $("artifactTag").textContent = "仅你的痕迹";
+      $("artifactTag").classList.remove("live");
+      $("sceneHeading").textContent = "你已进入「" + p.name + "」";
+      $("sceneSub").textContent = "现在场景里只有你。共创卡上先有你留下的一笔。点「第二人加入」（模拟），看同一张共创物怎么变。";
+      $("simNote").style.display = "none";
+      $("joinRow").classList.remove("hidden");
+      $("afterJoinRow").classList.add("hidden");
+    }
+  }
+
+  $("btnEnter").addEventListener("click", function () {
+    state.joined = false;
+    state.workId = makeWorkId();
+    paintScene(false);
+    show("s3");
+  });
+
+  $("btnJoin").addEventListener("click", function () {
+    if (state.joined) return;
+    state.joined = true;
+    paintScene(true);
+    toast("第二人已加入（模拟）· 共创卡出现变化");
+  });
+
+  function fillSaveSummary() {
+    var p = PLACES[state.placeId] || {};
+    $("saveSummary").textContent =
+      "场景：" + (p.name || "—") +
+      "\n身体自述：「" + (state.body || "—") + "」· 季节：「" + (state.season || "—") + "」" +
+      "\n共创：你的痕迹 + " + (state.joined ? "第二人一笔（模拟加入）" : "尚未加入第二人") +
+      "\n作品编号：" + (state.workId || "—");
+  }
+
+  $("btnToSave").addEventListener("click", function () {
+    fillSaveSummary();
+    $("saveStatus").textContent = "";
+    show("s4");
+  });
+
+  $("btnSaveLocal").addEventListener("click", function () {
+    try {
+      state.savedAt = new Date().toISOString();
+      var payload = buildWorkPayload();
+      state.workId = payload.workId;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      $("saveStatus").textContent = "已写入本机浏览器 localStorage（键名：" + STORAGE_KEY + "）。关页后仍可在同一浏览器读回。";
+      toast("已保存到本机");
+      fillSaveSummary();
+    } catch (err) {
+      $("saveStatus").textContent = "保存失败：" + (err && err.message ? err.message : "浏览器拒绝写入");
+    }
+  });
+
+  function downloadBlob(filename, blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }
+
+  $("btnDownloadJson").addEventListener("click", function () {
+    state.savedAt = state.savedAt || new Date().toISOString();
+    var payload = buildWorkPayload();
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    var name = "HeaLoa-Base-共创-" + (payload.place.name || "scene") + "-" + payload.workId + ".json";
+    downloadBlob(name, blob);
+    $("saveStatus").textContent = "已触发 JSON 下载（文件留在你的下载目录）。";
+    toast("JSON 已开始下载");
+  });
+
+  function drawShareCard() {
+    var canvas = $("cardCanvas");
+    var ctx = canvas.getContext("2d");
+    var p = PLACES[state.placeId] || { name: "场景", mark1: "", mark2: "", colors: ["#0a1218", "#6ec6c0", "#d4b08a"] };
+    var w = canvas.width, h = canvas.height;
+
+    var g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, p.colors[0]);
+    g.addColorStop(1, "#0a1218");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = "rgba(110,198,192,0.15)";
+    ctx.beginPath();
+    ctx.arc(w * 0.75, h * 0.18, 160, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#d4b08a";
+    ctx.font = "600 22px sans-serif";
+    ctx.fillText("HeaLoa Base · 可看原型", 48, 64);
+
+    ctx.fillStyle = "#eef4f8";
+    ctx.font = "650 42px sans-serif";
+    ctx.fillText(p.name || "共创场景", 48, 130);
+
+    ctx.fillStyle = "#8aa0b2";
+    ctx.font = "22px sans-serif";
+    ctx.fillText("身体：「" + (state.body || "—") + "」 · 季节：「" + (state.season || "—") + "」", 48, 175);
+
+    // card panel
+    roundRect(ctx, 48, 220, w - 96, 420, 28);
+    ctx.fillStyle = "rgba(8,14,18,0.62)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.14)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "#d4b08a";
+    ctx.font = "600 24px sans-serif";
+    ctx.fillText("共创场景卡", 80, 270);
+
+    ctx.fillStyle = "#c8ebe8";
+    ctx.font = "22px sans-serif";
+    wrapText(ctx, p.mark1 || "", 80, 320, w - 160, 32);
+
+    if (state.joined) {
+      ctx.fillStyle = "#f0e0c8";
+      wrapText(ctx, p.mark2 || "", 80, 430, w - 160, 32);
+      ctx.fillStyle = "#6ec6c0";
+      ctx.font = "20px sans-serif";
+      ctx.fillText("两人共创（第二人为本机模拟）", 80, 560);
+    } else {
+      ctx.fillStyle = "#8aa0b2";
+      ctx.font = "20px sans-serif";
+      ctx.fillText("仅你的痕迹", 80, 430);
+    }
+
+    ctx.fillStyle = "#8aa0b2";
+    ctx.font = "18px sans-serif";
+    ctx.fillText("非正式产品 · 时长与玩法未锁定", 48, h - 120);
+    ctx.fillText("作品编号：" + (state.workId || "—"), 48, h - 88);
+    ctx.fillText("自愿分享 · 无病毒传播承诺", 48, h - 56);
+
+    return canvas;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    var chars = String(text).split("");
+    var line = "";
+    var yy = y;
+    for (var i = 0; i < chars.length; i++) {
+      var test = line + chars[i];
+      if (ctx.measureText(test).width > maxWidth && line) {
+        ctx.fillText(line, x, yy);
+        line = chars[i];
+        yy += lineHeight;
+      } else {
+        line = test;
+      }
+    }
+    if (line) ctx.fillText(line, x, yy);
+  }
+
+  function downloadPng(filename) {
+    var canvas = drawShareCard();
+    canvas.toBlob(function (blob) {
+      if (!blob) {
+        toast("图片生成失败");
+        return;
+      }
+      downloadBlob(filename, blob);
+    }, "image/png");
+  }
+
+  $("btnDownloadPng").addEventListener("click", function () {
+    var p = PLACES[state.placeId] || {};
+    downloadPng("HeaLoa-Base-共创卡-" + (p.name || "scene") + ".png");
+    $("saveStatus").textContent = "已触发图片卡下载（PNG）。";
+    toast("图片卡已开始下载");
+  });
+
+  function shareText() {
+    var p = PLACES[state.placeId] || {};
+    return (
+      "【HeaLoa Base · 可看原型】\n" +
+      "我和一位同伴（模拟）在「" + (p.name || "场景") + "」留下了一张共创场景卡。\n" +
+      "身体自述：「" + (state.body || "—") + "」· 季节：「" + (state.season || "—") + "」\n" +
+      (p.mark1 || "") + "\n" +
+      (state.joined ? (p.mark2 || "") + "\n" : "") +
+      "——这是非正式原型演示，不是产品定论；分享完全自愿。"
+    );
+  }
+
+  $("btnToShare").addEventListener("click", function () {
+    $("sharePreview").textContent = shareText();
+    $("shareStatus").textContent = "";
+    show("s5");
+  });
+
+  $("btnShareNative").addEventListener("click", function () {
+    var text = shareText();
+    if (navigator.share) {
+      navigator.share({
+        title: "HeaLoa Base · 共创场景卡",
+        text: text
+      }).then(function () {
+        $("shareStatus").textContent = "已调用系统分享面板（是否发出去由你决定）。";
+      }).catch(function (err) {
+        if (err && err.name === "AbortError") {
+          $("shareStatus").textContent = "你取消了系统分享。";
+        } else {
+          $("shareStatus").textContent = "系统分享不可用，请改用「复制文案」或「下载分享卡」。";
+        }
+      });
+    } else {
+      $("shareStatus").textContent = "当前浏览器不支持 Web Share API。请用「复制文案」或「下载分享卡」。";
+      toast("此设备无系统分享，请复制或下载");
+    }
+  });
+
+  $("btnCopyText").addEventListener("click", function () {
+    var text = shareText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        $("shareStatus").textContent = "文案已复制到剪贴板。可贴到你想发的地方——本原型不会代发。";
+        toast("已复制文案");
+      }).catch(function () {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      $("shareStatus").textContent = "文案已复制到剪贴板。";
+      toast("已复制文案");
+    } catch (e) {
+      $("shareStatus").textContent = "复制失败，请长按上方文案手动选择。";
+    }
+    ta.remove();
+  }
+
+  $("btnShareDownload").addEventListener("click", function () {
+    var p = PLACES[state.placeId] || {};
+    downloadPng("HeaLoa-Base-分享卡-" + (p.name || "scene") + ".png");
+    $("shareStatus").textContent = "分享卡 PNG 已开始下载。发不发、发到哪，都由你决定。";
+    toast("分享卡已开始下载");
+  });
+
+  $("btnHandoff").addEventListener("click", function () {
+    window.open("https://healoa.com/circles", "_blank", "noopener,noreferrer");
+    toast("已在新标签打开主站 circles（可选跳转）");
+  });
+
+  $("btnHandoffHome").addEventListener("click", function () {
+    window.open("https://healoa.com/", "_blank", "noopener,noreferrer");
+    toast("已在新标签打开 healoa.com");
+  });
+
+  function resetFlow() {
+    state = { body: null, season: null, placeId: null, joined: false, feel: null, savedAt: null, workId: null };
+    document.querySelectorAll(".chip.on, .place.on, .feel.on").forEach(function (el) {
+      el.classList.remove("on");
+    });
+    $("btnToPlaces").disabled = true;
+    $("btnEnter").disabled = true;
+    $("feelAckText").style.display = "none";
+    $("saveStatus").textContent = "";
+    $("shareStatus").textContent = "";
+    show("s0");
+  }
+
+  $("btnReplay").addEventListener("click", resetFlow);
+  $("btnEndReplay").addEventListener("click", resetFlow);
+
+  document.querySelectorAll("[data-back]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      show(btn.getAttribute("data-back"));
+    });
+  });
+
+  $("feelRow").querySelectorAll(".feel").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      $("feelRow").querySelectorAll(".feel").forEach(function (b) { b.classList.remove("on"); });
+      btn.classList.add("on");
+      state.feel = btn.getAttribute("data-v");
+      $("feelAckText").style.display = "block";
+      $("feelAckText").textContent =
+        "你选了「" + state.feel + "」。仅作原型里的轻反馈示意——不会跳注册，也不会当成主站指标。";
+    });
+  });
+})();
+</script>
+</body>
+</html>
