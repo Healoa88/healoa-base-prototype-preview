@@ -652,10 +652,10 @@
         <button class="soft" type="button" id="btnApplyPublicLine">更新预览</button>
       </div>
       <label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:0.86rem;line-height:1.45;cursor:pointer">
-        <input type="checkbox" id="privacyLineConfirm" style="margin-top:3px;flex-shrink:0" />
+        <input type="checkbox" id="privacyLineConfirm" style="margin-top:3px;flex-shrink:0" checked />
         <span>可以发出这一行（改字后请再勾选）。</span>
       </label>
-      <p class="hint" id="privacyConfirmHint" style="margin-top:8px;margin-bottom:0;color:var(--gold)">未确认前，复制链接 / 系统分享 / 复制文案不可用。确认后点「发给朋友」。</p>
+      <p class="hint" id="privacyConfirmHint" style="margin-top:8px;margin-bottom:0;color:var(--gold)">已默认可发。点下方「发给朋友」即可复制链接。改字后需再勾选。</p>
     </div>
     <div class="card">
       <h2>可打开的作品链接（邀请诚实）</h2>
@@ -1470,7 +1470,7 @@
   function openShareScreen(opts){
     opts=opts||{};
     $("shareStatus").textContent="";
-    // P0: public line must be explicitly confirmed before copy/share
+    // Short share-tail: enter ready-to-send (forceConfirm). Editing public line unconfirms (P0 still honest).
     state.privacyLineConfirmed = opts.forceConfirm === true;
     var cb=$("privacyLineConfirm"); if(cb) cb.checked=!!state.privacyLineConfirmed;
     refreshSeedShareUI();
@@ -1482,8 +1482,8 @@
     if(!state.soloText){ var p=PLACES[state.placeId]; state.soloText=(p&&p.defaultSolo)||""; $("soloLine").value=state.soloText; }
     silentSaveLocal();
     stopAudio(); stopSoftTimer(); clearJoinTimers();
-    openShareScreen();
-    toast("发给朋友 · 请先确认公开的一行");
+    openShareScreen({forceConfirm:true});
+    toast("发给朋友 · 复制链接即可");
   }
   $("btnToSave").addEventListener("click", goSave);
   $("btnSoloSave").addEventListener("click", function(){ goSave(); toast("已到保存页 · 也可返回场景发给朋友"); });
@@ -1728,7 +1728,7 @@
     var card=$("privacyConfirmCard");
     if(hint){
       if(!urlOk) hint.textContent="当前无法生成可跨设备打开的 #seed= 邀请（链接过长）。请改用 JSON/PNG。";
-      else if(!ok) hint.textContent="请勾选确认「公开的一行」会出现在发出内容里，然后再点「发给朋友」。";
+      else if(!ok) hint.textContent="改过公开的一行后请再勾选，然后点「发给朋友」。";
       else hint.textContent="已可发。点「发给朋友」复制链接（朋友打开=副本 · 共享持续更新=UNKNOWN）。";
     }
     if(card) card.classList.toggle("confirmed", ok);
@@ -1860,8 +1860,8 @@
   }
   $("btnToShare").addEventListener("click", function(){
     silentSaveLocal();
-    openShareScreen();
-    toast("发给朋友 · 请先确认公开的一行");
+    openShareScreen({forceConfirm:true});
+    toast("发给朋友 · 复制链接即可");
   });
   if($("btnApplyPublicLine")) $("btnApplyPublicLine").addEventListener("click", function(){
     applyPublicLineFromEditor();

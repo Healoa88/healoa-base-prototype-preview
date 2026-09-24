@@ -13,7 +13,7 @@ App social currency (Living Editions · App side) = **Scene Seed** — “我发
 - **Primary CTA「走进场景试试」goes to place pick** (or「直接进 · 日本温泉」auto-enters). Body×season is **optional** and no longer blocks first play.
 - Place cards are **one-tap** into a playable scene; first mark tool auto-selected; coach dock「你可以做什么」stays.
 - Homepage customer voice: what / why / CTA. Reviewer jargon (Choose Again, Circle Edition, Wrapped, Keeper, Life Maps, UNKNOWN walls) lives in collapsed「说明」.
-- **Share-tail (Code lane):** after one mark → one「发给朋友」→ share screen (skips save confirm dance). Primary share action is「发给朋友」(copies `#seed=`). P0 honesty kept: copy ≠ live shared work (UNKNOWN). No Choose Again / Keeper / Circle Edition / Wrapped on share/save customer UI.
+- **Share-tail (Code lane):** after one mark → one「发给朋友」→ share screen (skips save confirm dance). Enter share **default-ready** to copy; editing「公开的一行」re-gates. Primary share action is「发给朋友」(copies `#seed=`). P0 honesty kept: copy ≠ live shared work (UNKNOWN). No Choose Again / Keeper / Circle Edition / Wrapped on share/save customer UI.
 
 ## Invite honesty (P0)
 
