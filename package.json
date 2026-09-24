@@ -1,0 +1,11 @@
+{
+  "name": "healoa-base-prototype-preview",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:scene-seed": "node tests/scene-seed-p0.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

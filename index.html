@@ -219,7 +219,7 @@
   .asset-note { font-size:0.7rem; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45; }
   .proto-banner .line2 { display:block; margin-top:4px; font-size:10px; color:rgba(138,160,178,0.95); }
 
-  /* Scene Seed · 场景种子 card & invite (v2026-09-24-c) */
+  /* Scene Seed · 场景种子 card & invite (v2026-09-24-d) · P0 invite honesty */
   .seed-badge { display:inline-block; font-size:10px; padding:3px 9px; border-radius:999px;
     background:linear-gradient(135deg,rgba(110,198,192,0.22),rgba(212,176,138,0.18));
     color:var(--aqua); border:1px solid rgba(110,198,192,0.35); letter-spacing:0.06em;
@@ -261,20 +261,25 @@
   .share-preview-img { border-radius:18px; box-shadow:0 12px 36px rgba(0,0,0,0.35); }
   .quiet-chrome .proto-banner strong { letter-spacing:0.06em; }
   canvas#cardCanvasSq { display:none; }
+  #publicLineEdit:focus { outline:2px solid rgba(110,198,192,0.45); border-color:rgba(110,198,192,0.5); }
+  #privacyConfirmCard.confirmed { border-color: rgba(110,198,192,0.35); }
+  .seed-url-box.fail { border-color: rgba(232,160,144,0.55); color: #e8a090; }
+  .invite-truth { font-size: 0.82rem; line-height: 1.55; color: var(--muted); }
+  .invite-truth strong { color: var(--text); }
 </style>
 </head>
 <body>
 
 <div class="proto-banner quiet-chrome">
-  <strong>可看原型 · Scene Seed 场景种子 · 非正式 healoa.app · 预览 v2026-09-24-c</strong>
-  <span>发现美的地方 → 留下一笔 → 发出场景种子邀请 → 对方可进场加一笔（Demo 同机模拟）</span>
-  <span class="line2">真多人服务器 / 跨设备 OG / 付费素材 / 正式发布 · UNKNOWN · 无用户数据迁移</span>
+  <strong>可看原型 · Scene Seed 场景种子 · 非正式 healoa.app · 预览 v2026-09-24-d</strong>
+  <span>发现美的地方 → 留下一笔 → 发出 #seed= 邀请 → 朋友可在自己的副本继续创作</span>
+  <span class="line2">双方共享持续更新作品 / 社交 App 富链 OG / 付费素材 / 正式发布 · UNKNOWN · 无用户数据迁移</span>
 </div>
 <div class="wrap">
   <section id="s0" class="screen">
     <div class="brand">HEALOA BASE · Living Editions · App <span class="seed-badge">SCENE SEED</span></div>
     <h1>我发现了一个美的地方，并把创作邀请给你</h1>
-    <p class="lead">这是一份<strong>可点的演示</strong>：走进场景（看得见、听得到、能动手），留下你的一笔，再发出一枚<strong>场景种子 / Scene Seed</strong>——漂亮画框 + 可重开的作品。朋友打开后可进场加一笔，作品真的会变。第二人若在本 Demo 里仍是<strong>同机模拟</strong>（标「模拟」），不是远程真人连线。</p>
+    <p class="lead">这是一份<strong>可点的演示</strong>：走进场景（看得见、听得到、能动手），留下你的一笔，再发出一枚<strong>场景种子 / Scene Seed</strong>——漂亮画框 + <code>#seed=</code> 可打开的作品副本。朋友用链接可在<strong>自己的副本</strong>继续创作（另一台设备也能打开副本）。朋友加的笔<strong>不会</strong>同步回你这边——「双方共享同一件持续更新的作品」仍是 <strong>UNKNOWN</strong>。同机第二人按钮一律标「模拟」。</p>
     <p class="note">地点来自 Cindy 提过的疗愈地例子。身体与季节是<strong>可选自述</strong>（可跳过），不作诊断。默认分享的是<strong>作品</strong>，不是身体/隐私。系统<strong>不</strong>根据身体替你指定地方。</p>
     <div class="btn-row">
       <button class="primary" type="button" id="btnStart">开始看看（可先答两句，也可跳过）</button>
@@ -503,7 +508,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-c</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-d</span>
         </div>
         <div class="seed-foot" id="seedLiveFoot">默认分享作品 · 不含身体自述</div>
       </div>
@@ -518,10 +523,31 @@
       <img class="share-preview-img" id="shareImgPreview" alt="场景种子预览图" />
       <button class="soft" type="button" id="btnRefreshShareImg" style="margin-top:8px">刷新种子预览图</button>
     </div>
+    <div class="card" id="privacyConfirmCard">
+      <h2>公开的一行 · 分享前请确认</h2>
+      <p class="hint">这一行会出现在<strong>链接载荷、邀请文案、种子 PNG</strong>里。身体芯片不会进种子，但自由文本仍可能含健康/隐私——请先看清、可改可删，再勾选确认。</p>
+      <label class="hint" for="publicLineEdit" style="display:block;margin-bottom:6px">将发出的「公开的一行」</label>
+      <textarea id="publicLineEdit" rows="2" maxlength="120" style="width:100%;box-sizing:border-box;border-radius:12px;border:1px solid var(--line);background:rgba(8,14,18,0.55);color:var(--text);padding:10px 12px;font:inherit;resize:vertical"></textarea>
+      <div class="btn-pair" style="margin-top:8px">
+        <button class="soft" type="button" id="btnClearPublicLine">删除这一行</button>
+        <button class="soft" type="button" id="btnApplyPublicLine">更新预览</button>
+      </div>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:0.86rem;line-height:1.45;cursor:pointer">
+        <input type="checkbox" id="privacyLineConfirm" style="margin-top:3px;flex-shrink:0" />
+        <span>我已看到这一行会出现在链接 / 文案 / 图片里，并确认可以发出（可先改或删）。</span>
+      </label>
+      <p class="hint" id="privacyConfirmHint" style="margin-top:8px;margin-bottom:0;color:var(--gold)">未确认前，复制链接 / 系统分享 / 复制文案不可用。</p>
+    </div>
     <div class="card">
-      <h2>可打开的作品链接（Demo 诚实）</h2>
-      <p class="seed-honest">本机可重开 · 跨设备链接需真多人/托管（UNKNOWN）。本 Demo 用 hash 携带压缩种子；同浏览器可靠。未验证微信/WhatsApp OG 卡片预览——不宣称可用。</p>
+      <h2>可打开的作品链接（邀请诚实）</h2>
+      <p class="seed-honest" id="seedHonestBlock">
+        <strong>已实现：</strong>朋友打开 <code>#seed=</code> 链接后，可在<strong>自己的副本</strong>继续创作（跨设备可打开副本）。<br />
+        <strong>UNKNOWN / 未实现：</strong>双方共享同一件持续更新的作品（朋友落笔<strong>不会</strong>同步回发送方）。<br />
+        <strong>页内 PNG 预览 ≠ 微信/WhatsApp 链接富卡片</strong>（静态 Pages 无 per-work OG · 不宣称可用）。<br />
+        过长时<strong>不会</strong>生成 <code>#seedId=</code> 假邀请——会明确失败并提供 JSON/PNG 下载。
+      </p>
       <div class="seed-url-box" id="seedUrlBox">（生成中…）</div>
+      <p class="hint" id="seedUrlFail" style="display:none;margin-top:8px;color:#e8a090">链接过长，无法生成可跨设备打开的邀请。请下载种子 JSON 或 PNG 另发；不会发出仅本机可解的 #seedId=。</p>
       <div class="btn-pair" style="margin-top:8px">
         <button class="soft" type="button" id="btnCopySeedUrl">复制种子链接</button>
         <button class="soft" type="button" id="btnDownloadSeedJson">下载种子 JSON</button>
@@ -545,7 +571,7 @@
     </div>
     <div class="card" style="margin-top:4px">
       <h2>可选轻问（不等于 Choose Again · 非主站链路）</h2>
-      <p class="hint">刚才一起体验开心吗？仅原型轻反馈，不接报名。</p>
+      <p class="hint" id="feelPrompt">刚才独自创作还开心吗？仅原型轻反馈，不接报名。</p>
       <div class="feel-row" id="feelRow">
         <button type="button" class="feel" data-v="开心">开心</button>
         <button type="button" class="feel" data-v="还好">还好</button>
@@ -556,13 +582,13 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-24-c · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人默认=模拟<br />气氛资产=程序生成预览，非付费素材包 · 非 Wrapped</p>
+    <p class="footer-meta">预览 v2026-09-24-d · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人默认=模拟<br />气氛资产=程序生成预览，非付费素材包 · 非 Wrapped</p>
   </section>
 
   <section id="sSeed" class="screen hidden">
     <div class="brand">SCENE SEED · 收到一枚场景种子 <span class="sim-badge" id="seedViewSimBadge">模拟</span></div>
     <h1 id="seedViewH1">有人发现了一个美的地方</h1>
-    <p class="sub" id="seedViewSub">打开种子 → 走进场景 → 加你的一笔 → 作品会变。若为同机模拟路径，全程标「模拟」。</p>
+    <p class="sub" id="seedViewSub">打开种子 → 走进场景 → 在你的副本加一笔。同机路径标「模拟」；跨设备打开的是副本，不会同步回发送方。</p>
     <div class="seed-card-live" id="seedViewCard">
       <div class="seed-inner">
         <div class="seed-kicker">SCENE SEED · 场景种子</div>
@@ -573,7 +599,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-c</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-d</span>
         </div>
         <div class="seed-foot">默认只开作品 · 不含身体/隐私</div>
       </div>
@@ -582,7 +608,7 @@
       <button class="primary" type="button" id="btnSeedEnter">进入场景，加我的一笔</button>
       <button class="ghost" type="button" id="btnSeedDismiss">先回到首页</button>
     </div>
-    <p class="footer-meta">本机可重开 · 跨设备需真多人/托管（UNKNOWN） · 非正式远程双人直播</p>
+    <p class="footer-meta">#seed= 可打开副本 · 双方共享持续更新 = UNKNOWN · 非正式远程双人直播</p>
   </section>
 </div>
 <canvas id="cardCanvas" width="720" height="960" aria-hidden="true"></canvas>
@@ -592,7 +618,7 @@
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-c";
+  var VERSION = "v2026-09-24-d";
   var MAX_MARKS = 6;
   var state = {
     body: null, season: null, placeId: null, joined: false, feel: null,
@@ -601,7 +627,8 @@
     activeTool: null, compareMode: "duo", soloSnapshot: null,
     bodyDepth: "shallow", bodyDeep: null, seasonDeep: null, paceFeel: null,
     duration: "linger", sceneEnteredAt: null,
-    seedFormat: "vertical", recipientMode: false, incomingSeed: null
+    seedFormat: "vertical", recipientMode: false, incomingSeed: null,
+    privacyLineConfirmed: false, lastSeedUrlResult: null
   };
   var SEED_STORE_KEY = "healoa_base_scene_seeds_v1";
   var INVITE_LINE = "我留下了第一笔。你会让这里变成什么样？";
@@ -923,9 +950,10 @@
     var from = state.recipientMode ? "friend" : "solo";
     addMarkAt(((ev.clientX-rect.left)/rect.width)*100, ((ev.clientY-rect.top)/rect.height)*100, state.activeTool, from);
     if(state.recipientMode){
-      toast("你的一笔已留下 · 作品变了（同机模拟）");
       var before = state.soloSnapshot ? state.soloSnapshot.markCount : 0;
-      $("presenceText").textContent="作品已更新 · 痕迹 "+state.marks.length+"（进场前 "+before+"）· 模拟";
+      var asSim = ($("seedViewSimBadge") && $("seedViewSimBadge").style.display!=="none");
+      toast(asSim ? "你的一笔已留下 · 副本变了（同机模拟）" : "你的一笔已留下 · 仅你的副本更新（不会同步回发送方）");
+      $("presenceText").textContent="副本已更新 · 痕迹 "+state.marks.length+"（进场前 "+before+"）"+(asSim?" · 模拟":" · 不同步");
     } else {
       toast("已放下痕迹");
     }
@@ -1236,8 +1264,8 @@
       fx:{wind:!!state.fx.wind,light:!!state.fx.light,mist:!!state.fx.mist,pulse:!!state.fx.pulse},
       cocreate:{simulated:!!state.joined, note:state.joined?"第二人为本机模拟，非远程真人":"独自作品种子"},
       privacy:{bodyExcluded:true,fatigueExcluded:true,preciseLocationExcluded:true,privateAnswersExcluded:true},
-      linkHonesty:"本机可重开 · 跨设备链接需真多人/托管（UNKNOWN）",
-      ogHonesty:"未验证微信/WhatsApp og:image 预览 · 不宣称可用",
+      linkHonesty:"已实现：#seed= 可跨设备打开自己的副本 · UNKNOWN：双方共享持续更新作品",
+      ogHonesty:"页内 PNG 预览 ≠ 微信/WhatsApp 富链 · 静态 Pages 无 per-work OG · 不宣称可用",
       createdAt:new Date().toISOString()
     };
     return seed;
@@ -1252,6 +1280,7 @@
     while(s.length%4) s+="=";
     return decodeURIComponent(escape(atob(s)));
   }
+  var SEED_URL_SAFE_LEN = 6000;
   function compactSeed(seed){
     return {
       v:1, id:seed.seedId, w:seed.workId, p:seed.place&&seed.place.id,
@@ -1259,16 +1288,44 @@
       fx:seed.fx, sim:!!(seed.cocreate&&seed.cocreate.simulated)
     };
   }
+  function validateCompact(c){
+    if(!c || typeof c !== "object") return {ok:false, err:"种子内容无法解析"};
+    if(c.v !== 1) return {ok:false, err:"不支持的种子版本（需要 v1）"};
+    if(!c.p || typeof c.p !== "string" || !PLACES[c.p]) return {ok:false, err:"种子里的场景无法识别或已失效"};
+    if(c.t != null && typeof c.t !== "string") return {ok:false, err:"公开一行格式无效"};
+    if(typeof c.t === "string" && c.t.length > 200) return {ok:false, err:"公开一行过长，链接可能已损坏"};
+    if(c.m != null){
+      if(!Array.isArray(c.m)) return {ok:false, err:"痕迹格式无效"};
+      if(c.m.length > 12) return {ok:false, err:"痕迹数量异常"};
+      for(var i=0;i<c.m.length;i++){
+        var m=c.m[i];
+        if(!m || typeof m !== "object") return {ok:false, err:"痕迹项无效"};
+        if(typeof m.x !== "number" || typeof m.y !== "number" || !isFinite(m.x) || !isFinite(m.y))
+          return {ok:false, err:"痕迹坐标无效"};
+        if(m.x < 0 || m.x > 100 || m.y < 0 || m.y > 100) return {ok:false, err:"痕迹坐标越界"};
+        if(m.tool != null && typeof m.tool !== "string") return {ok:false, err:"痕迹工具无效"};
+      }
+    }
+    if(c.id != null && typeof c.id !== "string") return {ok:false, err:"种子 id 无效"};
+    return {ok:true};
+  }
   function expandCompact(c){
-    if(!c||!c.p||!PLACES[c.p]) return null;
+    var v=validateCompact(c);
+    if(!v.ok) return null;
     var p=PLACES[c.p];
     return {
       schema:"healoa-base-scene-seed/v1", seedId:c.id||makeWorkId(), workId:c.w||c.id,
-      title:poeticTitle(c.p), publicLine:c.t||p.defaultSolo||"",
-      place:{id:c.p,name:p.name}, marks:c.m||[], fx:c.fx||{},
+      title:poeticTitle(c.p), publicLine:(typeof c.t==="string"?c.t:(p.defaultSolo||"")),
+      place:{id:c.p,name:p.name}, marks:Array.isArray(c.m)?c.m:[], fx:c.fx||{},
       cocreate:{simulated:!!c.sim}, inviteLine:INVITE_LINE, tasteReason:TASTE_REASON,
-      previewVersion:VERSION
+      previewVersion:VERSION,
+      linkHonesty:"已实现：#seed= 可跨设备打开自己的副本 · UNKNOWN：双方共享持续更新作品"
     };
+  }
+  function expandCompactWithError(c){
+    var v=validateCompact(c);
+    if(!v.ok) return {ok:false, err:v.err, seed:null};
+    return {ok:true, err:null, seed:expandCompact(c)};
   }
   function persistSeedLocal(seed){
     try{
@@ -1286,35 +1343,59 @@
     return null;
   }
   function buildSeedUrl(seed){
+    // NEVER emit #seedId= as a friend invite — that only resolves in sender localStorage.
+    persistSeedLocal(seed);
     var compact=compactSeed(seed);
     var payload=utf8ToB64url(JSON.stringify(compact));
     var base=location.href.split("#")[0].split("?")[0];
     var url=base+"#seed="+payload;
-    // Keep under ~6k chars for practicality; else fall back to id+local
-    if(url.length>6000){
-      persistSeedLocal(seed);
-      url=base+"#seedId="+encodeURIComponent(seed.seedId);
-    } else {
-      persistSeedLocal(seed);
+    if(url.length>SEED_URL_SAFE_LEN){
+      return {ok:false, url:null, reason:"url_too_long", length:url.length, safeLimit:SEED_URL_SAFE_LEN, seedId:seed.seedId};
     }
-    return url;
+    return {ok:true, url:url, reason:null, length:url.length, safeLimit:SEED_URL_SAFE_LEN, seedId:seed.seedId};
   }
   function parseSeedFromLocation(){
     var hash=location.hash||"";
     if(hash.indexOf("#seed=")===0){
-      try{ return expandCompact(JSON.parse(b64urlToUtf8(hash.slice(6)))); }catch(e){ return null; }
+      var raw=hash.slice(6);
+      if(!raw || raw.length>120000) return {ok:false, err:"种子链接过长或为空，无法打开", seed:null, via:"seed"};
+      try{
+        var parsed=JSON.parse(b64urlToUtf8(raw));
+        var exp=expandCompactWithError(parsed);
+        if(!exp.ok) return {ok:false, err:exp.err||"种子校验失败", seed:null, via:"seed"};
+        return {ok:true, err:null, seed:exp.seed, via:"seed"};
+      }catch(e){
+        return {ok:false, err:"种子链接已损坏或无法解码", seed:null, via:"seed"};
+      }
     }
     if(hash.indexOf("#seedId=")===0){
+      // Local reopen only — never a shippable invite. Friend without sender store cannot open.
       var id=decodeURIComponent(hash.slice(8));
       try{
         var all=JSON.parse(localStorage.getItem(SEED_STORE_KEY)||"{}");
-        if(all&&all[id]) return all[id];
+        if(all&&all[id]) return {ok:true, err:null, seed:all[id], via:"seedId-local"};
       }catch(e){}
       var last=readLastSeed();
-      if(last&&last.seedId===id) return last;
-      return null;
+      if(last&&last.seedId===id) return {ok:true, err:null, seed:last, via:"seedId-local"};
+      return {ok:false, err:"此链接使用本机编号（#seedId=），只在发送方浏览器可解，无法作为好友邀请。请让对方改用含完整 #seed= 的链接，或改发 JSON/PNG。", seed:null, via:"seedId"};
     }
     return null;
+  }
+  function showSeedImportError(msg){
+    toast(msg||"种子无法打开");
+    try{
+      var old=document.getElementById("seedImportError"); if(old) old.remove();
+      var box=document.createElement("div");
+      box.className="card";
+      box.id="seedImportError";
+      box.style.cssText="position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:80;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.45)";
+      var p=document.createElement("p"); p.className="hint"; p.style.cssText="margin:0 0 12px;color:var(--text)"; p.textContent=String(msg||"链接无效");
+      var h=document.createElement("h2"); h.style.margin="0 0 8px"; h.textContent="场景种子打不开";
+      var btn=document.createElement("button"); btn.className="primary"; btn.type="button"; btn.textContent="知道了";
+      btn.onclick=function(){ box.remove(); };
+      box.appendChild(h); box.appendChild(p); box.appendChild(btn);
+      document.body.appendChild(box);
+    }catch(e){}
   }
   function paintLiveSeedCard(seed, prefix){
     prefix=prefix||"seedLive";
@@ -1345,17 +1426,63 @@
       simEl.textContent=sim?"模拟":"";
     }
     if(verEl) verEl.textContent="预览 "+(seed.previewVersion||VERSION);
-    if(footEl) footEl.textContent=(seed.linkHonesty||"本机可重开 · 跨设备链接需真多人/托管（UNKNOWN）")+" · 不含身体自述";
+    if(footEl) footEl.textContent=(seed.linkHonesty||"已实现：#seed= 可打开副本 · UNKNOWN：双方共享持续更新")+" · 不含身体自述";
+  }
+  function syncFeelPrompt(){
+    var el=$("feelPrompt");
+    if(!el) return;
+    el.textContent = state.joined
+      ? "刚才（含模拟第二人）体验还开心吗？仅原型轻反馈，不接报名。"
+      : "刚才独自创作还开心吗？仅原型轻反馈，不接报名。";
+  }
+  function applyPublicLineFromEditor(){
+    var ta=$("publicLineEdit");
+    if(!ta) return;
+    state.soloText = String(ta.value||"").slice(0,120);
+    state.privacyLineConfirmed=false;
+    var cb=$("privacyLineConfirm"); if(cb) cb.checked=false;
+    updatePrivacyGateUI();
+  }
+  function updatePrivacyGateUI(){
+    var ok=!!state.privacyLineConfirmed;
+    var urlOk=state.lastSeedUrlResult && state.lastSeedUrlResult.ok;
+    ["btnCopySeedUrl","btnShareNative","btnCopyText"].forEach(function(id){
+      var b=$(id); if(b) b.disabled = !(ok && urlOk);
+    });
+    var hint=$("privacyConfirmHint");
+    var card=$("privacyConfirmCard");
+    if(hint){
+      if(!urlOk) hint.textContent="当前无法生成可跨设备打开的 #seed= 邀请（链接过长）。请改用 JSON/PNG；确认勾选仍建议勾上。";
+      else if(!ok) hint.textContent="未确认前，复制链接 / 系统分享 / 复制文案不可用。请先看清「公开的一行」并勾选。";
+      else hint.textContent="已确认「公开的一行」会出现在链接 / 文案 / 图片里。";
+    }
+    if(card) card.classList.toggle("confirmed", ok);
   }
   function refreshSeedShareUI(){
     var seed=buildSceneSeed();
     paintLiveSeedCard(seed,"seedLive");
     var simBadge=$("shareSimBadge");
     if(simBadge){ simBadge.style.display=state.joined?"":"none"; }
-    var url=buildSeedUrl(seed);
-    if($("seedUrlBox")) $("seedUrlBox").textContent=url;
-    $("sharePreview").textContent=shareText(seed);
+    var ta=$("publicLineEdit");
+    if(ta && document.activeElement!==ta) ta.value=seed.publicLine||"";
+    var result=buildSeedUrl(seed);
+    state.lastSeedUrlResult=result;
+    var box=$("seedUrlBox");
+    var fail=$("seedUrlFail");
+    if(box){
+      if(result.ok){
+        box.textContent=result.url;
+        box.classList.remove("fail");
+      } else {
+        box.textContent="（无法生成可邀请链接 · 长度 "+result.length+" > 上限 "+result.safeLimit+" · 未生成 #seedId=）";
+        box.classList.add("fail");
+      }
+    }
+    if(fail) fail.style.display=result.ok?"none":"block";
+    $("sharePreview").textContent=shareText(seed, result.ok?result.url:"");
     refreshShareImgPreview();
+    syncFeelPrompt();
+    updatePrivacyGateUI();
   }
   function drawShareCard(fmt){
     fmt=fmt||state.seedFormat||"vertical";
@@ -1430,18 +1557,23 @@
     downloadPng("HeaLoa-SceneSeed-"+(p.name||"scene")+".png");
     $("saveStatus").textContent="已触发场景种子 PNG 下载（无身体自述）。"; toast("场景种子图已开始下载");
   });
-  function shareText(seed){
+  function shareText(seed, urlOverride){
     seed=seed||buildSceneSeed();
     var simNote = (seed.cocreate&&seed.cocreate.simulated) ? "（含模拟第二人 · 非远程真人）" : "";
     var url = "";
-    try { url = $("seedUrlBox") ? $("seedUrlBox").textContent : ""; } catch(e){}
+    if(typeof urlOverride==="string") url=urlOverride;
+    else {
+      try {
+        if(state.lastSeedUrlResult && state.lastSeedUrlResult.ok) url=state.lastSeedUrlResult.url;
+      } catch(e){}
+    }
     return "【HeaLoa Base · Scene Seed / 场景种子 · 预览 "+VERSION+"】\n"
       + TASTE_REASON + "\n"
       + "「"+(seed.title||"")+"」\n"
-      + (seed.publicLine||"") + "\n"
+      + (seed.publicLine ? ("公开的一行："+seed.publicLine+"\n") : "（未写公开的一行）\n")
       + "「"+INVITE_LINE+"」"+simNote+"\n"
-      + (url ? ("打开种子："+url+"\n") : "")
-      + "——本机可重开 · 跨设备需真多人/托管（UNKNOWN）· 自愿分享 · 不含身体自述 · 非正式产品";
+      + (url ? ("打开种子（你的副本）："+url+"\n") : "（无可用 #seed= 邀请链接 — 请改用 JSON/PNG）\n")
+      + "——已实现：朋友可在自己的副本继续创作 · UNKNOWN：双方共享持续更新 · 页内 PNG≠微信/WhatsApp 富链 · 自愿 · 不含身体自述 · 非正式产品";
   }
   function refreshShareImgPreview(){
     try {
@@ -1453,8 +1585,37 @@
   }
   $("btnToShare").addEventListener("click", function(){
     $("shareStatus").textContent="";
+    state.privacyLineConfirmed=false;
+    var cb=$("privacyLineConfirm"); if(cb) cb.checked=false;
     refreshSeedShareUI();
     show("s5");
+  });
+  if($("btnApplyPublicLine")) $("btnApplyPublicLine").addEventListener("click", function(){
+    applyPublicLineFromEditor();
+    refreshSeedShareUI();
+    toast("已更新公开的一行 · 请重新确认");
+  });
+  if($("btnClearPublicLine")) $("btnClearPublicLine").addEventListener("click", function(){
+    var ta=$("publicLineEdit"); if(ta) ta.value="";
+    applyPublicLineFromEditor();
+    refreshSeedShareUI();
+    toast("已删除公开的一行 · 请重新确认");
+  });
+  if($("privacyLineConfirm")) $("privacyLineConfirm").addEventListener("change", function(){
+    // sync editor into state before confirm
+    var ta=$("publicLineEdit");
+    if(ta) state.soloText=String(ta.value||"").slice(0,120);
+    state.privacyLineConfirmed=!!$("privacyLineConfirm").checked;
+    if(state.privacyLineConfirmed) refreshSeedShareUI();
+    else updatePrivacyGateUI();
+    if(state.privacyLineConfirmed) toast("已确认公开的一行会出现在发出内容里");
+  });
+  if($("publicLineEdit")) $("publicLineEdit").addEventListener("input", function(){
+    if(state.privacyLineConfirmed){
+      state.privacyLineConfirmed=false;
+      var cb=$("privacyLineConfirm"); if(cb) cb.checked=false;
+      updatePrivacyGateUI();
+    }
   });
   $("btnRefreshShareImg").addEventListener("click", function(){ refreshShareImgPreview(); toast("已刷新场景种子预览"); });
   document.querySelectorAll(".seed-format-btn").forEach(function(btn){
@@ -1467,10 +1628,20 @@
     });
   });
   $("btnCopySeedUrl").addEventListener("click", function(){
-    var url=$("seedUrlBox").textContent||"";
+    if(!state.privacyLineConfirmed){ toast("请先确认「公开的一行」"); return; }
+    var result=state.lastSeedUrlResult;
+    if(!result||!result.ok||!result.url){
+      $("shareStatus").textContent="无法复制邀请：链接过长，未生成 #seedId= 假邀请。请下载 JSON 或 PNG。";
+      toast("无可用邀请链接"); return;
+    }
+    if(result.url.indexOf("#seedId=")>=0){
+      $("shareStatus").textContent="安全拦截：不会复制仅本机可解的 #seedId= 链接。";
+      toast("已拦截不可打开的邀请"); return;
+    }
+    var url=result.url;
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(url).then(function(){
-        $("shareStatus").textContent="种子链接已复制。同浏览器可重开；跨设备托管仍为 UNKNOWN。"; toast("已复制种子链接");
+        $("shareStatus").textContent="已复制 #seed= 邀请。朋友可在自己的副本继续创作；其落笔不会同步回你这边（共享持续更新=UNKNOWN）。"; toast("已复制种子链接");
       }).catch(function(){ fallbackCopy(url); });
     } else fallbackCopy(url);
   });
@@ -1481,14 +1652,23 @@
     $("shareStatus").textContent="场景种子 JSON 已开始下载（无身体/隐私字段）。"; toast("种子 JSON 已下载");
   });
   $("btnShareNative").addEventListener("click", function(){
+    if(!state.privacyLineConfirmed){ toast("请先确认「公开的一行」"); return; }
+    var result=state.lastSeedUrlResult;
+    if(!result||!result.ok||!result.url){
+      $("shareStatus").textContent="无法系统分享邀请：链接过长。请下载 JSON/PNG，不会生成 #seedId= 假邀请。";
+      toast("无可用邀请链接"); return;
+    }
+    if(result.url.indexOf("#seedId=")>=0){
+      $("shareStatus").textContent="安全拦截：不会分享仅本机可解的 #seedId=。"; return;
+    }
     var seed=buildSceneSeed();
-    var text=shareText(seed);
-    var url=$("seedUrlBox").textContent||undefined;
+    // URL only in `url` — do NOT also embed in `text` (avoids duplicate)
+    var textBody = shareText(seed, "");
+    textBody = textBody.replace("（无可用 #seed= 邀请链接 — 请改用 JSON/PNG）\n","");
     if(navigator.share){
-      var payload={title:"HeaLoa · Scene Seed 场景种子", text:text};
-      if(url && url.indexOf("http")===0) payload.url=url;
+      var payload={title:"HeaLoa · Scene Seed 场景种子", text:textBody, url:result.url};
       navigator.share(payload).then(function(){
-        $("shareStatus").textContent="已调用系统分享面板（是否发出去由你决定）。上方预览即所分享内容。未验证社交 App OG 卡片。";
+        $("shareStatus").textContent="已调用系统分享（URL 只放在 url 字段，不与 text 重复）。页内 PNG 预览 ≠ 微信/WhatsApp 富链（无 per-work OG · 不宣称）。";
       }).catch(function(err){
         if(err&&err.name==="AbortError") $("shareStatus").textContent="你取消了系统分享。可以继续复制或下载。";
         else $("shareStatus").textContent="系统分享不可用，请改用「复制邀请文案」或「下载种子 PNG」。";
@@ -1499,10 +1679,15 @@
     }
   });
   $("btnCopyText").addEventListener("click", function(){
+    if(!state.privacyLineConfirmed){ toast("请先确认「公开的一行」"); return; }
+    var result=state.lastSeedUrlResult;
+    if(!result||!result.ok){
+      $("shareStatus").textContent="无可用 #seed= 链接，文案不会夹带 #seedId=。可先下载 JSON/PNG。";
+    }
     var text=shareText();
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(function(){
-        $("shareStatus").textContent="邀请文案已复制（与上方预览一致 · 无身体自述）。本原型不会代发。"; toast("已复制邀请文案");
+        $("shareStatus").textContent="邀请文案已复制（含你确认过的公开一行 · 无身体自述）。本原型不会代发。"; toast("已复制邀请文案");
       }).catch(function(){ fallbackCopy(text); });
     } else fallbackCopy(text);
   });
@@ -1526,10 +1711,15 @@
     paintLiveSeedCard(seed,"seedView");
     $("seedViewH1").textContent=seed.tasteReason||TASTE_REASON;
     $("seedViewSub").textContent=asSim
-      ? "同机模拟好友路径：打开种子 → 进场景 → 加一笔 → 作品变化。全程标「模拟」。"
-      : "打开种子 → 进场景 → 加你的一笔 → 作品会变。跨设备真多人仍为 UNKNOWN。";
+      ? "同机模拟好友路径：打开种子 → 进你的副本 → 加一笔。全程标「模拟」。落笔不会写回发送方原作。"
+      : "你打开的是作品副本。可在此继续创作；你的落笔不会同步回发送方（双方共享持续更新 = UNKNOWN）。";
     var simBadge=$("seedViewSimBadge");
-    if(simBadge){ simBadge.style.display=asSim|| (seed.cocreate&&seed.cocreate.simulated) ? "" : "none"; }
+    if(simBadge){ simBadge.style.display=asSim ? "" : "none"; }
+    var simInline=$("seedViewSim");
+    if(simInline){
+      if(asSim){ simInline.classList.remove("hidden"); simInline.style.display=""; simInline.textContent="模拟"; }
+      else { simInline.classList.add("hidden"); simInline.style.display="none"; }
+    }
     show("sSeed");
   }
   function applySeedToState(seed){
@@ -1554,20 +1744,26 @@
   $("btnSeedEnter").addEventListener("click", function(){
     var seed=state.incomingSeed; if(!seed){ toast("种子无效"); return; }
     if(!applySeedToState(seed)){ toast("种子场景无法打开"); return; }
-    state.activeTool=null; // avoid leftover solo tool toggling off on first tap
+    state.activeTool=null;
     clearStageMarks();
     state.marks.forEach(placeMarkEl);
     if(state.marks.length) $("stageHint").classList.add("hide");
     state.recipientMode=true;
-    // Snapshot "before friend stroke" for visible change
     state.soloSnapshot={ marks:state.marks.slice(), soloText:state.soloText,
       fx:JSON.parse(JSON.stringify(state.fx)), markCount:state.marks.length };
     paintScene(false);
-    // Soft label: friend is about to add a stroke on same device = 模拟
-    $("sceneHeading").textContent="你正在以好友身份加一笔 · 模拟";
-    $("presenceText").textContent="好友进场（同机模拟）";
+    var asSim = ($("seedViewSimBadge") && $("seedViewSimBadge").style.display!=="none");
+    // Hash opens are copies (not shared live work). Same-device button path stays 模拟.
+    if(asSim){
+      $("sceneHeading").textContent="你正在以好友身份加一笔 · 模拟";
+      $("presenceText").textContent="好友进场（同机模拟 · 副本）";
+      toast("进场了 · 选痕迹放下（同机模拟 · 副本不会写回发送方）");
+    } else {
+      $("sceneHeading").textContent="你正在自己的副本里加一笔";
+      $("presenceText").textContent="副本创作 · 不会同步回发送方";
+      toast("进场了 · 在你的副本落笔（不会同步回发送方）");
+    }
     show("s3"); updateAudioChip(); startSoftTimer();
-    toast("进场了 · 选痕迹放下，作品会变（模拟）");
   });
   $("btnSeedDismiss").addEventListener("click", function(){
     state.recipientMode=false; state.incomingSeed=null; show("s0"); refreshRestoreEntry(); refreshSeedHomeEntry();
@@ -1587,10 +1783,18 @@
   }
   // Boot: hash seed?
   (function bootSeedFromHash(){
-    var incoming=parseSeedFromLocation();
-    if(incoming){
-      persistSeedLocal(incoming);
-      setTimeout(function(){ showSeedView(incoming, true); toast("已从链接打开场景种子（同机/本页）"); }, 60);
+    var parsed=parseSeedFromLocation();
+    if(parsed){
+      if(parsed.ok && parsed.seed){
+        persistSeedLocal(parsed.seed);
+        var asSim = parsed.via === "seedId-local"; // only local seedId reopen is 模拟-ish; #seed= is a real copy open
+        setTimeout(function(){
+          showSeedView(parsed.seed, asSim);
+          toast(asSim ? "已从本机编号打开场景种子（模拟/本机）" : "已从 #seed= 打开作品副本（可继续创作 · 不会写回发送方）");
+        }, 60);
+      } else {
+        setTimeout(function(){ showSeedImportError(parsed.err||"种子无法打开"); }, 60);
+      }
     }
     refreshSeedHomeEntry();
   })();
@@ -1673,7 +1877,40 @@
       show(target);
     });
   });
-  $("feelRow").querySelectorAll(".feel").forEach(function(btn){
+
+  // Test/debug hooks (read-only helpers for automated checks)
+  window.__healoaSeedTest = {
+    VERSION: VERSION,
+    SEED_URL_SAFE_LEN: SEED_URL_SAFE_LEN,
+    buildSceneSeed: function(){ return buildSceneSeed(); },
+    buildSeedUrl: function(s){ return buildSeedUrl(s||buildSceneSeed()); },
+    compactSeed: compactSeed,
+    validateCompact: validateCompact,
+    utf8ToB64url: utf8ToB64url,
+    b64urlToUtf8: b64urlToUtf8,
+    getState: function(){ return {
+      marks: state.marks.slice(), placeId: state.placeId, soloText: state.soloText,
+      recipientMode: state.recipientMode, joined: state.joined,
+      privacyLineConfirmed: state.privacyLineConfirmed,
+      lastSeedUrlOk: !!(state.lastSeedUrlResult&&state.lastSeedUrlResult.ok),
+      lastSeedUrlReason: state.lastSeedUrlResult&&state.lastSeedUrlResult.reason,
+      workId: state.workId
+    }; },
+    forceOverlongSeed: function(){
+      // Inflate public line / marks so URL exceeds safe length; never emits seedId invite
+      var bak=state.soloText;
+      state.soloText = (state.soloText||"") + Array(4000).join("测");
+      // also pad marks
+      for(var i=0;i<10;i++){ state.marks.push({id:"pad-"+i,tool:"leaf",x:10+i,y:10+i,from:"solo"}); }
+      var seed=buildSceneSeed();
+      var result=buildSeedUrl(seed);
+      state.soloText=bak;
+      state.marks=state.marks.filter(function(m){ return String(m.id).indexOf("pad-")!==0; });
+      return result;
+    }
+  };
+
+    $("feelRow").querySelectorAll(".feel").forEach(function(btn){
     btn.addEventListener("click", function(){
       $("feelRow").querySelectorAll(".feel").forEach(function(b){ b.classList.remove("on"); });
       btn.classList.add("on"); state.feel=btn.getAttribute("data-v");
