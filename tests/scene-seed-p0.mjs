@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 reproducible tests (v2026-09-24-d)
+ * Scene Seed P0 + scene-not-blank (v2026-09-24-e)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const INDEX = path.join(ROOT, "index.html");
 const EVIDENCE = "/workspace/docs/demo-evidence-2026-09-24";
-const RESULTS = path.join(EVIDENCE, "13-test-results.json");
+const RESULTS = path.join(EVIDENCE, "14-test-results.json");
 
 fs.mkdirSync(EVIDENCE, { recursive: true });
 
@@ -38,7 +38,7 @@ function record(name, ok, detail) {
 }
 
 async function shot(page, name) {
-  const dest = path.join(EVIDENCE, `13-${name}.png`);
+  const dest = path.join(EVIDENCE, `14-${name}.png`);
   await page.screenshot({ path: dest, fullPage: true });
   return dest;
 }
@@ -89,10 +89,69 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-d"), banner);
+    record("version-banner", banner.includes("v2026-09-24-e"), banner);
+    const homeH1 = await sender.locator("#s0 h1").innerText();
+    const homePain = await sender.locator("#s0 .pain-line").innerText();
+    const homeCta = await sender.locator("#btnStart").innerText();
+    record("homepage-explains-app", homeH1.includes("美的地方") && homeH1.includes("邀请"), homeH1);
+    record("homepage-pain-point", homePain.includes("不用先填") || homePain.includes("不用真的先飞"), homePain.slice(0, 120));
+    record("homepage-primary-cta", homeCta.includes("走进场景"), homeCta);
     await shot(sender, "landing");
 
-    await goSoloToShare(sender, "雨还没下完，叶子先亮了一下。");
+    // Fix B: scene must not be blank on enter
+    await sender.click("#btnSkipIn");
+    await sender.waitForSelector("#s2:not(.hidden)");
+    await sender.click('.place[data-id="yunnan"]');
+    await sender.click("#btnEnter");
+    await sender.waitForSelector("#s3:not(.hidden)");
+    await sender.waitForTimeout(500);
+    const blankCheck = await sender.evaluate(() => {
+      const bg = document.getElementById("sceneBg");
+      const stage = document.getElementById("playStage");
+      const landmark = document.getElementById("sceneLandmark");
+      const coach = document.getElementById("coachDock");
+      const sbg = getComputedStyle(bg);
+      const stageRect = stage.getBoundingClientRect();
+      const canvas = document.getElementById("fxCanvas");
+      const ctx = canvas.getContext("2d");
+      let maxA = 0;
+      for (let i = 0; i < 30; i++) {
+        const d = ctx.getImageData(Math.floor(canvas.width * (0.1 + i * 0.025)), Math.floor(canvas.height * 0.35), 1, 1).data;
+        if (d[3] > maxA) maxA = d[3];
+      }
+      return {
+        bgGradient: sbg.backgroundImage.includes("gradient"),
+        bgOpacity: Number(sbg.opacity),
+        stageH: stageRect.height,
+        stageW: stageRect.width,
+        stageInView: stageRect.top < window.innerHeight && stageRect.bottom > 40,
+        landmarkSvg: !!(landmark && landmark.querySelector("svg")),
+        coachText: (coach && coach.innerText) || "",
+        lightOn: bg.classList.contains("light-on"),
+        maxParticleA: maxA,
+        stageBg: getComputedStyle(stage).backgroundColor,
+      };
+    });
+    record("scene-not-blank-bg-gradient", blankCheck.bgGradient && blankCheck.bgOpacity > 0.5, JSON.stringify(blankCheck));
+    record("scene-not-blank-stage-visible", blankCheck.stageH >= 180 && blankCheck.stageW >= 200 && blankCheck.stageInView, JSON.stringify({ h: blankCheck.stageH, w: blankCheck.stageW, inView: blankCheck.stageInView }));
+    record("scene-not-blank-landmark", blankCheck.landmarkSvg, "landmarkSvg=" + blankCheck.landmarkSvg);
+    record("scene-not-blank-coach-dock", blankCheck.coachText.includes("你可以做什么"), blankCheck.coachText.slice(0, 80));
+    record("scene-not-blank-atmosphere", blankCheck.lightOn && blankCheck.maxParticleA >= 20, JSON.stringify({ lightOn: blankCheck.lightOn, maxA: blankCheck.maxParticleA }));
+    await shot(sender, "scene-entered");
+    await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, "14-scene-shell.png") });
+
+    // continue into share flow from current scene
+    await sender.click('#markTools .tool[data-tool="leaf"]');
+    const stage0 = sender.locator("#playStage");
+    const box0 = await stage0.boundingBox();
+    await sender.mouse.click(box0.x + box0.width * 0.4, box0.y + box0.height * 0.45);
+    await sender.fill("#soloLine", "雨还没下完，叶子先亮了一下。");
+    await sender.click("#btnSetLine");
+    await sender.click("#btnSoloSave");
+    await sender.waitForSelector("#s4:not(.hidden)");
+    await sender.click("#btnSaveLocal");
+    await sender.click("#btnToShare");
+    await sender.waitForSelector("#s5:not(.hidden)");
     await shot(sender, "share-before-confirm");
 
     const copyDisabled = await sender.locator("#btnCopySeedUrl").isDisabled();
@@ -328,7 +387,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-d",
+    version: "v2026-09-24-e",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,

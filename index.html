@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed 场景种子（可看 · 非正式）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-e）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -219,7 +219,88 @@
   .asset-note { font-size:0.7rem; color:var(--muted); text-align:center; margin-top:8px; line-height:1.45; }
   .proto-banner .line2 { display:block; margin-top:4px; font-size:10px; color:rgba(138,160,178,0.95); }
 
-  /* Scene Seed · 场景种子 card & invite (v2026-09-24-d) · P0 invite honesty */
+  /* v2026-09-24-e · scene not blank + first-run coach */
+  .scene-shell { min-height: 520px; }
+  .scene-landmark {
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    opacity:0.92; transition: opacity 0.4s var(--ease);
+  }
+  .scene-landmark svg { position:absolute; left:0; right:0; bottom:0; width:100%; height:42%; }
+  .play-stage {
+    height: min(42vh, 300px); min-height: 220px;
+    border: 1.5px solid rgba(110,198,192,0.35);
+    background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.18));
+    box-shadow: inset 0 0 40px rgba(110,198,192,0.08), 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .stage-hint {
+    font-size: 0.86rem; color: rgba(238,244,248,0.88); font-weight: 550;
+    background: rgba(8,14,18,0.55); border: 1px solid rgba(110,198,192,0.35);
+    border-radius: 14px; padding: 12px 14px; max-width: 92%;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .stage-hint.hide { opacity: 0; pointer-events: none; }
+  .coach-dock {
+    position: relative; z-index: 5; margin: 8px 12px 0;
+    background: rgba(8,14,18,0.72); border: 1px solid rgba(110,198,192,0.4);
+    border-radius: 16px; padding: 10px 12px; backdrop-filter: blur(8px);
+  }
+  .coach-dock strong { display:block; font-size:0.82rem; color:var(--aqua); margin-bottom:8px; letter-spacing:0.02em; }
+  .coach-actions { display:flex; flex-wrap:wrap; gap:6px; }
+  .coach-actions button {
+    appearance:none; border:1px solid rgba(110,198,192,0.35); background:rgba(110,198,192,0.12);
+    color:var(--text); border-radius:999px; padding:8px 11px; font-size:0.76rem;
+    cursor:pointer; font-family:inherit; font-weight:550;
+  }
+  .coach-actions button:active { transform:scale(0.97); }
+  .coach-actions button.pulse {
+    animation: coachPulse 1.4s ease-in-out infinite;
+    border-color: rgba(110,198,192,0.7); background: rgba(110,198,192,0.22); color:var(--aqua);
+  }
+  @keyframes coachPulse {
+    0%,100%{ box-shadow:0 0 0 0 rgba(110,198,192,0.35); }
+    50%{ box-shadow:0 0 0 6px rgba(110,198,192,0); }
+  }
+  .first-run-spotlight {
+    position:absolute; inset:0; z-index:6; pointer-events:none;
+    background: radial-gradient(ellipse at 50% 38%, transparent 28%, rgba(6,12,16,0.55) 72%);
+    opacity:0; transition: opacity 0.45s var(--ease);
+  }
+  .first-run-spotlight.on { opacity:1; }
+  .scene-intro { font-size:0.84rem; color:var(--muted); margin-bottom:10px; line-height:1.5; }
+  .scene-intro strong { color:var(--aqua); }
+  .trial-card.collapsed-below { margin-top:12px; }
+  .trial-card summary {
+    cursor:pointer; list-style:none; font-size:0.85rem; font-weight:650; color:var(--gold);
+    display:flex; align-items:center; gap:8px;
+  }
+  .trial-card summary::-webkit-details-marker { display:none; }
+  .trial-card summary::after { content:"展开"; margin-left:auto; font-size:0.72rem; color:var(--muted); font-weight:500; }
+  .trial-card[open] summary::after { content:"收起"; }
+  .pain-line {
+    font-size:0.92rem; color:rgba(238,244,248,0.92); line-height:1.55; margin-bottom:14px;
+    border-left:3px solid var(--aqua); padding:8px 0 8px 12px; background:rgba(110,198,192,0.06);
+    border-radius:0 12px 12px 0;
+  }
+  .home-badge-row { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 16px; }
+  .home-badge-row .seed-badge, .home-badge-row .sim-badge, .home-badge-row .trial-badge { margin:0; }
+  .scene-bg.wudang { background:
+    radial-gradient(ellipse at 50% 8%, rgba(210,230,255,0.45), transparent 38%),
+    radial-gradient(ellipse at 18% 78%, rgba(90,140,170,0.4), transparent 42%),
+    linear-gradient(180deg, #1a2e4a 0%, #243a58 30%, #2a4858 55%, #1e4038 78%, #122028 100%); }
+  .scene-bg.yunnan { background:
+    radial-gradient(ellipse at 30% 60%, rgba(100,200,130,0.55), transparent 40%),
+    radial-gradient(ellipse at 78% 18%, rgba(200,240,150,0.28), transparent 34%),
+    linear-gradient(180deg, #163428 0%, #1e4030 32%, #285038 58%, #163828 100%); }
+  .scene-bg.onsen { background:
+    radial-gradient(ellipse at 50% 90%, rgba(240,200,160,0.55), transparent 40%),
+    radial-gradient(ellipse at 72% 28%, rgba(200,150,170,0.28), transparent 38%),
+    linear-gradient(180deg, #2c1c30 0%, #3c2c40 28%, #564048 55%, #2e2834 100%); }
+  .scene-bg.thai { background:
+    radial-gradient(ellipse at 78% 22%, rgba(255,220,140,0.42), transparent 36%),
+    radial-gradient(ellipse at 28% 88%, rgba(90,200,220,0.4), transparent 40%),
+    linear-gradient(180deg, #183848 0%, #204860 28%, #307878 60%, #1e4850 100%); }
+
+  /* Scene Seed · 场景种子 card & invite (v2026-09-24-e) · P0 invite honesty */
   .seed-badge { display:inline-block; font-size:10px; padding:3px 9px; border-radius:999px;
     background:linear-gradient(135deg,rgba(110,198,192,0.22),rgba(212,176,138,0.18));
     color:var(--aqua); border:1px solid rgba(110,198,192,0.35); letter-spacing:0.06em;
@@ -271,24 +352,30 @@
 <body>
 
 <div class="proto-banner quiet-chrome">
-  <strong>可看原型 · Scene Seed 场景种子 · 非正式 healoa.app · 预览 v2026-09-24-d</strong>
-  <span>发现美的地方 → 留下一笔 → 发出 #seed= 邀请 → 朋友可在自己的副本继续创作</span>
-  <span class="line2">双方共享持续更新作品 / 社交 App 富链 OG / 付费素材 / 正式发布 · UNKNOWN · 无用户数据迁移</span>
+  <strong>可看原型 · Scene Seed 场景种子 · 非正式 healoa.app · 预览 v2026-09-24-e</strong>
+  <span>虚拟场景 · 留下一笔 · Scene Seed 邀请 · 非正式 Demo</span>
+  <span class="line2">双方共享持续更新 / 富链 OG / 付费素材 / 正式发布 · UNKNOWN · 无用户数据迁移</span>
 </div>
 <div class="wrap">
   <section id="s0" class="screen">
-    <div class="brand">HEALOA BASE · Living Editions · App <span class="seed-badge">SCENE SEED</span></div>
-    <h1>我发现了一个美的地方，并把创作邀请给你</h1>
-    <p class="lead">这是一份<strong>可点的演示</strong>：走进场景（看得见、听得到、能动手），留下你的一笔，再发出一枚<strong>场景种子 / Scene Seed</strong>——漂亮画框 + <code>#seed=</code> 可打开的作品副本。朋友用链接可在<strong>自己的副本</strong>继续创作（另一台设备也能打开副本）。朋友加的笔<strong>不会</strong>同步回你这边——「双方共享同一件持续更新的作品」仍是 <strong>UNKNOWN</strong>。同机第二人按钮一律标「模拟」。</p>
-    <p class="note">地点来自 Cindy 提过的疗愈地例子。身体与季节是<strong>可选自述</strong>（可跳过），不作诊断。默认分享的是<strong>作品</strong>，不是身体/隐私。系统<strong>不</strong>根据身体替你指定地方。</p>
+    <div class="brand">HEALOA BASE <span class="seed-badge">SCENE SEED</span></div>
+    <h1>虚拟走进一个美的地方，留下一笔，再邀请朋友加一笔</h1>
+    <p class="pain-line">想先感受一个地方的气氛、留下自己的创作，顺便把一枚「场景种子」送给朋友继续画——不用先填一堆表，也不用真的先飞过去。</p>
+    <p class="lead"><strong>HeaLoa Base</strong>：身体×季节×地方 → 走进虚拟场景 · 独自创作 · 发出 Scene Seed 邀请。轻反馈 ≠ Choose Again；这里不是第二圈 OS。</p>
+    <div class="home-badge-row">
+      <span class="trial-badge">非正式 · Scene Seed Demo</span>
+      <span class="sim-badge">第二人=模拟</span>
+      <span class="seed-badge">Living Editions · App</span>
+    </div>
     <div class="btn-row">
-      <button class="primary" type="button" id="btnStart">开始看看（可先答两句，也可跳过）</button>
-      <button class="warm" type="button" id="btnSkipIn">先随便进一个场景</button>
+      <button class="primary" type="button" id="btnStart">走进场景试试</button>
+      <button class="warm" type="button" id="btnSkipIn">先随便进一个地方</button>
       <button class="ghost hidden" type="button" id="btnRestore">重开找回上次本机保存</button>
       <button class="ghost hidden" type="button" id="btnOpenSeedHome">打开本机场景种子</button>
     </div>
     <p class="note ok hidden" id="restoreHint" style="margin-top:10px"></p>
     <p class="note ok hidden" id="seedUrlHint" style="margin-top:8px"></p>
+    <p class="sub" style="margin-top:16px">身体与季节是可选自述（可跳过），不作诊断。默认分享的是作品，不是身体/隐私。朋友打开的是自己的副本——双方共享持续更新仍是 UNKNOWN。</p>
     <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />不是 Circle Edition · 不是 Wrapped · 不对顾客称「Life Maps」<br />本页不接注册、不替你预约、不做 Keeper · 第二人=模拟（若同机）<br />可看原型 · 非正式 healoa.app 发布 · 无用户数据迁移<br />气氛画面为<strong>程序生成预览，非付费素材包</strong></p>
   </section>
 
@@ -384,25 +471,15 @@
     </div>
     <div class="brand">HEALOA BASE · 可操作场景</div>
     <h1 id="sceneHeading">你已进入场景</h1>
-    <p class="sub" id="sceneSub">点选痕迹工具，再点场景放下；可拖动。下方可开关风/光等气氛，并写一句短句。没有第二人也能独自完成保存。</p>
-    <p class="note" id="simNote">第二人是<strong>本机按钮模拟</strong>，不是真人连线；加入后请看「独自 vs 双人」对比。<span class="sim-badge">仅模拟 · 非多人</span></p>
-
-    <div class="trial-card" id="durationCard">
-      <h3>试探时长 <span class="trial-badge">试探 · 未锁定</span></h3>
-      <p class="hint">只影响气氛动画强度与「建议多待一会儿」的文案；可选软计时<strong>从不挡住</strong>离开/保存。绝不说「正式玩法是 X 分钟」。</p>
-      <div class="duration-row" id="durationRow" role="group" aria-label="试探时长">
-        <button type="button" class="duration-btn" data-duration="short" id="durShort">短逛<small>动画稍快</small></button>
-        <button type="button" class="duration-btn on" data-duration="linger" id="durLinger">多待一会儿<small>更慢更软</small></button>
-        <button type="button" class="duration-btn" data-duration="free" id="durFree">不限<small>无软计时</small></button>
-      </div>
-      <p class="linger-hint" id="lingerHint">试探：多待一会儿 · 气氛偏慢 · 未锁定</p>
-      <p class="soft-timer hidden" id="softTimer">软计时（可忽略）· 已待 <em id="softTimerSec">0</em>s · 随时可离开/保存</p>
-    </div>
+    <p class="scene-intro" id="sceneSub">马上可玩：点痕迹 → 点画面放下 · 可拖 · 可开关风/光 · 可写一句。没有第二人也能独自保存。</p>
+    <p class="note" id="simNote" style="margin-bottom:10px">第二人是<strong>本机按钮模拟</strong>，不是真人连线。<span class="sim-badge">仅模拟 · 非多人</span></p>
 
     <div class="scene-shell" id="sceneShell">
       <div class="scene-bg wudang" id="sceneBg"></div>
       <canvas class="scene-canvas" id="fxCanvas" width="420" height="420" aria-hidden="true"></canvas>
       <div class="scene-mist" id="sceneMist"></div>
+      <div class="scene-landmark" id="sceneLandmark" aria-hidden="true"></div>
+      <div class="first-run-spotlight" id="firstRunSpotlight" aria-hidden="true"></div>
       <div class="scene-top">
         <div class="scene-label" id="sceneLabel">武当山 · 虚拟预览</div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -415,7 +492,17 @@
         </div>
       </div>
       <div class="play-stage" id="playStage" aria-label="可操作场景台">
-        <div class="stage-hint" id="stageHint">选下方痕迹 → 点这里放下<br />可拖动调整位置（最多 6 个；模拟同伴另计）</div>
+        <div class="stage-hint" id="stageHint">点这里放下痕迹<br /><span style="opacity:0.85;font-size:0.78rem">可拖动 · 最多 6 个</span></div>
+      </div>
+      <div class="coach-dock" id="coachDock" aria-label="你可以做什么">
+        <strong>你可以做什么</strong>
+        <div class="coach-actions">
+          <button type="button" id="coachPlace" class="pulse">① 点痕迹放下</button>
+          <button type="button" id="coachFx">② 开风 / 光</button>
+          <button type="button" id="coachWrite">③ 写一句</button>
+          <button type="button" id="coachInvite">④ 邀请 / 模拟加入</button>
+          <button type="button" id="coachSave">⑤ 保存作品</button>
+        </div>
       </div>
       <div class="ta-activity" id="taActivity" aria-live="polite"></div>
       <div class="scene-footer-bar">
@@ -435,9 +522,21 @@
           <button type="button" id="btnSetLine">写下</button>
         </div>
         <p class="mark-count" id="markCount">痕迹 0 / 6 · 气氛未开</p>
-        <p class="asset-note">气氛画面 / 粒子 / 渐变均为<strong>程序生成预览，非付费素材包</strong></p>
+        <p class="asset-note">气氛画面 / 粒子 / 剪影均为<strong>程序生成预览，非付费素材包</strong></p>
       </div>
     </div>
+
+    <details class="trial-card collapsed-below" id="durationCard">
+      <summary>试探时长 <span class="trial-badge">试探 · 未锁定</span></summary>
+      <p class="hint" style="margin-top:10px">只影响气氛动画快慢与「建议多待一会儿」文案；软计时<strong>从不挡住</strong>离开/保存。不是正式玩法锁。</p>
+      <div class="duration-row" id="durationRow" role="group" aria-label="试探时长">
+        <button type="button" class="duration-btn" data-duration="short" id="durShort">短逛<small>动画稍快</small></button>
+        <button type="button" class="duration-btn on" data-duration="linger" id="durLinger">多待一会儿<small>更慢更软</small></button>
+        <button type="button" class="duration-btn" data-duration="free" id="durFree">不限<small>无软计时</small></button>
+      </div>
+      <p class="linger-hint" id="lingerHint">试探：多待一会儿 · 气氛偏慢 · 未锁定</p>
+      <p class="soft-timer hidden" id="softTimer">软计时（可忽略）· 已待 <em id="softTimerSec">0</em>s · 随时可离开/保存</p>
+    </details>
 
     <div class="compare-box hidden" id="compareBox">
       <h3>可见对比 · 独自 vs 双人（第二人=模拟）</h3>
@@ -508,7 +607,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-d</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-e</span>
         </div>
         <div class="seed-foot" id="seedLiveFoot">默认分享作品 · 不含身体自述</div>
       </div>
@@ -582,7 +681,7 @@
     <div class="btn-row">
       <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
     </div>
-    <p class="footer-meta">预览 v2026-09-24-d · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人默认=模拟<br />气氛资产=程序生成预览，非付费素材包 · 非 Wrapped</p>
+    <p class="footer-meta">预览 v2026-09-24-e · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移<br />时长/身体深度=试探未锁定 · 不锁 Circle Season / Keeper · 无医疗主张 · 第二人默认=模拟<br />气氛资产=程序生成预览，非付费素材包 · 非 Wrapped</p>
   </section>
 
   <section id="sSeed" class="screen hidden">
@@ -599,7 +698,7 @@
         <div class="seed-meta">
           <span class="seed-badge">Living Editions · App</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-d</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-e</span>
         </div>
         <div class="seed-foot">默认只开作品 · 不含身体/隐私</div>
       </div>
@@ -618,7 +717,7 @@
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-d";
+  var VERSION = "v2026-09-24-e";
   var MAX_MARKS = 6;
   var state = {
     body: null, season: null, placeId: null, joined: false, feel: null,
@@ -685,7 +784,7 @@
   function show(id) {
     ["s0","s1","s2","s3","s4","s5","sSeed"].forEach(function(s){ var el=$(s); if(el) el.classList.toggle("hidden", s !== id); });
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (id === "s3") requestAnimationFrame(function(){ resizeFxCanvas(); startFxLoop(); });
+    if (id === "s3") requestAnimationFrame(function(){ resizeFxCanvas(); startFxLoop(); scrollSceneIntoView(); });
   }
   function toast(msg) {
     var t = $("toast"); t.textContent = msg; t.classList.add("show");
@@ -765,10 +864,10 @@
   }
   function seedParticles() {
     fxParticles = [];
-    var n = state.duration==="short" ? 42 : (state.duration==="linger" ? 36 : 30);
-    for (var i=0;i<n;i++) fxParticles.push({ x:Math.random(), y:Math.random(), r:0.6+Math.random()*2.6,
-      vx:(Math.random()-0.5)*0.0018, vy:-0.00035-Math.random()*0.0014, a:0.12+Math.random()*0.4,
-      kind: Math.random()>0.7?"spark":"dust" });
+    var n = state.duration==="short" ? 68 : (state.duration==="linger" ? 58 : 52);
+    for (var i=0;i<n;i++) fxParticles.push({ x:Math.random(), y:Math.random(), r:1.1+Math.random()*3.4,
+      vx:(Math.random()-0.5)*0.0022, vy:-0.00045-Math.random()*0.0018, a:0.28+Math.random()*0.55,
+      kind: Math.random()>0.55?"spark":"dust" });
   }
   function drawFx(ts) {
     var c = $("fxCanvas"); if (!c) return;
@@ -779,19 +878,19 @@
     // soft place wash
     var wash = ctx.createRadialGradient(w*0.5, h*0.2, 0, w*0.5, h*0.55, w*0.7);
     var id=state.placeId||"wudang";
-    if(id==="yunnan"){ wash.addColorStop(0,"rgba(100,170,120,"+(0.08+light*0.06)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
-    else if(id==="onsen"){ wash.addColorStop(0,"rgba(212,176,138,"+(0.1+mist*0.08)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
-    else if(id==="thai"){ wash.addColorStop(0,"rgba(255,200,120,"+(0.08+light*0.07)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
-    else { wash.addColorStop(0,"rgba(160,190,230,"+(0.08+mist*0.06)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    if(id==="yunnan"){ wash.addColorStop(0,"rgba(100,170,120,"+(0.18+light*0.1)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    else if(id==="onsen"){ wash.addColorStop(0,"rgba(212,176,138,"+(0.2+mist*0.1)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    else if(id==="thai"){ wash.addColorStop(0,"rgba(255,200,120,"+(0.18+light*0.12)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    else { wash.addColorStop(0,"rgba(160,190,230,"+(0.18+mist*0.1)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
     ctx.fillStyle=wash; ctx.fillRect(0,0,w,h);
     fxParticles.forEach(function(p){
       p.x += (p.vx + wind*0.0014*Math.sin(t + p.y*8)) * pf;
       p.y += p.vy*(1+pulse*0.9)*pf;
       if (p.y<-0.05){p.y=1.05;p.x=Math.random();}
       if (p.x<-0.05)p.x=1.05; if (p.x>1.05)p.x=-0.05;
-      var base = always ? 0.55 : 0.25;
+      var base = always ? 0.85 : 0.25;
       var alpha = p.a*(base+mist*0.45+light*0.35+wind*0.12);
-      if(!(wind||light||mist||pulse)) alpha *= 0.55;
+      if(!(wind||light||mist||pulse)) alpha *= 0.85;
       ctx.beginPath();
       ctx.fillStyle = placeParticleColor(alpha, !!light || p.kind==="spark");
       var rr = p.r*(1+light*0.7)*(window.devicePixelRatio||1);
@@ -939,7 +1038,10 @@
       toast("最多 "+MAX_MARKS+" 个痕迹 · 可拖动已有的"); return null;
     }
     var mark={ id:"m-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,5), tool:toolId, x:pctX, y:pctY, from:from||"solo" };
-    state.marks.push(mark); placeMarkEl(mark); $("stageHint").classList.add("hide"); updateMarkCount(); return mark;
+    state.marks.push(mark); placeMarkEl(mark); $("stageHint").classList.add("hide"); updateMarkCount();
+    var cp=$("coachPlace"); if(cp) cp.classList.remove("pulse");
+    var spot=$("firstRunSpotlight"); if(spot) spot.classList.remove("on");
+    return mark;
   }
   $("playStage").addEventListener("click", function(ev){
     if(drag.moved){ drag.moved=false; return; }
@@ -1113,22 +1215,52 @@
       if(delta) delta.textContent="after 相对 before：模拟痕迹 +"+p2n+" · 气氛 "+summarizeFx(solo.fx)+" → "+summarizeFx(state.fx)+" · 仍非真多人";
     }
   }
+  var LANDMARK_SVG = {
+    wudang: '<svg viewBox="0 0 400 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 160 L40 110 L70 130 L120 55 L160 95 L210 30 L260 85 L300 50 L340 95 L380 70 L400 100 L400 160 Z" fill="rgba(8,16,28,0.55)"/><path d="M0 160 L55 125 L100 140 L150 90 L200 120 L250 70 L310 110 L360 85 L400 115 L400 160 Z" fill="rgba(20,36,52,0.7)"/><rect x="188" y="78" width="10" height="28" rx="2" fill="rgba(212,176,138,0.35)"/></svg>',
+    yunnan: '<svg viewBox="0 0 400 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 160 C40 120 55 70 80 55 C95 90 110 100 120 160 Z" fill="rgba(10,28,18,0.65)"/><path d="M70 160 C100 100 120 40 155 28 C175 80 195 110 210 160 Z" fill="rgba(16,40,26,0.72)"/><path d="M180 160 C210 95 240 35 275 22 C295 75 320 115 340 160 Z" fill="rgba(12,34,22,0.7)"/><path d="M300 160 C330 110 350 60 380 48 C395 90 400 120 400 160 Z" fill="rgba(18,44,28,0.65)"/><ellipse cx="200" cy="30" rx="70" ry="18" fill="rgba(200,240,160,0.12)"/></svg>',
+    onsen: '<svg viewBox="0 0 400 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="200" cy="128" rx="140" ry="28" fill="rgba(212,176,138,0.22)"/><ellipse cx="200" cy="122" rx="110" ry="18" fill="rgba(255,230,200,0.12)"/><path d="M40 160 L70 100 L100 120 L140 70 L180 105 L220 60 L260 100 L300 75 L340 115 L370 90 L400 130 L400 160 Z" fill="rgba(28,20,32,0.55)"/><circle cx="120" cy="95" r="6" fill="rgba(232,190,150,0.35)"/><circle cx="280" cy="88" r="5" fill="rgba(232,190,150,0.3)"/></svg>',
+    thai: '<svg viewBox="0 0 400 160" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 110 Q100 95 200 108 T400 100 L400 160 L0 160 Z" fill="rgba(40,120,140,0.35)"/><path d="M0 125 Q120 115 220 128 T400 118 L400 160 L0 160 Z" fill="rgba(60,150,160,0.28)"/><path d="M40 160 C55 90 70 50 95 40 C105 70 115 95 125 160 Z" fill="rgba(20,48,40,0.55)"/><path d="M300 160 C320 85 340 35 365 28 C375 70 385 110 395 160 Z" fill="rgba(24,52,44,0.5)"/><circle cx="320" cy="36" r="22" fill="rgba(255,200,120,0.28)"/></svg>'
+  };
+  function paintLandmark(){
+    var el=$("sceneLandmark"); if(!el) return;
+    var id=state.placeId||"wudang";
+    el.innerHTML=LANDMARK_SVG[id]||LANDMARK_SVG.wudang;
+  }
+  function armFirstRunCoach(){
+    var spot=$("firstRunSpotlight");
+    if(spot) spot.classList.add("on");
+    var placeBtn=$("coachPlace");
+    if(placeBtn) placeBtn.classList.add("pulse");
+    // auto-pick first tool so stage tap works in <3s
+    var first=document.querySelector("#markTools .tool");
+    if(first && !state.activeTool){
+      first.click();
+    }
+    setTimeout(function(){ if(spot) spot.classList.remove("on"); }, 3200);
+  }
+  function scrollSceneIntoView(){
+    var shell=$("sceneShell");
+    if(!shell) return;
+    try { shell.scrollIntoView({ behavior:"smooth", block:"start" }); }
+    catch(e){ shell.scrollIntoView(true); }
+  }
   function paintScene(duo){
     var p=PLACES[state.placeId]; if(!p) return;
     $("sceneBg").className="scene-bg "+p.bg;
     $("sceneLabel").textContent=p.label; $("sceneName").textContent=p.name;
     $("sceneLine").textContent=duo?p.lineDuo:p.lineSolo;
     $("simNote").style.display="block"; $("soloLine").value=state.soloText||"";
+    paintLandmark();
     renderMarkTools(); applyFxClasses(); resizeFxCanvas(); startFxLoop();
     if(duo){
       $("avatarP2").classList.add("show"); $("presenceText").textContent="1 人 + 1 模拟同伴";
       $("sceneHeading").textContent="模拟第二人已加入 · 看可见变化";
-      $("sceneSub").textContent="下方「独自 vs 双人」可切换对比。TA 的痕迹与文案是预设演示，不是真实用户。";
+      $("sceneSub").textContent="看「独自 vs 双人」对比。TA 痕迹是预设演示，不是真实用户。";
       $("joinRow").classList.add("hidden"); $("afterJoinRow").classList.remove("hidden"); refreshCompare();
     } else {
       $("avatarP2").classList.remove("show"); $("presenceText").textContent="1 人在场";
-      $("sceneHeading").textContent="你已进入「"+p.name+"」· 马上可玩";
-      $("sceneSub").textContent="选痕迹点场景放下，可拖动；开关风/光/雾气/律动；写一句短句。可试探时长。没有第二人也能独自保存。";
+      $("sceneHeading").textContent="「"+p.name+"」· 马上可玩";
+      $("sceneSub").textContent="点痕迹 → 点画面放下 · 可拖 · 可开风/光 · 可写一句。没有第二人也能独自保存。";
       $("joinRow").classList.remove("hidden"); $("afterJoinRow").classList.add("hidden"); $("compareBox").classList.add("hidden");
       var d0=$("compareDelta"); if(d0) d0.textContent="";
     }
@@ -1136,13 +1268,50 @@
   }
   function enterScene(){
     state.joined=false; state.workId=makeWorkId(); state.marks=[];
-    state.fx={wind:false,light:false,mist:false,pulse:false};
+    // light on by default so place atmosphere is OBVIOUS in first 3s (still procedural preview)
+    state.fx={wind:false,light:true,mist:false,pulse:false};
     state.activeTool=null; state.soloText=""; state.soloSnapshot=null; state.compareMode="duo";
     clearJoinTimers(); clearStageMarks(); $("stageHint").classList.remove("hide");
     $("cmpSolo").classList.remove("on"); $("cmpDuo").classList.add("on");
     paintScene(false); show("s3"); updateAudioChip(); startSoftTimer();
+    requestAnimationFrame(function(){
+      resizeFxCanvas(); startFxLoop();
+      scrollSceneIntoView();
+      armFirstRunCoach();
+    });
   }
   $("btnEnter").addEventListener("click", enterScene);
+  function wireCoachDock(){
+    var place=$("coachPlace"), fx=$("coachFx"), write=$("coachWrite"), inv=$("coachInvite"), save=$("coachSave");
+    if(place) place.addEventListener("click", function(){
+      var first=document.querySelector("#markTools .tool");
+      if(first) first.click();
+      $("playStage").scrollIntoView({behavior:"smooth", block:"center"});
+      $("stageHint").classList.remove("hide");
+      toast("已选痕迹 · 直接点画面放下");
+      place.classList.remove("pulse");
+      var spot=$("firstRunSpotlight"); if(spot) spot.classList.remove("on");
+    });
+    if(fx) fx.addEventListener("click", function(){
+      if(!state.fx.wind){ state.fx.wind=true; }
+      if(!state.fx.light){ state.fx.light=true; }
+      applyFxClasses(); toast("已开 · 风 + 光");
+    });
+    if(write) write.addEventListener("click", function(){
+      $("soloLine").focus();
+      $("soloLine").scrollIntoView({behavior:"smooth", block:"center"});
+      toast("写一句你留下的话（可选）");
+    });
+    if(inv) inv.addEventListener("click", function(){
+      $("btnJoin").scrollIntoView({behavior:"smooth", block:"center"});
+      toast("可模拟第二人加入 · 或稍后在场景种子发出邀请");
+    });
+    if(save) save.addEventListener("click", function(){
+      $("btnSoloSave").scrollIntoView({behavior:"smooth", block:"center"});
+      toast("准备好就独自保存这份作品");
+    });
+  }
+  wireCoachDock();
   $("btnAudio").addEventListener("click", function(ev){ ev.stopPropagation(); toggleAudio(); });
   document.querySelectorAll("#fxTools .tool").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -1764,6 +1933,7 @@
       toast("进场了 · 在你的副本落笔（不会同步回发送方）");
     }
     show("s3"); updateAudioChip(); startSoftTimer();
+    requestAnimationFrame(function(){ resizeFxCanvas(); startFxLoop(); scrollSceneIntoView(); armFirstRunCoach(); });
   });
   $("btnSeedDismiss").addEventListener("click", function(){
     state.recipientMode=false; state.incomingSeed=null; show("s0"); refreshRestoreEntry(); refreshSeedHomeEntry();
