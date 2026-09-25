@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-24-o)
+ * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-24-p)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -189,7 +189,7 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-o"), banner);
+    record("version-banner", banner.includes("v2026-09-24-p"), banner);
 
     const heroMap = await sender.evaluate(() => window.__healoaSeedTest.placePhotoHeroMap());
     const expectedHeroes = {
@@ -1479,6 +1479,39 @@ async function main() {
     record("redline-no-crisis-claim", !/危机|crisis/i.test(html), "no crisis-handling claims");
     record("rename-mountain-stay", html.includes("山居慢住") && !html.includes("疗愈民宿"), "山居慢住");
 
+    // v-p: scene photo overlay must be clearly lighter (real photo stays sharp, no blur)
+    {
+      const ovCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const ov = await ovCtx.newPage();
+      ov.on("pageerror", (e) => pageErrors.push("OV:" + e));
+      await ov.goto(base);
+      const OVERLAY_THRESHOLD = 0.3; // was up to 0.68 in v-o
+      const ovRes = await ov.evaluate(async () => {
+        const T = window.__healoaSeedTest; const out = [];
+        for (const id of Object.keys(T.placePhotoHeroMap())) {
+          if (!T.placePhotoHeroMap()[id]) continue;
+          T.enterPlaceDev(id);
+          await new Promise((r) => setTimeout(r, 60));
+          const bg = document.getElementById("sceneBg");
+          const img = bg.style.backgroundImage || getComputedStyle(bg).backgroundImage;
+          const grad = img.split("url(")[0];
+          const alphas = [...grad.matchAll(/rgba\([^)]*,\s*([0-9.]+)\)/g)].map((m) => parseFloat(m[1]));
+          const f = getComputedStyle(bg).filter;
+          out.push({ id, max: alphas.length ? Math.max(...alphas) : 0, n: alphas.length, hasPhoto: img.includes("url("), blur: /blur/.test(f) });
+        }
+        const sp = getComputedStyle(document.getElementById("firstRunSpotlight")).backgroundImage;
+        const spMax = Math.max(0, ...[...sp.matchAll(/rgba\([^)]*,\s*([0-9.]+)\)/g)].map((m) => parseFloat(m[1])));
+        return { out, spMax, cap: T.SCENE_OVERLAY_MAX };
+      });
+      const worst = ovRes.out.reduce((a, b) => (b.max > a.max ? b : a), { max: 0 });
+      record("scene-overlay-lighter", ovRes.out.length >= 12 && ovRes.out.every((r) => r.hasPhoto && r.n >= 2 && r.max < OVERLAY_THRESHOLD && !r.blur) && ovRes.spMax <= 0.25,
+        JSON.stringify({ scenes: ovRes.out.length, worst: worst.id + "=" + worst.max, threshold: OVERLAY_THRESHOLD, spotlight: ovRes.spMax }));
+      const sceneRules = html.slice(0, html.indexOf("<body")).match(/\.scene-bg[^{]*\{[^}]*\}/g) || [];
+      const cssHeavy = sceneRules.filter((r) => r.includes("url(") && [...r.matchAll(/rgba\([^)]*,\s*([0-9.]+)\)/g)].some((m) => parseFloat(m[1]) >= OVERLAY_THRESHOLD)).length;
+      record("scene-overlay-css-defaults-lighter", cssHeavy === 0, "heavy .scene-bg gradients in <head> CSS: " + cssHeavy);
+      await ovCtx.close();
+    }
+
     // English (language toggle) · customer path
     const enCtx = await browser.newContext();
     const en = await enCtx.newPage();
@@ -1536,7 +1569,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-o",
+    version: "v2026-09-24-p",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
