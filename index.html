@@ -739,6 +739,7 @@
       <summary data-i18n="aboutDemo">关于这份 Demo</summary>
       <div data-i18n-html="aboutHome">
       <p class="sub" style="margin-top:10px">这是可看原型，不是正式上线的 App。默认分享的是作品，不含身体或隐私答案。朋友打开的是自己的<strong>副本</strong>；只有对方手动发回，你才会看到 TA 加的那一笔——双方实时共享同一件作品仍未实现（UNKNOWN）。</p>
+      <p class="hint">「保存到本机」= 写入这台设备浏览器的 localStorage，不上传服务器；换浏览器或清缓存就找不回。</p>
       <button class="soft" type="button" id="btnDownloadEventsHome" data-i18n="downloadEvents">下载本机事件记录（JSON）</button>
       <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />本页不接注册、不替你预约、不自动发帖 · 无用户数据迁移<br />场景照片为演示用实景（Photo · Cindy Yang）· 非正式付费素材包<br />一轮回应：作品 → 朋友加一笔 → 手动发回 → 到此结束</p>
       </div>
@@ -1074,7 +1075,7 @@
       <p class="hint" id="saveSummary" style="color:var(--text);font-size:0.9rem;line-height:1.55;margin:0;white-space:pre-wrap"></p>
     </div>
     <div class="btn-row">
-      <button class="primary" type="button" id="btnSaveLocal">保存到本机（localStorage）</button>
+      <button class="primary" type="button" id="btnSaveLocal">保存到本机</button>
       <div class="btn-pair">
         <button class="soft" type="button" id="btnDownloadJson">下载 JSON</button>
         <button class="soft" type="button" id="btnDownloadPng">下载种子图</button>
@@ -1245,7 +1246,7 @@
 
   <section id="sAuthorReply" class="screen hidden">
     <div class="brand" data-i18n="replyBrand">SCENE SEED · 回应卡</div>
-    <h1 data-i18n="authorH1">有人在你留下的地方，也留下了一句话。</h1>
+    <h1 id="authorH1">有人在你留下的地方，也留下了一句话。</h1>
     <p class="sub" data-i18n="authorSub">这一轮就到这里：一张作品，一次回应。</p>
     <div class="seed-card-live" id="authorCard">
       <div class="seed-inner">
@@ -3667,7 +3668,7 @@ var qrcode = function() {
       sendBack:"送回给 {name}", makeMine:"做一张我的", makeNew:"做一张新的",
       backShared:"已打开系统分享。请你自己选中 TA 发回去。",
       backCopied:"链接已复制。请你自己发回给 TA（本 Demo 不会替你发送）。",
-      authorH1:"有人在你留下的地方，也留下了一句话。",
+      authorH1:"有人在你留下的地方，也留下了一句话。", authorH1Stroke:"有人在你留下的地方，也留下了一笔。",
       authorSub:"这一轮就到这里：一张作品，一次回应。",
       authorKept:"这张回应卡只留在这台设备上了。",
       shareTitle:"HeaLoa · 场景卡",
@@ -3768,7 +3769,7 @@ var qrcode = function() {
       sendBack:"Send it back to {name}", makeMine:"Make one of my own", makeNew:"Make a new one",
       backShared:"Share sheet opened. Pick them yourself to send it back.",
       backCopied:"Link copied. Please send it back to them yourself (this demo doesn't send anything).",
-      authorH1:"Someone left a line where you left yours.",
+      authorH1:"Someone left a line where you left yours.", authorH1Stroke:"Someone left a mark where you left yours.",
       authorSub:"That's the whole round: one work, one reply.",
       authorKept:"This reply card is kept on this device only.",
       shareTitle:"HeaLoa · scene card",
@@ -5918,6 +5919,7 @@ var qrcode = function() {
   ["btnDownloadEvents","btnDownloadEventsHome"].forEach(function(id){ var b=$(id); if(b) b.addEventListener("click", downloadEvents); });
   function nameOr(n){ n=String(n||"").trim(); return n || t("nameFallback"); }
   var REPLIED_KEY = "healoa_base_replied_roots_v1";
+  var OPENED_KEY = "healoa_base_opened_works_v1";
   var REPLIES_KEPT_KEY = "healoa_base_replies_kept_v1";
   function readJsonLS(key){ try{ return JSON.parse(localStorage.getItem(key)||"{}")||{}; }catch(e){ return {}; } }
   function writeJsonLS(key, obj){ try{ localStorage.setItem(key, JSON.stringify(obj)); }catch(e){} }
@@ -5928,7 +5930,12 @@ var qrcode = function() {
     state.recipientMode=true;
     paintLiveSeedCard(seed,"seedView");
     $("seedViewH1").textContent=t("seedH1",{name:nameOr(seed.authorName)});
-    if(!asSim && showSeedView._logged!==seed.seedId){ showSeedView._logged=seed.seedId; logEvent("recipient_open", {rootWorkId:seedRoot(seed), placeId:seed.place&&seed.place.id}); }
+    if(!asSim){
+      // recipient_open deduped PERSISTENTLY per original workId (survives reloads / reopening the same link)
+      var openKey = seed.workId || seed.seedId || "";
+      var opened = readJsonLS(OPENED_KEY);
+      if(openKey && !opened[openKey]){ opened[openKey]=new Date().toISOString(); writeJsonLS(OPENED_KEY, opened); logEvent("recipient_open", {rootWorkId:seedRoot(seed), placeId:seed.place&&seed.place.id}); }
+    }
     $("seedViewSub").textContent=asSim ? t("seedSubSim") : t("seedSub");
     var simBadge=$("seedViewSimBadge");
     if(simBadge){ simBadge.style.display=asSim ? "" : "none"; }
@@ -5993,8 +6000,10 @@ var qrcode = function() {
     $("authorTitle").textContent = poeticTitle(pid);
     renderMiniStage($("authorStage"), pid, seed.marks||[], seed.friendMarks||[]);
     $("authorLine").textContent = seed.publicLine||""; $("authorLine").classList.toggle("hidden", !seed.publicLine);
+    $("authorH1").textContent = t(seed.friendText ? "authorH1" : "authorH1Stroke");
     var afl=$("authorFriendLine"); if(afl){ afl.textContent = seed.friendText||""; afl.classList.toggle("hidden", !seed.friendText); }
-    if(showAuthorReply._logged!==seed.workId){ showAuthorReply._logged=seed.workId; logEvent("sender_return", {rootWorkId:seed.rootWorkId||null, placeId:pid}); }
+    var retKey = "ret:" + (seed.workId || ""), openedR = readJsonLS(OPENED_KEY);
+    if(seed.workId && !openedR[retKey]){ openedR[retKey]=new Date().toISOString(); writeJsonLS(OPENED_KEY, openedR); logEvent("sender_return", {rootWorkId:seed.rootWorkId||null, placeId:pid}); }
     $("authorCredit").classList.toggle("hidden", !(PLACE_PHOTOS[pid]&&PLACE_PHOTOS[pid].hero));
     $("authorStatus").textContent="";
     show("sAuthorReply");

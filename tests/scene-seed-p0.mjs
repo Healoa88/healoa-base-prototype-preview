@@ -1389,7 +1389,12 @@ async function main() {
       await pageB.waitForSelector("#sReply:not(.hidden)");
       await pageB.click("#btnMakeMine");
       await pageB.waitForSelector("#s2:not(.hidden)");
+      await pageB.reload();
+      await pageB.waitForTimeout(300);
       evB = await pageB.evaluate(() => window.__healoaSeedTest.events());
+      const opens = evB.filter((e) => e.event === "recipient_open").length;
+      const openedStore = await pageB.evaluate(() => Object.keys(JSON.parse(localStorage.getItem("healoa_base_opened_works_v1") || "{}")));
+      record("recipient-open-deduped-persistently", opens === 1 && openedStore.length === 1, JSON.stringify({ opens, openedStore }));
     }
 
     // Sender still does not see the friend's stroke until the reply link is opened by hand
@@ -1425,6 +1430,23 @@ async function main() {
       record("author-sees-reply-both-strokes", author.shown && author.h1 === "有人在你留下的地方，也留下了一句话。" && author.mine >= 1 && author.friend === 1 && !author.seedEnterShown, JSON.stringify(author));
       const afl = await pageA.locator("#authorFriendLine").textContent();
       record("author-sees-friend-line", afl === "我也来过。", afl);
+      // stroke-only reply (no friend line) → headline must say 一笔, not 一句
+      const strokeOnlyUrl = await pageA.evaluate((u) => {
+        const T = window.__healoaSeedTest; const [b, h] = u.split("#seed=");
+        const c = JSON.parse(T.b64urlToUtf8(h)); delete c.ft; return b + "#seed=" + T.utf8ToB64url(JSON.stringify(c));
+      }, replyUrl);
+      await pageA.goto("about:blank");
+      await pageA.goto(strokeOnlyUrl);
+      await pageA.waitForTimeout(350);
+      const so = await pageA.evaluate(() => ({ h1: document.querySelector("#sAuthorReply h1").textContent, fl: document.getElementById("authorFriendLine").classList.contains("hidden"),
+        friend: document.querySelectorAll("#authorStage .mk.friend").length }));
+      await pageA.evaluate(() => window.__healoaSeedTest.setLang("en"));
+      const soEn = await pageA.locator("#sAuthorReply h1").textContent();
+      await pageA.evaluate(() => window.__healoaSeedTest.setLang("zh"));
+      record("author-headline-stroke-only", so.h1 === "有人在你留下的地方，也留下了一笔。" && so.fl && so.friend === 1 && soEn === "Someone left a mark where you left yours.", JSON.stringify({ ...so, soEn }));
+      await pageA.goto("about:blank");
+      await pageA.goto(replyUrl);
+      await pageA.waitForTimeout(350);
       const authorBtns = await visibleButtons(pageA, "#sAuthorReply");
       record("author-reply-no-further-send-back", !authorBtns.some((b) => b.includes("发回")) && authorBtns.includes("只留给自己") && authorBtns.includes("做一张新的"), JSON.stringify(authorBtns));
       await pageA.screenshot({ path: path.join(EVIDENCE, "p0n-author-reply.png"), fullPage: true });
@@ -1453,6 +1475,7 @@ async function main() {
     record("redline-keep-self-on-share-and-reply-screens", ["btnKeepSelf", "btnReplyKeep", "btnAuthorKeep"].every((id) => html.includes('id="' + id + '"')), "keep-self buttons present on s5/sReply/sAuthorReply");
     record("redline-no-fake-counts", !/(已有|超过|已经有)\s*\d+\s*(人|位)|\d+\s*人(已加入|参与|在看)|\d+\s*(people|users) (joined|are)/i.test(html), "no fabricated social counts");
     record("events-local-only-no-network-api", !/sendBeacon|XMLHttpRequest|fetch\(|navigator\.geolocation/.test(html) && html.includes('EVENTS_KEY = "healoa_base_events_v1"'), "events → localStorage only; no network/geo API in page");
+    record("save-label-no-tech-note", html.includes('id="btnSaveLocal">保存到本机</button>') && !/保存到本机（localStorage）/.test(html), "visible save label has no (localStorage)");
     record("redline-no-crisis-claim", !/危机|crisis/i.test(html), "no crisis-handling claims");
     record("rename-mountain-stay", html.includes("山居慢住") && !html.includes("疗愈民宿"), "山居慢住");
 
