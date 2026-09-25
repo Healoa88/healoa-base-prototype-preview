@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-24-n)
+ * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-24-o)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -189,7 +189,7 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-n"), banner);
+    record("version-banner", banner.includes("v2026-09-24-o"), banner);
 
     const heroMap = await sender.evaluate(() => window.__healoaSeedTest.placePhotoHeroMap());
     const expectedHeroes = {
@@ -227,7 +227,12 @@ async function main() {
     const homeH1 = await sender.locator("#s0 h1").innerText();
     const homePain = await sender.locator("#s0 .pain-line").innerText();
     const homeCta = await sender.locator("#btnStart").innerText();
-    record("homepage-explains-app", homeH1.includes("美的地方") && homeH1.includes("发给一个人"), homeH1);
+    record("homepage-explains-app", homeH1.trim() === "选一个让你想停下来的地方。留下一句话，把它变成你的作品，再交给朋友接着创作。", homeH1);
+    const chaptersUi = await sender.evaluate(() => { const d = document.getElementById("myChapters"); return { exists: !!d, closed: d && !d.open, summary: d && d.querySelector("summary").textContent, inAbout: !!(d && d.closest(".about-demo")) }; });
+    record("my-chapters-unobtrusive", chaptersUi.exists && chaptersUi.closed && chaptersUi.summary === "我的篇章" && !chaptersUi.inAbout, JSON.stringify(chaptersUi));
+    const evBtns = await sender.evaluate(() => ["btnDownloadEvents", "btnDownloadEventsHome"].map((id) => { const b = document.getElementById(id); return !!(b && b.closest("details.about-demo")); }));
+    const evBtnsOutside = await sender.evaluate(() => [...document.querySelectorAll("button")].filter((b) => /事件记录|event log/i.test(b.textContent) && !b.closest("details.about-demo")).length);
+    record("events-json-link-only-inside-about-demo", evBtns.every(Boolean) && evBtnsOutside === 0, JSON.stringify({ evBtns, evBtnsOutside }));
     const homeSteps = await sender.locator("#s0 .steps").innerText();
     record("homepage-4-steps", ["选地方", "留一笔", "留一句", "发给一个人"].every((x) => homeSteps.includes(x)) && !homeSteps.includes("身体"), homeSteps.replace(/\n/g, " "));
     const bodyEntries = await sender.evaluate(() => ["btnOptionalBody", "btnOptionalBodyFromScene"].filter((id) => document.getElementById(id)).length);
@@ -1259,12 +1264,38 @@ async function main() {
     const pageA = await ctxA.newPage();
     pageA.on("pageerror", (e) => pageErrors.push("A:" + e));
     await pageA.goto(base);
-    await goSoloToShare(pageA, "两台设备副本测试句。");
+    await pageA.click("#btnStart");
+    await pageA.click('.place[data-id="onsen"]');
+    await pageA.waitForSelector("#s3:not(.hidden)");
+    await pageA.waitForTimeout(400);
+    const icBefore = await pageA.locator("#inlineCard").isHidden();
+    const toolOnA = await pageA.locator('#markTools .tool.on').count();
+    if (!toolOnA) await pageA.locator('#markTools .tool').first().click();
+    const yBefore = await pageA.evaluate(() => window.scrollY);
+    const boxA = await pageA.locator("#playStage").boundingBox();
+    await pageA.mouse.click(boxA.x + boxA.width * 0.4, boxA.y + boxA.height * 0.45);
+    await pageA.waitForTimeout(250);
+    const ic = await pageA.evaluate(() => ({ visible: !document.getElementById("inlineCard").classList.contains("hidden"),
+      s3: !document.getElementById("s3").classList.contains("hidden"), ph: document.getElementById("inlineLineEdit").placeholder, y: window.scrollY }));
+    record("card-appears-in-place-after-mark", icBefore && ic.visible && ic.s3 && Math.abs(ic.y - yBefore) < 2, JSON.stringify({ icBefore, ...ic, yBefore }));
+    record("card-hint-copy", ic.ph === "点这里留一句（可不写）", ic.ph);
+    await pageA.fill("#inlineLineEdit", "两台设备副本测试句。");
+    await pageA.click("#btnSendFriend");
+    await pageA.waitForSelector("#s5:not(.hidden)");
+    const carried = await pageA.locator("#cardLineEdit").inputValue();
+    record("inline-card-line-carries-to-share", carried === "两台设备副本测试句。", carried);
+    await pageA.fill("#authorNameEdit", "小云");
+    await pageA.waitForTimeout(320);
+    const noChapterYet = await pageA.evaluate(() => window.__healoaSeedTest.chapters().length);
     await pageA.click("#btnSendToFriend");
     await pageA.waitForTimeout(250);
     const sendStatus = await pageA.locator("#shareStatus").innerText();
     record("send-one-status-honest", sendStatus.includes("副本") && !sendStatus.includes("通知"), sendStatus);
     const inviteUrl = await pageA.evaluate(() => window.__healoaSeedTest.buildSeedUrl().url);
+    const aLocal = await pageA.evaluate(() => ({ ch: window.__healoaSeedTest.chapters(), ev: window.__healoaSeedTest.events(), n: window.__healoaSeedTest.buildSceneSeed().authorName }));
+    record("author-name-in-seed", aLocal.n === "小云", aLocal.n);
+    const chLabel = await pageA.evaluate(() => { const d = document.getElementById("myChapters"); return [...d.querySelectorAll("li")].map((l) => l.textContent); });
+    record("chapter-created-local", noChapterYet === 0 && aLocal.ch.length === 1 && aLocal.ch[0].placeId === "onsen" && /^[A-Z][a-z]{2} \d{1,2} · 森林温泉$/.test(chLabel[0] || ""), JSON.stringify({ noChapterYet, ch: aLocal.ch, chLabel }));
     // QR: generated only for short links; decoded later by zxing-cpp on the box
     const qr = await pageA.evaluate(() => ({ last: window.__healoaSeedTest.lastQr(), src: document.getElementById("qrImg").getAttribute("src") || "",
       visible: !document.getElementById("qrBox").classList.contains("hidden"), limit: window.__healoaSeedTest.QR_MAX_URL_LEN, maxV: window.__healoaSeedTest.QR_MAX_VERSION }));
@@ -1295,11 +1326,15 @@ async function main() {
     await shot(pageB, "recipient-opened");
 
     let replyUrl = null;
+    let evB = [];
     if (openedSeed > 0) {
       const subB = await pageB.locator("#seedViewSub").innerText();
       record("two-context-copy-honesty", subB.includes("副本") && subB.includes("不会同步"), subB.slice(0, 160));
       const simHidden = await pageB.locator("#seedViewSimBadge").evaluate((el) => getComputedStyle(el).display === "none");
       record("two-context-not-labeled-sim", simHidden, "simBadgeHidden=" + simHidden);
+      const fv = await pageB.evaluate(() => ({ h1: document.getElementById("seedViewH1").textContent, btn: document.getElementById("btnSeedEnter").textContent }));
+      record("friend-view-named", fv.h1 === "小云 在这里留了一句话。" && fv.btn === "我也留一句", JSON.stringify(fv));
+      await pageB.screenshot({ path: path.join(EVIDENCE, "p0n-friend-view.png"), fullPage: true });
 
       await pageB.click("#btnSeedEnter");
       await pageB.waitForSelector("#s3:not(.hidden)");
@@ -1330,14 +1365,19 @@ async function main() {
       const c = replyScreen.compact || {};
       record("reply-seed-fields", c.k === "r" && typeof c.r === "string" && typeof c.pa === "string" && Array.isArray(c.m) && c.m.length >= 1 && Array.isArray(c.fm) && c.fm.length === 1 && c.p,
         JSON.stringify({ k: c.k, r: c.r, pa: c.pa, m: (c.m || []).length, fm: (c.fm || []).length, p: c.p }));
-      record("friend-reply-screen-both-strokes", replyScreen.mine >= 1 && replyScreen.friend === 1 && replyScreen.h1.includes("你在 TA 的作品旁边加了一笔"), JSON.stringify(replyScreen).slice(0, 200));
+      record("friend-reply-screen-both-strokes", replyScreen.mine >= 1 && replyScreen.friend === 1 && replyScreen.h1.includes("你在 小云 留下的地方"), JSON.stringify(replyScreen).slice(0, 200));
       const replyBtns = await visibleButtons(pageB, "#sReply");
-      record("friend-reply-actions", replyBtns.includes("发回给 TA") && replyBtns.includes("做一张我的") && replyBtns.includes("只留给自己"), JSON.stringify(replyBtns));
+      record("friend-reply-actions", replyBtns.includes("送回给 小云") && replyBtns.includes("做一张我的") && replyBtns.includes("只留给自己"), JSON.stringify(replyBtns));
+      await pageB.fill("#replyLineEdit", "我也来过。");
       await pageB.click("#btnSendBack");
       await pageB.waitForTimeout(250);
       const backStatus = await pageB.locator("#replyStatus").innerText();
       record("send-back-manual-no-notification-claim", backStatus.includes("自己") && !backStatus.includes("通知"), backStatus);
       await pageB.screenshot({ path: path.join(EVIDENCE, "p0n-friend-reply.png"), fullPage: true });
+      const bAfter = await pageB.evaluate(() => ({ r: window.__healoaSeedTest.lastReplyUrl(), ch: window.__healoaSeedTest.chapters() }));
+      replyUrl = bAfter.r && bAfter.r.url;
+      record("reply-carries-friend-line", bAfter.r && bAfter.r.compact && bAfter.r.compact.ft === "我也来过。" && bAfter.r.compact.n === "小云", JSON.stringify(bAfter.r && { ft: bAfter.r.compact.ft, n: bAfter.r.compact.n }));
+      record("friend-reply-chapter-local", bAfter.ch.length === 1 && bAfter.ch[0].role === "reply", JSON.stringify(bAfter.ch));
       // once per root: reopening the same original no longer offers to add another mark
       await pageB.goto("about:blank");
       await pageB.goto(inviteUrl);
@@ -1345,6 +1385,11 @@ async function main() {
       const again = await pageB.evaluate(() => ({ note: !document.getElementById("seedAlreadyReplied").classList.contains("hidden"),
         enterHidden: document.getElementById("btnSeedEnter").classList.contains("hidden") }));
       record("reply-once-per-root", again.note && again.enterHidden, JSON.stringify(again));
+      await pageB.click("#btnSeedViewMyReply");
+      await pageB.waitForSelector("#sReply:not(.hidden)");
+      await pageB.click("#btnMakeMine");
+      await pageB.waitForSelector("#s2:not(.hidden)");
+      evB = await pageB.evaluate(() => window.__healoaSeedTest.events());
     }
 
     // Sender still does not see the friend's stroke until the reply link is opened by hand
@@ -1377,24 +1422,37 @@ async function main() {
         friend: document.querySelectorAll("#authorStage .mk.friend").length,
         seedEnterShown: !document.getElementById("sSeed").classList.contains("hidden"),
       }));
-      record("author-sees-reply-both-strokes", author.shown && author.h1.includes("TA 在你的作品旁边加了一笔") && author.mine >= 1 && author.friend === 1 && !author.seedEnterShown, JSON.stringify(author));
+      record("author-sees-reply-both-strokes", author.shown && author.h1 === "有人在你留下的地方，也留下了一句话。" && author.mine >= 1 && author.friend === 1 && !author.seedEnterShown, JSON.stringify(author));
+      const afl = await pageA.locator("#authorFriendLine").textContent();
+      record("author-sees-friend-line", afl === "我也来过。", afl);
       const authorBtns = await visibleButtons(pageA, "#sAuthorReply");
       record("author-reply-no-further-send-back", !authorBtns.some((b) => b.includes("发回")) && authorBtns.includes("只留给自己") && authorBtns.includes("做一张新的"), JSON.stringify(authorBtns));
       await pageA.screenshot({ path: path.join(EVIDENCE, "p0n-author-reply.png"), fullPage: true });
       const bodyVisible = await pageA.evaluate(() => document.body.innerText);
-      record("send-back-appears-once-per-root", (bodyVisible.match(/发回给 TA/g) || []).length === 0, "author view 发回给 TA count=" + (bodyVisible.match(/发回给 TA/g) || []).length);
+      record("send-back-appears-once-per-root", (bodyVisible.match(/送回给|发回给/g) || []).length === 0, "author view 送回给 count=" + (bodyVisible.match(/送回给|发回给/g) || []).length);
+      const evA = await pageA.evaluate(() => window.__healoaSeedTest.events());
+      const allEv = evA.concat(evB);
+      const names = ["chapter_created", "share_sent", "recipient_open", "recipient_contribute", "reply_back", "sender_return", "recipient_new_chapter"];
+      const missing = names.filter((n) => !allEv.some((e) => e.event === n));
+      const badShape = allEv.filter((e) => !(e.lang === "zh" || e.lang === "en") || typeof e.country !== "string" || !e.country || !e.at);
+      record("seven-events-logged-locally", missing.length === 0 && badShape.length === 0, JSON.stringify({ missing, badShape: badShape.length, n: allEv.length, sample: allEv[0] }));
+      record("events-split-by-device", evA.every((e) => ["chapter_created", "share_sent", "sender_return"].includes(e.event)) && evB.every((e) => ["recipient_open", "recipient_contribute", "reply_back", "recipient_new_chapter"].includes(e.event)),
+        JSON.stringify({ A: evA.map((e) => e.event), B: evB.map((e) => e.event) }));
     } else {
       record("author-sees-reply-both-strokes", false, "no replyUrl");
     }
 
     // Red lines (source-level greps over the single-file app)
     const html = fs.readFileSync(INDEX, "utf8");
-    const redHits = ["日记", "解锁", "助力", "打卡", "streak", "Streak", "会收到通知", "收到通知", "分享后解锁", "邀请助力", "集卡"].filter((w) => html.includes(w));
+    const redHits = ["日记", "解锁", "助力", "打卡", "streak", "Streak", "会收到通知", "收到通知", "分享后解锁", "邀请助力", "集卡",
+      "likes", "Likes", "点赞", "comments", "评论", "leaderboard", "Leaderboard", "排行榜", "情绪曲线", "mood curve"].filter((w) => html.includes(w));
     record("redline-forbidden-words-absent", redHits.length === 0, redHits.join(",") || "clean");
     const siteHits = ["healoa.com", "circles", "btnHandoff"].filter((w) => html.includes(w));
     record("redline-no-website-funnel", siteHits.length === 0, siteHits.join(",") || "clean");
     record("redline-no-fake-short-link", !/#seedId=["']?\s*\+/.test(html) && !/bit\.ly|t\.cn|tinyurl|short\.link/.test(html), "no short-link services / seedId invite builder");
     record("redline-keep-self-on-share-and-reply-screens", ["btnKeepSelf", "btnReplyKeep", "btnAuthorKeep"].every((id) => html.includes('id="' + id + '"')), "keep-self buttons present on s5/sReply/sAuthorReply");
+    record("redline-no-fake-counts", !/(已有|超过|已经有)\s*\d+\s*(人|位)|\d+\s*人(已加入|参与|在看)|\d+\s*(people|users) (joined|are)/i.test(html), "no fabricated social counts");
+    record("events-local-only-no-network-api", !/sendBeacon|XMLHttpRequest|fetch\(|navigator\.geolocation/.test(html) && html.includes('EVENTS_KEY = "healoa_base_events_v1"'), "events → localStorage only; no network/geo API in page");
     record("redline-no-crisis-claim", !/危机|crisis/i.test(html), "no crisis-handling claims");
     record("rename-mountain-stay", html.includes("山居慢住") && !html.includes("疗愈民宿"), "山居慢住");
 
@@ -1405,7 +1463,7 @@ async function main() {
     await en.goto(base);
     await en.click("#btnLang");
     const enHome = await en.evaluate(() => ({ h1: document.querySelector("#s0 h1").innerText, start: document.getElementById("btnStart").innerText, steps: document.querySelector("#s0 .steps").innerText }));
-    record("en-home", enHome.h1.includes("send it to one person") && enHome.start === "Step into a place" && enHome.steps.includes("Leave a line"), JSON.stringify(enHome));
+    record("en-home", enHome.h1.includes("hand it to a friend") && enHome.start === "Step into a place" && enHome.steps.includes("Leave a line"), JSON.stringify(enHome));
     await en.click("#btnStart");
     await en.click('.place[data-id="onsen"]');
     await en.waitForSelector("#s3:not(.hidden)");
@@ -1434,6 +1492,12 @@ async function main() {
     await goSoloToShare(solo, "独自路径。");
     const feelSolo = await solo.locator("#feelPrompt").textContent();
     record("solo-path-feel", feelSolo.includes("独自"), feelSolo);
+    const soloUrl = await solo.evaluate(() => window.__healoaSeedTest.buildSeedUrl().url);
+    await solo.goto("about:blank");
+    await solo.goto(soloUrl);
+    await solo.waitForTimeout(300);
+    const taH1 = await solo.locator("#seedViewH1").textContent();
+    record("friend-view-falls-back-to-TA", taH1 === "TA 在这里留了一句话。", taH1);
     await shot(solo, "solo-path");
     await soloCtx.close();
 
@@ -1449,7 +1513,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-n",
+    version: "v2026-09-24-o",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,

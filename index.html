@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-n）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-o）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -655,7 +655,7 @@
   .invite-truth { font-size: 0.82rem; line-height: 1.55; color: var(--muted); }
   .invite-truth strong { color: var(--text); }
 
-  /* v2026-09-24-n · P0 single-round reply · card editor · QR · i18n */
+  /* v2026-09-24-o · P0 single-round reply · card editor · QR · i18n */
   .proto-banner { position: sticky; }
   .lang-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); appearance:none; border:1px solid var(--line);
     background:rgba(255,255,255,0.06); color:var(--text); border-radius:999px; padding:5px 11px; font-size:11px; font-weight:650; cursor:pointer; font-family:inherit; }
@@ -694,13 +694,19 @@
   .stroke-legend .lg.friend::before { border-color:rgba(232,190,140,0.95); }
   .about-demo summary { font-weight:600; }
   .about-body > * + * { margin-top:8px; }
+  .inline-card { background:var(--card); border:1px solid rgba(110,198,192,0.35); border-radius:16px; padding:10px 12px 0; margin:-4px 0 12px; }
+  .author-name-edit { width:100%; box-sizing:border-box; border:0; border-bottom:1px dashed rgba(238,244,248,0.3); background:transparent;
+    color:var(--text); font:inherit; font-size:0.84rem; padding:4px 2px; margin:-4px 0 12px; }
+  .seed-line.friend-line { border-left-color: rgba(232,190,140,0.8); }
+  .chapter-list { list-style:none; margin:8px 0 0; padding:0; font-size:0.82rem; color:var(--text); }
+  .chapter-list li { padding:5px 0; border-bottom:1px solid var(--line); }
 </style>
 </head>
 <body>
 
 <div class="proto-banner quiet-chrome">
   <button type="button" class="lang-toggle" id="btnLang" aria-label="Language / 语言">EN</button>
-  <strong data-i18n="bannerTitle">可看原型 · 非正式 Demo · 预览 v2026-09-24-n</strong>
+  <strong data-i18n="bannerTitle">可看原型 · 非正式 Demo · 预览 v2026-09-24-o</strong>
   <span data-i18n="bannerSub">选地方 · 留一笔 · 留一句 · 发给一个人</span>
 </div>
 <div class="wrap">
@@ -709,7 +715,7 @@
       <span data-i18n="step1">1 选地方</span><span data-i18n="step2">2 留一笔</span><span data-i18n="step3">3 留一句</span><span data-i18n="step4">4 发给一个人</span>
     </div>
     <div class="brand">HEALOA BASE <span class="seed-badge">SCENE SEED</span></div>
-    <h1 data-i18n="homeH1">选一个美的地方，留一笔、留一句，发给一个人</h1>
+    <h1 data-i18n="homeH1">选一个让你想停下来的地方。留下一句话，把它变成你的作品，再交给朋友接着创作。</h1>
     <p class="pain-line" data-i18n="homePain">不用先填表，也不用真的先飞过去。</p>
     <p class="lead" data-i18n-html="homeLead">四步：<strong>选地方</strong> → <strong>留一笔</strong> → <strong>留一句</strong> → <strong>发给一个人</strong>。</p>
     <div class="home-badge-row">
@@ -724,10 +730,16 @@
     </div>
     <p class="note ok hidden" id="restoreHint" style="margin-top:10px"></p>
     <p class="note ok hidden" id="seedUrlHint" style="margin-top:8px"></p>
-    <details class="reviewer-notes about-demo" id="homeReviewerNotes" style="margin-top:18px">
+    <details class="reviewer-notes my-chapters" id="myChapters" style="margin-top:18px">
+      <summary data-i18n="myChapters">我的篇章</summary>
+      <ul class="chapter-list" id="chapterList"></ul>
+      <p class="hint" id="chapterEmpty" data-i18n="chapterEmpty">还没有篇章。留下第一句，就会出现在这里（只存在这台设备）。</p>
+    </details>
+    <details class="reviewer-notes about-demo" id="homeReviewerNotes" style="margin-top:10px">
       <summary data-i18n="aboutDemo">关于这份 Demo</summary>
       <div data-i18n-html="aboutHome">
       <p class="sub" style="margin-top:10px">这是可看原型，不是正式上线的 App。默认分享的是作品，不含身体或隐私答案。朋友打开的是自己的<strong>副本</strong>；只有对方手动发回，你才会看到 TA 加的那一笔——双方实时共享同一件作品仍未实现（UNKNOWN）。</p>
+      <button class="soft" type="button" id="btnDownloadEventsHome" data-i18n="downloadEvents">下载本机事件记录（JSON）</button>
       <p class="footer-meta">对外名：HeaLoa Base · App 社交货币 = <strong>Scene Seed / 场景种子</strong><br />本页不接注册、不替你预约、不自动发帖 · 无用户数据迁移<br />场景照片为演示用实景（Photo · Cindy Yang）· 非正式付费素材包<br />一轮回应：作品 → 朋友加一笔 → 手动发回 → 到此结束</p>
       </div>
     </details>
@@ -1003,6 +1015,9 @@
       </div>
       <span class="photo-credit" id="sceneCredit">Photo · Cindy Yang</span>
     </div>
+    <div class="inline-card hidden" id="inlineCard">
+      <textarea class="card-line-edit" id="inlineLineEdit" rows="2" maxlength="80" data-i18n-ph="cardLinePh" placeholder="点这里留一句（可不写）"></textarea>
+    </div>
 
     <div class="btn-row" id="joinRow">
       <button class="primary join-pulse" type="button" id="btnSendFriend" disabled data-i18n="btnLeaveLine">留一句</button>
@@ -1084,6 +1099,7 @@
         <div class="seed-title" id="seedLiveTitle">—</div>
         <div class="mini-stage" id="seedLiveStage" aria-hidden="true"></div>
         <textarea class="card-line-edit" id="cardLineEdit" rows="2" maxlength="80" data-i18n-ph="cardLinePh" placeholder="留一句（可以不写）"></textarea>
+        <input class="author-name-edit" id="authorNameEdit" type="text" maxlength="16" autocomplete="off" data-i18n-ph="authorNamePh" placeholder="署名（可选，不填就显示 TA）" />
         <div class="seed-line hidden" id="seedLiveLine"></div>
         <div class="card-feel hidden" id="seedLiveFeel"></div>
         <div class="seed-invite" id="seedLiveInvite">「我留下了一笔。你会在旁边加什么？」</div>
@@ -1091,7 +1107,7 @@
         <div class="seed-meta">
           <span class="seed-credit" id="seedLiveCredit">Photo · Cindy Yang</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-n</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-o</span>
         </div>
         <div class="seed-foot hidden" id="seedLiveFoot"></div>
       </div>
@@ -1141,6 +1157,7 @@
           <button class="soft" type="button" id="btnShareDownload">下载种子 PNG</button>
         </div>
         <button class="soft" type="button" id="btnDownloadSeedJson">下载种子 JSON</button>
+        <button class="soft" type="button" id="btnDownloadEvents" data-i18n="downloadEvents">下载本机事件记录（JSON）</button>
         <button class="soft" type="button" id="btnSimRecipient">同机体验 · 以好友身份打开种子 <span class="sim-badge">模拟</span></button>
         <textarea id="publicLineEdit" class="hidden" rows="1" aria-hidden="true"></textarea>
         <input type="checkbox" id="privacyLineConfirm" class="hidden" checked aria-hidden="true" />
@@ -1157,7 +1174,7 @@
           <p class="hint" id="feelAckText" style="margin-top:10px;margin-bottom:0;display:none;color:var(--text)"></p>
         </div>
         <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
-        <p class="footer-meta">预览 v2026-09-24-n · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移 · 场景照片为演示用实景 · Photo · Cindy Yang</p>
+        <p class="footer-meta">预览 v2026-09-24-o · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移 · 场景照片为演示用实景 · Photo · Cindy Yang</p>
       </div>
     </details>
   </section>
@@ -1178,13 +1195,13 @@
         <div class="seed-meta">
           <span class="seed-credit" id="seedViewCredit">Photo · Cindy Yang</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-n</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-o</span>
         </div>
       </div>
     </div>
     <p class="note ok hidden" id="seedAlreadyReplied" data-i18n="alreadyReplied">你已经在这张旁边加过一笔了——一张作品只回应一次。</p>
     <div class="btn-row">
-      <button class="primary" type="button" id="btnSeedEnter" data-i18n="seedEnter">进入场景，在旁边加一笔</button>
+      <button class="primary" type="button" id="btnSeedEnter" data-i18n="seedEnter">我也留一句</button>
       <button class="primary hidden" type="button" id="btnSeedViewMyReply" data-i18n="seedViewMyReply">看看我加的那一笔</button>
       <button class="ghost" type="button" id="btnSeedDismiss" data-i18n="seedDismiss">先回到首页</button>
     </div>
@@ -1195,7 +1212,7 @@
       <span data-i18n="step1">1 选地方</span><span data-i18n="step2">2 留一笔</span><span data-i18n="step3">3 留一句</span><span class="on" data-i18n="step4">4 发给一个人</span>
     </div>
     <div class="brand" data-i18n="replyBrand">SCENE SEED · 回应卡</div>
-    <h1 data-i18n="replyH1">你在 TA 的作品旁边加了一笔</h1>
+    <h1 id="replyH1">你在 TA 留下的地方，也留了一句</h1>
     <p class="sub" data-i18n="replySub">把这张发回给 TA——需要你自己发，本 Demo 不会替你送出。一张作品只回应这一次。</p>
     <div class="seed-card-live" id="replyCard">
       <div class="seed-inner">
@@ -1204,11 +1221,12 @@
         <div class="mini-stage" id="replyStage" aria-hidden="true"></div>
         <div class="stroke-legend"><span class="lg mine" data-i18n="legendTheirs">TA 的笔</span><span class="lg friend" data-i18n="legendYours">你加的笔</span></div>
         <div class="seed-line" id="replyLine"></div>
-        <div class="seed-meta"><span class="seed-credit" id="replyCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-24-n</span></div>
+        <textarea class="card-line-edit" id="replyLineEdit" rows="2" maxlength="80" data-i18n-ph="cardLinePh" placeholder="点这里留一句（可不写）"></textarea>
+        <div class="seed-meta"><span class="seed-credit" id="replyCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-24-o</span></div>
       </div>
     </div>
     <div class="btn-row" id="replyActions">
-      <button class="primary" type="button" id="btnSendBack" data-i18n="sendBack">发回给 TA</button>
+      <button class="primary" type="button" id="btnSendBack">送回给 TA</button>
       <button class="warm" type="button" id="btnMakeMine" data-i18n="makeMine">做一张我的</button>
       <button class="soft" type="button" id="btnReplyKeep" data-i18n="keepSelf">只留给自己</button>
       <p class="share-status" id="replyStatus" aria-live="polite"></p>
@@ -1227,7 +1245,7 @@
 
   <section id="sAuthorReply" class="screen hidden">
     <div class="brand" data-i18n="replyBrand">SCENE SEED · 回应卡</div>
-    <h1 data-i18n="authorH1">TA 在你的作品旁边加了一笔</h1>
+    <h1 data-i18n="authorH1">有人在你留下的地方，也留下了一句话。</h1>
     <p class="sub" data-i18n="authorSub">这一轮就到这里：一张作品，一次回应。</p>
     <div class="seed-card-live" id="authorCard">
       <div class="seed-inner">
@@ -1236,7 +1254,8 @@
         <div class="mini-stage" id="authorStage" aria-hidden="true"></div>
         <div class="stroke-legend"><span class="lg mine" data-i18n="legendMine">你的笔</span><span class="lg friend" data-i18n="legendTa">TA 加的笔</span></div>
         <div class="seed-line" id="authorLine"></div>
-        <div class="seed-meta"><span class="seed-credit" id="authorCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-24-n</span></div>
+        <div class="seed-line friend-line hidden" id="authorFriendLine"></div>
+        <div class="seed-meta"><span class="seed-credit" id="authorCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-24-o</span></div>
       </div>
     </div>
     <div class="btn-row" id="authorActions">
@@ -3558,17 +3577,19 @@ var qrcode = function() {
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-n";
+  var VERSION = "v2026-09-24-o";
   var MAX_MARKS = 6;
   var MAX_FRIEND_MARKS = 3;
-  /* ===== UI copy · language table (zh default · en second) · v2026-09-24-n ===== */
+  /* ===== UI copy · language table (zh default · en second) · v2026-09-24-o ===== */
   var I18N = {
     zh: {
       langBtn:"EN",
       bannerTitle:"可看原型 · 非正式 Demo · 预览 {v}",
       bannerSub:"选地方 · 留一笔 · 留一句 · 发给一个人",
       step1:"1 选地方", step2:"2 留一笔", step3:"3 留一句", step4:"4 发给一个人",
-      homeH1:"选一个美的地方，留一笔、留一句，发给一个人",
+      homeH1:"选一个让你想停下来的地方。留下一句话，把它变成你的作品，再交给朋友接着创作。",
+      myChapters:"我的篇章", chapterEmpty:"还没有篇章。留下第一句，就会出现在这里（只存在这台设备）。", chapterReply:"回应", downloadEvents:"下载本机事件记录（JSON）",
+      authorNamePh:"署名（可选，不填就显示 TA）", nameFallback:"TA",
       homePain:"不用先填表，也不用真的先飞过去。",
       homeLead:"四步：<strong>选地方</strong> → <strong>留一笔</strong> → <strong>留一句</strong> → <strong>发给一个人</strong>。",
       homeBadgeDemo:"非正式 · 可看 Demo",
@@ -3607,21 +3628,21 @@ var qrcode = function() {
       sceneSub:"选一个痕迹，点画面放下，可以拖动。",
       sceneHeadingFriend:"在 TA 的作品旁边，加你的一笔",
       sceneHeadingFriendSim:"你正在以好友身份加一笔 · 模拟",
-      sceneSubFriend:"TA 的笔已经在画面里。选一个痕迹，点画面加上你的（最多 {n} 笔）。",
+      sceneSubFriend:"TA 的笔已经在画面里。可以加一笔（最多 {n} 笔），也可以直接下一步留一句。",
       avatarYou:"你",
       stageHint:"点这里放下一笔<br /><span style=\"opacity:0.85;font-size:0.78rem\">可拖动 · 最多 6 个</span>",
       coachTitle:"你可以做什么", coachPlace:"① 选痕迹，点画面", coachFx:"② 开风 / 光", coachWrite:"③ 留一句", coachInvite:"④ 发给一个人",
       fxWind:"风", fxLight:"光", fxMist:"雾气", fxPulse:"律动",
       fxNames:{wind:"风",light:"光",mist:"雾气",pulse:"律动"},
       markCount:"痕迹 {n} / {max} · 气氛{fx}", fxOff:"未开",
-      btnLeaveLine:"留一句", btnReplyDone:"加好了 · 看看两笔", changePlace:"换一个地方",
+      btnLeaveLine:"留一句", btnReplyDone:"下一步 · 留一句", changePlace:"换一个地方",
       presenceSolo:"1 人在场", presenceFriend:"你的副本 · 不会自动同步给 TA", presenceFriendSim:"好友进场（同机模拟 · 副本）",
       audioMuted:"静音", audioOn:"环境声开", audioNone:"无音频",
       assetPhoto:"演示用实景（{name}）· Photo · Cindy Yang · 粒子/痕迹为程序叠加",
       assetProc:"程序生成的气氛预览 · 非实拍",
       assetOnsen:"温泉气氛预览 · 非医疗功效 · 非预订 · Photo · Cindy Yang",
       s5H1:"留一句", s5Sub:"卡片就是编辑器：直接在卡片上写一句。可以不写，直接发。",
-      kickerZh:"场景种子", cardLinePh:"留一句（可以不写）",
+      kickerZh:"场景种子", cardLinePh:"点这里留一句（可不写）",
       inviteLine:"我留下了一笔。你会在旁边加什么？",
       feelTitle:"感受词（可选 · 最多 5 个）", feelPrint:"印在卡片上（默认不印，只留在你这里）",
       feelWords:["安静","开阔","温暖","想念","放松","自在","好奇","慢下来"],
@@ -3634,19 +3655,19 @@ var qrcode = function() {
       qrCaption:"面对面？让 TA 用相机扫这个码。", qrCaptionBack:"面对面？让 TA 用相机扫这个码。",
       qrTooLong:"这次的链接太长，不生成二维码（不做假的短链接）。请用上面的链接发。",
       seedBrand:"SCENE SEED · 收到一张场景卡",
-      seedH1:"TA 发现了一个美的地方，留下了一笔",
+      seedH1:"{name} 在这里留了一句话。",
       seedSub:"这是 TA 留下的一笔。你打开的是一份副本：你加的笔不会同步回 TA 那边，除非你手动发回。",
       seedSubSim:"同机模拟好友路径：打开种子 → 进你的副本 → 加一笔。全程标「模拟」，不会同步回原作。",
       alreadyReplied:"你已经在这张旁边加过一笔了——一张作品只回应一次。",
-      seedEnter:"进入场景，在旁边加一笔", seedViewMyReply:"看看我加的那一笔", seedDismiss:"先回到首页",
+      seedEnter:"我也留一句", seedViewMyReply:"看看我加的那一笔", seedDismiss:"先回到首页",
       replyBrand:"SCENE SEED · 回应卡", replyKicker:"回应卡",
-      replyH1:"你在 TA 的作品旁边加了一笔",
+      replyH1:"你在 {name} 留下的地方，也留了一句",
       replySub:"把这张发回给 TA——需要你自己发，本 Demo 不会替你送出。一张作品只回应这一次。",
       legendTheirs:"TA 的笔", legendYours:"你加的笔", legendMine:"你的笔", legendTa:"TA 加的笔",
-      sendBack:"发回给 TA", makeMine:"做一张我的", makeNew:"做一张新的",
+      sendBack:"送回给 {name}", makeMine:"做一张我的", makeNew:"做一张新的",
       backShared:"已打开系统分享。请你自己选中 TA 发回去。",
       backCopied:"链接已复制。请你自己发回给 TA（本 Demo 不会替你发送）。",
-      authorH1:"TA 在你的作品旁边加了一笔",
+      authorH1:"有人在你留下的地方，也留下了一句话。",
       authorSub:"这一轮就到这里：一张作品，一次回应。",
       authorKept:"这张回应卡只留在这台设备上了。",
       shareTitle:"HeaLoa · 场景卡",
@@ -3655,7 +3676,7 @@ var qrcode = function() {
       toastPickPath:"{place} · 先选一条路径", toastPickTool:"先选一个痕迹工具", toastToolOn:"已选「{t}」· 点画面放下",
       toastPlaced:"已放下一笔", toastMax:"最多 {n} 笔 · 可拖动已有的",
       toastFriendPlaced:"你的一笔已加上 · 只在你的副本里", toastFriendMax:"这一轮最多加 {n} 笔",
-      toastNeedMark:"先放下至少一笔", toastFxOn:"已开 · {f}", toastFxOff:"已关 · {f}",
+      toastNeedMark:"先放下至少一笔", toastNeedSomething:"留一句或加一笔，再送回", toastFxOn:"已开 · {f}", toastFxOff:"已关 · {f}",
       toastCopied:"已复制", toastKept:"已只留给自己",
       toastAudioNone:"此设备无可用音频 · 场景仍可操作", toastMuted:"已静音", toastAudioOn:"环境声已开（本机生成，非录音）",
       toastSeedOpened:"已打开一张场景卡（副本）", toastReplyOpened:"TA 发回了一张回应卡",
@@ -3667,7 +3688,9 @@ var qrcode = function() {
       bannerTitle:"Preview prototype · not a launch · {v}",
       bannerSub:"Pick a place · leave a mark · leave a line · send to one person",
       step1:"1 Pick a place", step2:"2 Leave a mark", step3:"3 Leave a line", step4:"4 Send to one person",
-      homeH1:"Pick a beautiful place, leave a mark and a line, send it to one person",
+      homeH1:"Pick a place that makes you want to stop. Leave a line, make it your work, then hand it to a friend to continue.",
+      myChapters:"My Chapters", chapterEmpty:"No chapters yet. Leave your first line and it shows up here (this device only).", chapterReply:"reply", downloadEvents:"Download local event log (JSON)",
+      authorNamePh:"Your name (optional — shows “someone” if empty)", nameFallback:"Someone",
       homePain:"No forms first. No flight needed.",
       homeLead:"Four steps: <strong>pick a place</strong> → <strong>leave a mark</strong> → <strong>leave a line</strong> → <strong>send to one person</strong>.",
       homeBadgeDemo:"Unofficial · viewable demo",
@@ -3706,21 +3729,21 @@ var qrcode = function() {
       sceneSub:"Pick a mark, tap the picture to place it, drag to move.",
       sceneHeadingFriend:"Add your mark next to theirs",
       sceneHeadingFriendSim:"Adding a mark as the friend · simulated",
-      sceneSubFriend:"Their mark is already here. Pick a mark and tap to add yours (up to {n}).",
+      sceneSubFriend:"Their mark is already here. Add a mark (up to {n}) or go straight to leaving a line.",
       avatarYou:"You",
       stageHint:"Tap here to leave a mark<br /><span style=\"opacity:0.85;font-size:0.78rem\">Drag to move · up to 6</span>",
       coachTitle:"What you can do", coachPlace:"① Pick a mark, tap", coachFx:"② Wind / light", coachWrite:"③ Leave a line", coachInvite:"④ Send to one person",
       fxWind:"Wind", fxLight:"Light", fxMist:"Mist", fxPulse:"Pulse",
       fxNames:{wind:"wind",light:"light",mist:"mist",pulse:"pulse"},
       markCount:"Marks {n} / {max} · mood: {fx}", fxOff:"off",
-      btnLeaveLine:"Leave a line", btnReplyDone:"Done · see both marks", changePlace:"Try another place",
+      btnLeaveLine:"Leave a line", btnReplyDone:"Next · leave a line", changePlace:"Try another place",
       presenceSolo:"Just you", presenceFriend:"Your copy · not synced to them", presenceFriendSim:"Friend inside (same-device simulation · copy)",
       audioMuted:"Muted", audioOn:"Sound on", audioNone:"No audio",
       assetPhoto:"Demo photo ({name}) · Photo · Cindy Yang · particles/marks drawn on top",
       assetProc:"Generated mood preview · not a photo",
       assetOnsen:"Hot-spring mood preview · no health claims · not a booking · Photo · Cindy Yang",
       s5H1:"Leave a line", s5Sub:"The card is the editor: write a line right on it. Or skip it and just send.",
-      kickerZh:"scene card", cardLinePh:"Leave a line (optional)",
+      kickerZh:"scene card", cardLinePh:"Tap here to leave a line (optional)",
       inviteLine:"I left a mark here. What would you add next to it?",
       feelTitle:"Feeling words (optional · up to 5)", feelPrint:"Print them on the card (off by default — they stay with you)",
       feelWords:["calm","open","warm","missing someone","relaxed","at ease","curious","slowing down"],
@@ -3733,19 +3756,19 @@ var qrcode = function() {
       qrCaption:"Face to face? Let them scan this with their camera.", qrCaptionBack:"Face to face? Let them scan this with their camera.",
       qrTooLong:"This link is too long, so no QR code this time (no fake short links). Use the link above.",
       seedBrand:"SCENE SEED · you received a scene card",
-      seedH1:"Someone found a beautiful place and left a mark",
+      seedH1:"{name} left a line here.",
       seedSub:"This is their mark. You're opening a copy: your mark won't sync back to them unless you send it back by hand.",
       seedSubSim:"Same-device simulation: open the card → your copy → add a mark. Labelled “simulated”; nothing syncs back.",
       alreadyReplied:"You already added a mark next to this one — one reply per work.",
-      seedEnter:"Step in and add a mark next to theirs", seedViewMyReply:"See the mark I added", seedDismiss:"Back to home",
+      seedEnter:"I'll leave a line too", seedViewMyReply:"See the mark I added", seedDismiss:"Back to home",
       replyBrand:"SCENE SEED · reply card", replyKicker:"reply card",
-      replyH1:"You added a mark next to their work",
+      replyH1:"You left a line where {name} did",
       replySub:"Send this back to them — you send it yourself; this demo won't deliver it for you. One reply per work.",
       legendTheirs:"Their mark", legendYours:"Your mark", legendMine:"Your mark", legendTa:"Their added mark",
-      sendBack:"Send it back", makeMine:"Make one of my own", makeNew:"Make a new one",
+      sendBack:"Send it back to {name}", makeMine:"Make one of my own", makeNew:"Make a new one",
       backShared:"Share sheet opened. Pick them yourself to send it back.",
       backCopied:"Link copied. Please send it back to them yourself (this demo doesn't send anything).",
-      authorH1:"They added a mark next to your work",
+      authorH1:"Someone left a line where you left yours.",
       authorSub:"That's the whole round: one work, one reply.",
       authorKept:"This reply card is kept on this device only.",
       shareTitle:"HeaLoa · scene card",
@@ -3754,7 +3777,7 @@ var qrcode = function() {
       toastPickPath:"{place} · pick a path first", toastPickTool:"Pick a mark first", toastToolOn:"“{t}” selected · tap the picture",
       toastPlaced:"Mark placed", toastMax:"Up to {n} marks · drag existing ones",
       toastFriendPlaced:"Your mark is added · only in your copy", toastFriendMax:"Up to {n} marks this round",
-      toastNeedMark:"Leave at least one mark first", toastFxOn:"On · {f}", toastFxOff:"Off · {f}",
+      toastNeedMark:"Leave at least one mark first", toastNeedSomething:"Leave a line or a mark before sending back", toastFxOn:"On · {f}", toastFxOff:"Off · {f}",
       toastCopied:"Copied", toastKept:"Kept just for you",
       toastAudioNone:"No audio on this device · the scene still works", toastMuted:"Muted", toastAudioOn:"Ambient sound on (generated, not a recording)",
       toastSeedOpened:"Scene card opened (your copy)", toastReplyOpened:"They sent back a reply card",
@@ -3817,7 +3840,8 @@ var qrcode = function() {
     duration: "linger", sceneEnteredAt: null,
     seedFormat: "vertical", recipientMode: false, incomingSeed: null,
     privacyLineConfirmed: true, lastSeedUrlResult: null,
-    feelWords: [], feelPrint: false, replySeed: null, lastReplyUrlResult: null
+    feelWords: [], feelPrint: false, replySeed: null, lastReplyUrlResult: null,
+    authorName: "", friendText: ""
   };
   var SEED_STORE_KEY = "healoa_base_scene_seeds_v1";
   var INVITE_LINE = "我留下了一笔。你会在旁边加什么？";
@@ -4679,7 +4703,14 @@ var qrcode = function() {
     btn.classList.toggle("join-pulse", ready);
     if(done){
       done.classList.toggle("hidden", !state.recipientMode);
-      done.disabled = !(state.recipientMode && friendMarkCount()>=1);
+      done.disabled = !state.recipientMode;
+    }
+    // V1: after the first mark the card appears IN PLACE under the scene (no page jump / no auto-scroll)
+    var ic=$("inlineCard");
+    if(ic){
+      var showIc = ready;
+      if(showIc && ic.classList.contains("hidden")){ var ile=$("inlineLineEdit"); if(ile) ile.value=state.soloText||""; }
+      ic.classList.toggle("hidden", !showIc);
     }
     ["coachWrite","coachInvite"].forEach(function(id){ var b=$(id); if(b) b.classList.toggle("hidden", !!state.recipientMode); });
   }
@@ -4992,7 +5023,8 @@ var qrcode = function() {
     state.joined=false; state.workId=makeWorkId(); state.marks=[];
     // light on by default so place atmosphere is OBVIOUS in first 3s (still procedural preview)
     state.fx={wind:false,light:true,mist:false,pulse:false};
-    state.activeTool=null; state.soloText=""; state.soloSnapshot=null; state.compareMode="duo";
+    state.activeTool=null; state.soloText=""; state.soloSnapshot=null; state.compareMode="duo"; state.friendText="";
+    var ile0=$("inlineLineEdit"); if(ile0) ile0.value="";
     clearJoinTimers(); clearStageMarks(); $("stageHint").classList.remove("hide");
     $("cmpSolo").classList.remove("on"); $("cmpDuo").classList.add("on");
     paintScene(false); show("s3"); updateAudioChip(); startSoftTimer(); syncSendFriendCta();
@@ -5115,6 +5147,7 @@ var qrcode = function() {
     // v-n: the card IS the editor (WYSIWYG) — what is on the card is what gets sent; no extra confirm gate.
     state.privacyLineConfirmed = true;
     var cle=$("cardLineEdit"); if(cle) cle.value=state.soloText||"";
+    var ane=$("authorNameEdit"); if(ane) ane.value=state.authorName||"";
     renderFeelChips();
     var qb=$("qrBox"); if(qb) qb.classList.add("hidden");
     refreshSeedShareUI();
@@ -5180,6 +5213,7 @@ var qrcode = function() {
       title:poeticTitle(state.placeId),
       publicLine:publicLine(),
       feel:printedFeel(),
+      authorName:(state.authorName||"").trim().slice(0,16),
       rootWorkId:state.workId||null,
       place:{id:state.placeId,name:p.name||null},
       marks:marks,
@@ -5219,6 +5253,7 @@ var qrcode = function() {
     if(anyFx) c.fx = fxOn;
     if(seed.cocreate && seed.cocreate.simulated) c.sim = true;
     if(seed.feel && seed.feel.length) c.f = seed.feel.slice(0,5);
+    if(seed.authorName) c.n = String(seed.authorName).slice(0,16);
     return c;
   }
   /** Reply Seed: rootWorkId + parentWorkId + original work + the friend's newly added marks. Single round only. */
@@ -5230,6 +5265,7 @@ var qrcode = function() {
     c.w = friendWorkId;
     c.m = compactMarks((orig.marks||[]).filter(function(m){ return m.from!=="friend"; }));
     c.fm = compactMarks(friendMarks).slice(0, MAX_FRIEND_MARKS).map(function(m){ delete m.from; return m; });
+    var ft = String(state.friendText||"").trim().slice(0,80); if(ft) c.ft = ft;
     delete c.id; delete c.sim;
     return c;
   }
@@ -5257,11 +5293,13 @@ var qrcode = function() {
       if(!Array.isArray(c.f) || c.f.length > 5) return {ok:false, err:"感受词格式无效"};
       for(var j=0;j<c.f.length;j++) if(typeof c.f[j] !== "string" || c.f[j].length > 24) return {ok:false, err:"感受词格式无效"};
     }
+    if(c.n != null && (typeof c.n !== "string" || c.n.length > 16)) return {ok:false, err:"署名格式无效"};
+    if(c.ft != null && (typeof c.ft !== "string" || c.ft.length > 80)) return {ok:false, err:"回应一句格式无效"};
     if(c.k != null){
       if(c.k !== "r") return {ok:false, err:"不支持的种子类型"};
       if(typeof c.r !== "string" || typeof c.pa !== "string") return {ok:false, err:"回应卡缺少原作品编号"};
       var e2=validMarks(c.fm, MAX_FRIEND_MARKS); if(e2) return {ok:false, err:e2};
-      if(!c.fm.length) return {ok:false, err:"回应卡里没有新加的笔"};
+      if(!c.fm.length && !c.ft) return {ok:false, err:"回应卡里没有新加的内容"};
     }
     return {ok:true};
   }
@@ -5273,7 +5311,7 @@ var qrcode = function() {
       schema:"healoa-base-scene-seed/v1", seedId:c.id||((c.w||makeWorkId())+"-seed"), workId:c.w||c.id,
       title:poeticTitle(c.p), publicLine:(typeof c.t==="string"?c.t:""),
       place:{id:c.p,name:p.name}, marks:Array.isArray(c.m)?c.m:[], fx:c.fx||{},
-      feel:Array.isArray(c.f)?c.f:[],
+      feel:Array.isArray(c.f)?c.f:[], authorName:(typeof c.n==="string"?c.n:""),
       cocreate:{simulated:!!c.sim}, inviteLine:INVITE_LINE, tasteReason:TASTE_REASON,
       previewVersion:VERSION, rootWorkId:c.w||c.id,
       linkHonesty:"已实现：#seed= 可跨设备打开自己的副本 · UNKNOWN：双方共享持续更新作品"
@@ -5281,7 +5319,7 @@ var qrcode = function() {
     if(c.k === "r"){
       seed.kind = "reply";
       seed.rootWorkId = c.r; seed.parentWorkId = c.pa;
-      seed.friendMarks = c.fm;
+      seed.friendMarks = c.fm; seed.friendText = (typeof c.ft==="string"?c.ft:"");
     }
     return seed;
   }
@@ -5532,11 +5570,14 @@ var qrcode = function() {
     }
     silentSaveLocal();
     var seed=buildSceneSeed();
+    markChapterCreated();
+    logEvent("share_sent", {workId:state.workId, placeId:state.placeId});
     shareOrCopy(result.url, t("shareText",{title:poeticTitle(seed.place.id)}), st, t("sentShared"), t("sentCopied"));
     showQr("qrBox","qrImg","qrTooLong", result.url);
   }
   function keepForMyself(statusEl, msg){
     silentSaveLocal();
+    if(statusEl && statusEl.id==="shareStatus") markChapterCreated();
     statusEl.textContent = msg || t("keptSelf");
     toast(t("toastKept"));
   }
@@ -5712,6 +5753,14 @@ var qrcode = function() {
     var pe=$("publicLineEdit"); if(pe) pe.value=state.soloText;
     clearTimeout(refreshSeedShareUI._t); refreshSeedShareUI._t=setTimeout(refreshSeedShareUI, 250);
   });
+  if($("authorNameEdit")) $("authorNameEdit").addEventListener("input", function(){
+    state.authorName = String($("authorNameEdit").value||"").slice(0,16);
+    clearTimeout(refreshSeedShareUI._t); refreshSeedShareUI._t=setTimeout(refreshSeedShareUI, 250);
+  });
+  if($("inlineLineEdit")) $("inlineLineEdit").addEventListener("input", function(){
+    state.soloText = String($("inlineLineEdit").value||"").slice(0,80);
+    var cle=$("cardLineEdit"); if(cle) cle.value=state.soloText;
+  });
   if($("feelPrint")) $("feelPrint").addEventListener("change", function(){ state.feelPrint=!!$("feelPrint").checked; refreshSeedShareUI(); });
   $("btnSendToFriend").addEventListener("click", sendToOnePerson);
   $("btnKeepSelf").addEventListener("click", function(){ keepForMyself($("shareStatus")); });
@@ -5811,6 +5860,63 @@ var qrcode = function() {
     $("shareStatus").textContent="场景种子 PNG 已开始下载（与预览图一致 · 无身体自述）。发不发由你决定。";
     toast("场景种子图已开始下载");
   });
+  /* ===== Viral Chapter Loop V1 · LOCAL ONLY (localStorage) — no network, no counters shown to anyone ===== */
+  var CHAPTERS_KEY = "healoa_base_chapters_v1";
+  var EVENTS_KEY = "healoa_base_events_v1";
+  var EVENT_NAMES = ["chapter_created","share_sent","recipient_open","recipient_contribute","reply_back","sender_return","recipient_new_chapter"];
+  var SHORT_PLACE = { wudang:["武当","Wudang"], harbin:["哈尔滨","Harbin"], forest:["森林","Forest"], onsen:["森林温泉","Forest Onsen"], thai:["泰国","Thailand"], yunnan:["云南","Yunnan"] };
+  function readArrLS(key){ try{ var v=JSON.parse(localStorage.getItem(key)||"[]"); return Array.isArray(v)?v:[]; }catch(e){ return []; } }
+  function writeArrLS(key, arr){ try{ localStorage.setItem(key, JSON.stringify(arr.slice(-200))); }catch(e){} }
+  function localCountry(){
+    // Derived ONLY from browser locale (navigator.language / Intl) — never IP, never network.
+    var cands=[];
+    try{ (navigator.languages||[]).forEach(function(l){ cands.push(l); }); }catch(e){}
+    try{ cands.push(navigator.language); }catch(e){}
+    try{ cands.push(Intl.DateTimeFormat().resolvedOptions().locale); }catch(e){}
+    for(var i=0;i<cands.length;i++){
+      var m=/[-_]([A-Za-z]{2})(?:$|[-_])/.exec(String(cands[i]||""));
+      if(m) return m[1].toUpperCase();
+    }
+    return "unknown";
+  }
+  function logEvent(name, extra){
+    if(EVENT_NAMES.indexOf(name)<0) return;
+    var ev={ event:name, at:new Date().toISOString(), lang:lang, country:localCountry() };
+    if(extra) Object.keys(extra).forEach(function(k){ if(extra[k]!=null) ev[k]=extra[k]; });
+    var arr=readArrLS(EVENTS_KEY); arr.push(ev); writeArrLS(EVENTS_KEY, arr);
+  }
+  function rootPlace(pid){ return String(pid||"").split("-")[0]; }
+  function chapterLabel(ch){
+    var d=new Date(ch.at||Date.now());
+    var mon=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
+    var sp=SHORT_PLACE[rootPlace(ch.placeId)]||[ch.placeId||"?", ch.placeId||"?"];
+    return mon+" "+d.getDate()+" · "+(lang==="en"?sp[1]:sp[0])+(ch.role==="reply"?" · "+t("chapterReply"):"");
+  }
+  function addChapter(workId, placeId, role){
+    if(!workId) return false;
+    var arr=readArrLS(CHAPTERS_KEY);
+    if(arr.some(function(c){ return c.workId===workId; })) return false;
+    arr.push({ workId:workId, placeId:placeId, role:role||"author", at:new Date().toISOString() });
+    writeArrLS(CHAPTERS_KEY, arr); renderChapters(); return true;
+  }
+  function renderChapters(){
+    var ul=$("chapterList"), empty=$("chapterEmpty"); if(!ul) return;
+    var arr=readArrLS(CHAPTERS_KEY).slice().reverse();
+    ul.innerHTML="";
+    arr.forEach(function(ch){ var li=document.createElement("li"); li.textContent=chapterLabel(ch); ul.appendChild(li); });
+    if(empty) empty.classList.toggle("hidden", arr.length>0);
+  }
+  function markChapterCreated(){
+    // chapter_created fires once per work, the first time the author sends it or keeps it.
+    if(state.recipientMode || !state.workId || !state.placeId) return;
+    if(addChapter(state.workId, state.placeId, "author")) logEvent("chapter_created", {workId:state.workId, placeId:state.placeId});
+  }
+  function downloadEvents(){
+    var blob=new Blob([JSON.stringify({ note:"HeaLoa Base demo · local-only event log (this device). Never uploaded.", events:readArrLS(EVENTS_KEY) },null,2)],{type:"application/json"});
+    downloadBlob("HeaLoa-Base-local-events.json", blob);
+  }
+  ["btnDownloadEvents","btnDownloadEventsHome"].forEach(function(id){ var b=$(id); if(b) b.addEventListener("click", downloadEvents); });
+  function nameOr(n){ n=String(n||"").trim(); return n || t("nameFallback"); }
   var REPLIED_KEY = "healoa_base_replied_roots_v1";
   var REPLIES_KEPT_KEY = "healoa_base_replies_kept_v1";
   function readJsonLS(key){ try{ return JSON.parse(localStorage.getItem(key)||"{}")||{}; }catch(e){ return {}; } }
@@ -5821,7 +5927,8 @@ var qrcode = function() {
     state.incomingSeed=seed;
     state.recipientMode=true;
     paintLiveSeedCard(seed,"seedView");
-    $("seedViewH1").textContent=t("seedH1");
+    $("seedViewH1").textContent=t("seedH1",{name:nameOr(seed.authorName)});
+    if(!asSim && showSeedView._logged!==seed.seedId){ showSeedView._logged=seed.seedId; logEvent("recipient_open", {rootWorkId:seedRoot(seed), placeId:seed.place&&seed.place.id}); }
     $("seedViewSub").textContent=asSim ? t("seedSubSim") : t("seedSub");
     var simBadge=$("seedViewSimBadge");
     if(simBadge){ simBadge.style.display=asSim ? "" : "none"; }
@@ -5839,6 +5946,7 @@ var qrcode = function() {
   }
   /* ===== Reply Seed (friend side) ===== */
   function buildReplyUrl(orig, friendMarks){
+    if(!orig.authorName) delete orig.authorName;
     var friendWorkId = makeWorkId();
     var c = compactReply(orig, friendMarks, friendWorkId);
     var payload=utf8ToB64url(JSON.stringify(c));
@@ -5855,6 +5963,9 @@ var qrcode = function() {
     $("replyTitle").textContent = poeticTitle(pid);
     renderMiniStage($("replyStage"), pid, (orig.marks||[]).filter(function(m){ return m.from!=="friend"; }), friendMarks);
     $("replyLine").textContent = orig.publicLine||""; $("replyLine").classList.toggle("hidden", !orig.publicLine);
+    $("replyH1").textContent = t("replyH1",{name:nameOr(orig.authorName)});
+    $("btnSendBack").textContent = t("sendBack",{name:nameOr(orig.authorName)});
+    var rle=$("replyLineEdit"); if(rle) rle.value = state.friendText||"";
     $("replyCredit").classList.toggle("hidden", !(PLACE_PHOTOS[pid]&&PLACE_PHOTOS[pid].hero));
     $("replyUrlBox").textContent = res.ok ? res.url : ("（回应链接过长 · "+res.length+" > "+SEED_URL_SAFE_LEN+" · 不生成假短链）");
     $("replyStatus").textContent = ""; $("replyQrBox").classList.add("hidden");
@@ -5865,12 +5976,13 @@ var qrcode = function() {
     if(!orig){ toast("种子无效"); return; }
     var friendMarks = state.marks.filter(function(m){ return m.from==="friend"; })
       .map(function(m){ return {tool:m.tool, x:m.x, y:m.y}; });
-    if(!friendMarks.length){ toast(t("toastNeedMark")); return; }
     stopAudio(); stopSoftTimer();
+    state.friendText = "";
     var res = buildReplyUrl(orig, friendMarks);
     var all = readJsonLS(REPLIED_KEY);
     all[seedRoot(orig)] = { orig:orig, friendMarks:friendMarks, res:res, at:new Date().toISOString() };
     writeJsonLS(REPLIED_KEY, all);
+    logEvent("recipient_contribute", {rootWorkId:seedRoot(orig), placeId:orig.place&&orig.place.id, marks:friendMarks.length});
     showFriendReply(orig, friendMarks, res);
   }
   /* ===== Reply Seed (original author side) — single round: no further reply action ===== */
@@ -5881,6 +5993,8 @@ var qrcode = function() {
     $("authorTitle").textContent = poeticTitle(pid);
     renderMiniStage($("authorStage"), pid, seed.marks||[], seed.friendMarks||[]);
     $("authorLine").textContent = seed.publicLine||""; $("authorLine").classList.toggle("hidden", !seed.publicLine);
+    var afl=$("authorFriendLine"); if(afl){ afl.textContent = seed.friendText||""; afl.classList.toggle("hidden", !seed.friendText); }
+    if(showAuthorReply._logged!==seed.workId){ showAuthorReply._logged=seed.workId; logEvent("sender_return", {rootWorkId:seed.rootWorkId||null, placeId:pid}); }
     $("authorCredit").classList.toggle("hidden", !(PLACE_PHOTOS[pid]&&PLACE_PHOTOS[pid].hero));
     $("authorStatus").textContent="";
     show("sAuthorReply");
@@ -5890,14 +6004,41 @@ var qrcode = function() {
     startViaPlaces();
   }
   $("btnReplyDone").addEventListener("click", finishFriendReply);
+  function regenReply(){
+    var orig=state.incomingSeed; if(!orig) return null;
+    var all=readJsonLS(REPLIED_KEY); var rec=all[seedRoot(orig)]; if(!rec) return null;
+    var res=buildReplyUrl(orig, rec.friendMarks||[]);
+    rec.res=res; rec.friendText=state.friendText||""; if(res.compact && res.compact.fw) rec.friendWorkId=res.compact.fw;
+    all[seedRoot(orig)]=rec; writeJsonLS(REPLIED_KEY, all);
+    state.lastReplyUrlResult=res;
+    $("replyUrlBox").textContent = res.ok ? res.url : ("（回应链接过长 · "+res.length+" > "+SEED_URL_SAFE_LEN+" · 不生成假短链）");
+    return res;
+  }
+  if($("replyLineEdit")) $("replyLineEdit").addEventListener("input", function(){
+    state.friendText = String($("replyLineEdit").value||"").slice(0,80);
+    clearTimeout(regenReply._t); regenReply._t=setTimeout(regenReply, 200);
+  });
   $("btnSendBack").addEventListener("click", function(){
-    var res = state.lastReplyUrlResult; var st=$("replyStatus");
-    if(!res || !res.ok){ st.textContent=t("sentFail"); return; }
+    clearTimeout(regenReply._t);
     var orig = state.incomingSeed || {};
+    var rec = readJsonLS(REPLIED_KEY)[seedRoot(orig)] || {};
+    var ftNow = String(($("replyLineEdit")&&$("replyLineEdit").value)||"").trim();
+    state.friendText = ftNow;
+    if(!(rec.friendMarks||[]).length && !ftNow){ toast(t("toastNeedSomething")); return; }
+    var res = regenReply() || state.lastReplyUrlResult; var st=$("replyStatus");
+    if(!res || !res.ok){ st.textContent=t("sentFail"); return; }
+    if(!rec.contributed){
+      var all=readJsonLS(REPLIED_KEY); if(all[seedRoot(orig)]){ all[seedRoot(orig)].contributed=true; writeJsonLS(REPLIED_KEY, all); }
+      addChapter((res.compact&&res.compact.w)||makeWorkId(), orig.place&&orig.place.id, "reply");
+    }
+    logEvent("reply_back", {rootWorkId:seedRoot(orig), placeId:orig.place&&orig.place.id});
     shareOrCopy(res.url, t("shareTextBack",{title:poeticTitle(orig.place&&orig.place.id)}), st, t("backShared"), t("backCopied"));
     showQr("replyQrBox","replyQrImg","replyQrTooLong", res.url);
   });
-  $("btnMakeMine").addEventListener("click", startOwnWork);
+  $("btnMakeMine").addEventListener("click", function(){
+    logEvent("recipient_new_chapter", {fromRootWorkId:seedRoot(state.incomingSeed)});
+    startOwnWork();
+  });
   $("btnReplyKeep").addEventListener("click", function(){ keepForMyself($("replyStatus")); });
   $("btnAuthorNew").addEventListener("click", startOwnWork);
   $("btnAuthorKeep").addEventListener("click", function(){
@@ -5989,7 +6130,7 @@ var qrcode = function() {
       fx:{wind:false,light:false,mist:false,pulse:false}, activeTool:null, compareMode:"duo", soloSnapshot:null,
       bodyDepth:"shallow", bodyDeep:null, seasonDeep:null, paceFeel:null, duration:"linger", sceneEnteredAt:null,
       seedFormat:"vertical", recipientMode:false, incomingSeed:null,
-      privacyLineConfirmed:true, lastSeedUrlResult:null, feelWords:[], feelPrint:false, replySeed:null, lastReplyUrlResult:null };
+      privacyLineConfirmed:true, lastSeedUrlResult:null, feelWords:[], feelPrint:false, replySeed:null, lastReplyUrlResult:null, authorName:"", friendText:"" };
     document.querySelectorAll(".chip.on, .place.on, .feel.on, .depth-btn.on, .duration-btn.on").forEach(function(el){ el.classList.remove("on"); });
     $("depthShallow").classList.add("on"); $("durLinger").classList.add("on");
     applyBodyDepthUI();
@@ -6068,6 +6209,9 @@ var qrcode = function() {
     makeQr: function(text){ var r=makeQrDataUrl(text); return r; },
     lastQr: function(){ return lastQr; },
     lastReplyUrl: function(){ return state.lastReplyUrlResult; },
+    chapters: function(){ return readArrLS(CHAPTERS_KEY); },
+    events: function(){ return readArrLS(EVENTS_KEY); },
+    localCountry: function(){ return localCountry(); },
     enterPlaceDev: function(id){ state.placeId=id; enterScene(); },
     setLang: function(l){ setLang(l); },
     buildSceneSeed: function(){ return buildSceneSeed(); },
@@ -6162,9 +6306,10 @@ var qrcode = function() {
     if(!$("sSeed").classList.contains("hidden") && state.incomingSeed){ var sim=$("seedViewSimBadge").style.display!=="none"; showSeedView(state.incomingSeed, sim); }
     if(!$("sReply").classList.contains("hidden") && state.incomingSeed){ var rec=readJsonLS(REPLIED_KEY)[seedRoot(state.incomingSeed)]; if(rec) showFriendReply(rec.orig, rec.friendMarks, rec.res); }
     if(!$("sAuthorReply").classList.contains("hidden") && state.replySeed){ showAuthorReply(state.replySeed); }
+    renderChapters();
   }
   $("btnLang").addEventListener("click", function(){ setLang(lang==="en"?"zh":"en"); });
-  applyLang();
+  applyLang(); renderChapters();
   updateAudioChip(); applyBodyDepthUI(); updateDurationUI();
 })();
 </script>
