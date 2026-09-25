@@ -30,7 +30,6 @@
 | `assets/places/wudang/homestay/01-courtyard-house.jpg` | 武当 · homestay/ | Photo · Cindy Yang | 2026-09-24 via chat | orientation applied (none needed); EXIF/GPS stripped; JPEG q80 |
 | `assets/places/wudang/homestay/02-window-tea-terrace.jpg` | 武当 · homestay/ | Photo · Cindy Yang | 2026-09-24 via chat | orientation applied (none needed); EXIF/GPS stripped; JPEG q80 |
 | `assets/places/wudang/vista/01-cliff-pavilion.jpg` | 武当 · vista/ | Photo · Cindy Yang | 2026-09-24 via chat | orientation applied (none needed); EXIF/GPS stripped; JPEG q80 |
-
 | `assets/places/onsen/01-hot-spring-field-town.jpg` | 日本森林温泉 · onsen/ | Photo · Cindy Yang | 2026-09-24 via chat | EXIF-free as provided; committed in Grok P0 PR |
 | `assets/places/onsen/02-hot-spring-falls.jpg` | 日本森林温泉 · onsen/ | Photo · Cindy Yang | 2026-09-24 via chat | EXIF-free as provided; committed in Grok P0 PR |
 

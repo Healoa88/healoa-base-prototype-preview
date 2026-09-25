@@ -3,10 +3,23 @@
 **Not** a formal App launch. **Not** aurora-companions / healoa.com website work.
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- Version stamp: **预览 v2026-09-24-m** · **Scene Seed / 场景种子**
+- Version stamp: **预览 v2026-09-24-n** · **Scene Seed / 场景种子**
 - Single-file offline HTML demo + local place photos: pick a place → see/hear/operate a scene → solo create → optional **simulated** second person → save / restore → emit a **Scene Seed** (`#seed=` reopenable work URL) → friend opens **their own copy** and can add a stroke
 
 App social currency (Living Editions · App side) = **Scene Seed** — “我发现了一个美的地方，并把创作邀请给你”.
+
+## v2026-09-24-n UX (P0 · 单轮回应闭环)
+
+- Customer path = 4 steps: **选地方 → 留一笔 → 留一句 → 发给一个人**. Body×season is out of the first round (no entry buttons, no step pill).
+- 「疗愈民宿 · 慢住」 renamed **山居慢住**. 「热门打卡」 wording → 「热门景点」.
+- Card is the editor (「留一句」, skippable). Feeling words optional, ≤5, **not printed by default**.
+- Share page: only **发给一个人** / **只留给自己**; seed/JSON/UNKNOWN/tech honesty folded into 「关于这份 Demo」. healoa.com/circles funnel removed.
+- Friend adds a stroke → **Reply Seed** (`k:"r"`, rootWorkId `r`, parentWorkId `pa`, original work, friend strokes `fm`) → 「发回给 TA」 (Web Share, else copy; manual) / 「做一张我的」 / 「只留给自己」. One reply per root per device.
+- Author opens Reply Seed → 「TA 在你的作品旁边加了一笔」 with both strokes. **Stops there** (no reply-to-reply).
+- QR: inline qrcode-generator (MIT); only when link ≤ 520 chars (QR v≤15, ECC L). No fake short links.
+- zh/en language table + toggle; 「Photo · Cindy Yang」 credit on scene / card / PNG.
+- 日本森林温泉 = single top-level real-photo place (`assets/places/onsen/`); honesty 温泉气氛预览 · 非医疗功效 · 非预订. 北极小木屋 pending.
+- Tests: **181/181 PASS** (`npm run test:scene-seed`).
 
 ## v2026-09-24-m UX (share-card PNG · place + path heroes)
 
