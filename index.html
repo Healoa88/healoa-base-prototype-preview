@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-24-p）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-25-q）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -451,6 +451,23 @@
     opacity:0; transition: opacity 0.45s var(--ease);
   }
   .first-run-spotlight.on { opacity:1; }
+  /* v2026-09-25-q · P1-2 compact coach: one line「① 选痕迹，点画面」+「?」; full list only when expanded */
+  .coach-dock.compact { width:fit-content; max-width:calc(100% - 24px); padding:5px 6px; border-radius:999px; background:rgba(8,14,18,0.62); }
+  .coach-dock.compact strong, .coach-dock.compact .coach-more { display:none; }
+  .coach-dock.compact .coach-actions { flex-wrap:nowrap; align-items:center; }
+  .coach-dock.compact .coach-actions button { padding:6px 10px; }
+  .coach-actions button.coach-toggle { min-width:30px; padding:6px 9px; font-weight:700; color:var(--aqua); }
+  .stage-hint { padding: 8px 12px; }
+  /* v2026-09-25-q · P1-1 reserve a row for #sceneCredit so it never sits on #assetNote */
+  #sceneShell .scene-footer-bar { padding-bottom: 34px; }
+  /* v2026-09-25-q · P0-2 send feedback that is readable + a selectable manual-copy link */
+  .share-status.notice { color: var(--text); font-size: 0.88rem; line-height: 1.5; }
+  .share-status.notice[data-kind="warn"] { color: var(--gold); }
+  .manual-link { display:block; width:100%; margin-top:8px; font-size:0.74rem; line-height:1.4; color:var(--text);
+    background:rgba(0,0,0,0.32); border:1px solid rgba(212,176,138,0.55); border-radius:10px; padding:8px 10px;
+    word-break:break-all; resize:none; -webkit-user-select:text; user-select:text; font-family:inherit; }
+  .manual-link.hidden { display:none; }
+  button.flash-ok { box-shadow: 0 0 0 2px rgba(110,198,192,0.55); }
   .scene-intro { font-size:0.84rem; color:var(--muted); margin-bottom:10px; line-height:1.5; }
   .scene-intro strong { color:var(--aqua); }
   .trial-card.collapsed-below { margin-top:12px; }
@@ -658,7 +675,7 @@
   .invite-truth { font-size: 0.82rem; line-height: 1.55; color: var(--muted); }
   .invite-truth strong { color: var(--text); }
 
-  /* v2026-09-24-p · P0 single-round reply · card editor · QR · i18n */
+  /* v2026-09-25-q · P0 single-round reply · card editor · QR · i18n */
   .proto-banner { position: sticky; }
   .lang-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); appearance:none; border:1px solid var(--line);
     background:rgba(255,255,255,0.06); color:var(--text); border-radius:999px; padding:5px 11px; font-size:11px; font-weight:650; cursor:pointer; font-family:inherit; }
@@ -709,7 +726,7 @@
 
 <div class="proto-banner quiet-chrome">
   <button type="button" class="lang-toggle" id="btnLang" aria-label="Language / 语言">EN</button>
-  <strong data-i18n="bannerTitle">可看原型 · 非正式 Demo · 预览 v2026-09-24-p</strong>
+  <strong data-i18n="bannerTitle">可看原型 · 非正式 Demo · 预览 v2026-09-25-q</strong>
   <span data-i18n="bannerSub">选地方 · 留一笔 · 留一句 · 发给一个人</span>
 </div>
 <div class="wrap">
@@ -991,13 +1008,14 @@
       <div class="play-stage" id="playStage" aria-label="可操作场景台">
         <div class="stage-hint" id="stageHint" data-i18n-html="stageHint">点这里放下一笔<br /><span style="opacity:0.85;font-size:0.78rem">可拖动 · 最多 6 个</span></div>
       </div>
-      <div class="coach-dock" id="coachDock" aria-label="你可以做什么">
+      <div class="coach-dock compact" id="coachDock" aria-label="你可以做什么">
         <strong data-i18n="coachTitle">你可以做什么</strong>
         <div class="coach-actions">
           <button type="button" id="coachPlace" class="pulse" data-i18n="coachPlace">① 选痕迹，点画面</button>
-          <button type="button" id="coachFx" data-i18n="coachFx">② 开风 / 光</button>
-          <button type="button" id="coachWrite" data-i18n="coachWrite">③ 留一句</button>
-          <button type="button" id="coachInvite" data-i18n="coachInvite">④ 发给一个人</button>
+          <button type="button" id="coachFx" class="coach-more" data-i18n="coachFx">② 开风 / 光</button>
+          <button type="button" id="coachWrite" class="coach-more" data-i18n="coachWrite">③ 留一句</button>
+          <button type="button" id="coachInvite" class="coach-more" data-i18n="coachInvite">④ 发给一个人</button>
+          <button type="button" id="coachToggle" class="coach-toggle" aria-expanded="false" aria-label="你可以做什么">?</button>
         </div>
       </div>
       <div class="ta-activity" id="taActivity" aria-live="polite"></div>
@@ -1093,10 +1111,10 @@
 
   <section id="s5" class="screen hidden">
     <div class="steps" aria-hidden="true">
-      <span data-i18n="step1">1 选地方</span><span data-i18n="step2">2 留一笔</span><span class="on" data-i18n="step3">3 留一句</span><span data-i18n="step4">4 发给一个人</span>
+      <span data-i18n="step1">1 选地方</span><span data-i18n="step2">2 留一笔</span><span class="on" id="s5Step3" data-i18n="step3">3 留一句</span><span id="s5Step4" data-i18n="step4">4 发给一个人</span>
     </div>
-    <h1 data-i18n="s5H1">留一句</h1>
-    <p class="sub" data-i18n="s5Sub">卡片就是编辑器：直接在卡片上写一句。可以不写，直接发。</p>
+    <h1 id="s5H1" data-i18n="s5H1">留一句</h1>
+    <p class="sub" id="s5Sub" data-i18n="s5Sub">卡片就是编辑器：直接在卡片上写一句。可以不写，直接发。</p>
     <div class="seed-card-live" id="seedCardLive" aria-live="polite">
       <div class="seed-inner">
         <div class="seed-kicker">SCENE SEED · <span data-i18n="kickerZh">场景种子</span></div>
@@ -1111,7 +1129,7 @@
         <div class="seed-meta">
           <span class="seed-credit" id="seedLiveCredit">Photo · Cindy Yang</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-24-p</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-25-q</span>
         </div>
         <div class="seed-foot hidden" id="seedLiveFoot"></div>
       </div>
@@ -1125,6 +1143,7 @@
       <button class="primary" type="button" id="btnSendToFriend" data-i18n="sendOne">发给一个人</button>
       <button class="soft" type="button" id="btnKeepSelf" data-i18n="keepSelf">只留给自己</button>
       <p class="share-status" id="shareStatus" aria-live="polite"></p>
+      <textarea class="manual-link hidden" id="shareManualLink" rows="3" readonly aria-label="link"></textarea>
     </div>
     <div class="qr-box hidden" id="qrBox">
       <p class="hint" id="qrCaption" data-i18n="qrCaption">面对面？让 TA 用相机扫这个码。</p>
@@ -1178,7 +1197,7 @@
           <p class="hint" id="feelAckText" style="margin-top:10px;margin-bottom:0;display:none;color:var(--text)"></p>
         </div>
         <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
-        <p class="footer-meta">预览 v2026-09-24-p · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移 · 场景照片为演示用实景 · Photo · Cindy Yang</p>
+        <p class="footer-meta">预览 v2026-09-25-q · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移 · 场景照片为演示用实景 · Photo · Cindy Yang</p>
       </div>
     </details>
   </section>
@@ -1199,7 +1218,7 @@
         <div class="seed-meta">
           <span class="seed-credit" id="seedViewCredit">Photo · Cindy Yang</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-24-p</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-25-q</span>
         </div>
       </div>
     </div>
@@ -1226,7 +1245,7 @@
         <div class="stroke-legend"><span class="lg mine" data-i18n="legendTheirs">TA 的笔</span><span class="lg friend" data-i18n="legendYours">你加的笔</span></div>
         <div class="seed-line" id="replyLine"></div>
         <textarea class="card-line-edit" id="replyLineEdit" rows="2" maxlength="80" data-i18n-ph="cardLinePh" placeholder="点这里留一句（可不写）"></textarea>
-        <div class="seed-meta"><span class="seed-credit" id="replyCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-24-p</span></div>
+        <div class="seed-meta"><span class="seed-credit" id="replyCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-25-q</span></div>
       </div>
     </div>
     <div class="btn-row" id="replyActions">
@@ -1234,6 +1253,7 @@
       <button class="warm" type="button" id="btnMakeMine" data-i18n="makeMine">做一张我的</button>
       <button class="soft" type="button" id="btnReplyKeep" data-i18n="keepSelf">只留给自己</button>
       <p class="share-status" id="replyStatus" aria-live="polite"></p>
+      <textarea class="manual-link hidden" id="replyManualLink" rows="3" readonly aria-label="link"></textarea>
     </div>
     <div class="qr-box hidden" id="replyQrBox">
       <p class="hint" data-i18n="qrCaptionBack">面对面？让 TA 用相机扫这个码。</p>
@@ -1259,7 +1279,7 @@
         <div class="stroke-legend"><span class="lg mine" data-i18n="legendMine">你的笔</span><span class="lg friend" data-i18n="legendTa">TA 加的笔</span></div>
         <div class="seed-line" id="authorLine"></div>
         <div class="seed-line friend-line hidden" id="authorFriendLine"></div>
-        <div class="seed-meta"><span class="seed-credit" id="authorCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-24-p</span></div>
+        <div class="seed-meta"><span class="seed-credit" id="authorCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-25-q</span></div>
       </div>
     </div>
     <div class="btn-row" id="authorActions">
@@ -3581,10 +3601,10 @@ var qrcode = function() {
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-24-p";
+  var VERSION = "v2026-09-25-q";
   var MAX_MARKS = 6;
   var MAX_FRIEND_MARKS = 3;
-  /* ===== UI copy · language table (zh default · en second) · v2026-09-24-p ===== */
+  /* ===== UI copy · language table (zh default · en second) · v2026-09-25-q ===== */
   var I18N = {
     zh: {
       langBtn:"EN",
@@ -3646,6 +3666,12 @@ var qrcode = function() {
       assetProc:"程序生成的气氛预览 · 非实拍",
       assetOnsen:"温泉气氛预览 · 非医疗功效 · 非预订 · Photo · Cindy Yang",
       s5H1:"留一句", s5Sub:"卡片就是编辑器：直接在卡片上写一句。可以不写，直接发。",
+      s5H1Send:"发给一个人", s5SubSend:"把链接发给一个你想到的人。发不发、发给谁，由你决定。",
+      s5SubFromInvite:"发送是下一步：先在卡片上写一句（可以不写），再点下面的「发给一个人」。",
+      coachNeedMark:"先点画面放一笔", coachMore:"你可以做什么", coachLess:"收起",
+      copyFailManual:"没复制成功，长按下面的链接手动复制。",
+      shareCancelled:"没发出去也没关系。可以再点一次，或长按下面的链接自己复制。",
+      btnCopiedFlash:"✓ 链接已复制",
       kickerZh:"场景种子", cardLinePh:"点这里留一句（可不写）",
       inviteLine:"我留下了一笔。你会在旁边加什么？",
       feelTitle:"感受词（可选 · 最多 5 个）", feelPrint:"印在卡片上（默认不印，只留在你这里）",
@@ -3747,6 +3773,12 @@ var qrcode = function() {
       assetProc:"Generated mood preview · not a photo",
       assetOnsen:"Hot-spring mood preview · no health claims · not a booking · Photo · Cindy Yang",
       s5H1:"Leave a line", s5Sub:"The card is the editor: write a line right on it. Or skip it and just send.",
+      s5H1Send:"Send to one person", s5SubSend:"Send the link to one person you have in mind. Whether and to whom is up to you.",
+      s5SubFromInvite:"Sending is the next step: write a line on the card (optional), then tap “Send to one person” below.",
+      coachNeedMark:"Tap the picture to leave a mark first", coachMore:"What you can do", coachLess:"Hide",
+      copyFailManual:"Couldn't copy. Long-press the link below to copy it by hand.",
+      shareCancelled:"Not sent — that's okay. Tap again, or long-press the link below to copy it yourself.",
+      btnCopiedFlash:"✓ Link copied",
       kickerZh:"scene card", cardLinePh:"Tap here to leave a line (optional)",
       inviteLine:"I left a mark here. What would you add next to it?",
       feelTitle:"Feeling words (optional · up to 5)", feelPrint:"Print them on the card (off by default — they stay with you)",
@@ -4737,6 +4769,7 @@ var qrcode = function() {
     state.marks.push(mark); placeMarkEl(mark); $("stageHint").classList.add("hide"); updateMarkCount();
     var cp=$("coachPlace"); if(cp) cp.classList.remove("pulse");
     var spot=$("firstRunSpotlight"); if(spot) spot.classList.remove("on");
+    if(from!=="p2") setCoachExpanded(false);
     if(from!=="p2") syncSendFriendCta();
     return mark;
   }
@@ -5039,7 +5072,7 @@ var qrcode = function() {
     var ile0=$("inlineLineEdit"); if(ile0) ile0.value="";
     clearJoinTimers(); clearStageMarks(); $("stageHint").classList.remove("hide");
     $("cmpSolo").classList.remove("on"); $("cmpDuo").classList.add("on");
-    paintScene(false); show("s3"); updateAudioChip(); startSoftTimer(); syncSendFriendCta();
+    paintScene(false); show("s3"); updateAudioChip(); startSoftTimer(); syncSendFriendCta(); setCoachExpanded(false);
     requestAnimationFrame(function(){
       resizeFxCanvas(); startFxLoop();
       scrollSceneIntoView();
@@ -5068,12 +5101,31 @@ var qrcode = function() {
       if(!state.fx.light){ state.fx.light=true; }
       applyFxClasses(); toast("已开 · 风 + 光");
     });
-    if(write) write.addEventListener("click", function(){ goSendFriend(); });
-    if(inv) inv.addEventListener("click", function(){ goSendFriend(); });
+    // v2026-09-25-q · P0-2a: ③/④ never jump silently. No mark yet → say so on the stage; after a mark → 留一句 page, with the hint that sending is the next step.
+    function coachNeedMark(){
+      toast(t("coachNeedMark"));
+      $("stageHint").classList.remove("hide");
+      if(place) place.classList.add("pulse");
+      $("playStage").scrollIntoView({behavior:"smooth", block:"center"});
+    }
+    if(write) write.addEventListener("click", function(){ if(myMarkCount()<1){ coachNeedMark(); return; } goSendFriend(); });
+    if(inv) inv.addEventListener("click", function(){
+      if(myMarkCount()<1){ coachNeedMark(); return; }
+      goSendFriend();
+      if(!$("s5").classList.contains("hidden")){ var sub=$("s5Sub"); sub.setAttribute("data-i18n","s5SubFromInvite"); sub.textContent=t("s5SubFromInvite"); }
+    });
+    var tg=$("coachToggle");
+    if(tg) tg.addEventListener("click", function(){ setCoachExpanded($("coachDock").classList.contains("compact")); });
     if(save) save.addEventListener("click", function(){
       $("btnSoloSave").scrollIntoView({behavior:"smooth", block:"center"});
       toast("可先保存本机，或直接发给朋友");
     });
+  }
+  /** v2026-09-25-q · P1-2: coach is one compact line by default; 「?」 expands the full list, first mark collapses it again. */
+  function setCoachExpanded(open){
+    var dock=$("coachDock"), tg=$("coachToggle"); if(!dock) return;
+    dock.classList.toggle("compact", !open);
+    if(tg){ tg.setAttribute("aria-expanded", open?"true":"false"); tg.textContent = open ? "×" : "?"; tg.setAttribute("aria-label", t(open?"coachLess":"coachMore")); }
   }
   wireCoachDock();
   $("btnAudio").addEventListener("click", function(ev){ ev.stopPropagation(); toggleAudio(); });
@@ -5155,7 +5207,8 @@ var qrcode = function() {
   }
   function openShareScreen(opts){
     opts=opts||{};
-    $("shareStatus").textContent="";
+    $("shareStatus").textContent=""; resetSendFeedback("shareStatus","shareManualLink");
+    setShareStage(3);
     // v-n: the card IS the editor (WYSIWYG) — what is on the card is what gets sent; no extra confirm gate.
     state.privacyLineConfirmed = true;
     var cle=$("cardLineEdit"); if(cle) cle.value=state.soloText||"";
@@ -5563,14 +5616,52 @@ var qrcode = function() {
     var ok=false; try { ok=document.execCommand("copy"); } catch(e){ ok=false; }
     ta.remove(); return ok;
   }
-  /** Share a link: navigator.share when available, else copy. Never claims delivery. */
-  function shareOrCopy(url, text, statusEl, sharedMsg, copiedMsg){
+  /** v2026-09-25-q · P0-1: 「留一句」(3) → 「发给一个人」(4) is a state change on the same #s5 page. */
+  function setShareStage(n){
+    var send = n===4;
+    var s3=$("s5Step3"), s4=$("s5Step4"), h=$("s5H1"), sub=$("s5Sub");
+    if(s3) s3.classList.toggle("on", !send);
+    if(s4) s4.classList.toggle("on", send);
+    if(h){ h.setAttribute("data-i18n", send?"s5H1Send":"s5H1"); h.textContent=t(send?"s5H1Send":"s5H1"); }
+    if(sub){ sub.setAttribute("data-i18n", send?"s5SubSend":"s5Sub"); sub.textContent=t(send?"s5SubSend":"s5Sub"); }
+    state.shareStage = n;
+  }
+  function resetSendFeedback(statusId, manualId){
+    var st=$(statusId); if(st){ st.classList.remove("notice"); st.removeAttribute("data-kind"); }
+    var m=$(manualId); if(m){ m.classList.add("hidden"); m.value=""; }
+  }
+  /** Button itself confirms a successful copy for 3.5s (then restores its label). */
+  function flashBtn(btn, text, ms){
+    if(!btn) return;
+    if(!btn.__flashing) btn.__flashOrig = btn.textContent;
+    btn.__flashing = true; btn.textContent = text; btn.classList.add("flash-ok");
+    clearTimeout(btn.__flashTimer);
+    btn.__flashTimer = setTimeout(function(){
+      btn.__flashing = false; btn.classList.remove("flash-ok");
+      var k = btn.getAttribute("data-i18n"); btn.textContent = k ? t(k) : btn.__flashOrig;
+    }, ms||3500);
+  }
+  /** Share a link: navigator.share when available, else copy. Never claims delivery; never claims a copy that failed.
+   *  opts.btn / opts.manual: ids of the tapped button and the manual-copy field. Feedback is scrolled into view. */
+  function shareOrCopy(url, text, statusEl, sharedMsg, copiedMsg, opts){
+    opts=opts||{};
+    var btn=opts.btn?$(opts.btn):null, manual=opts.manual?$(opts.manual):null;
+    if(manual) manual.classList.add("hidden");
+    function say(msg, kind){
+      statusEl.textContent=msg; statusEl.classList.add("notice"); statusEl.setAttribute("data-kind", kind);
+      var target = (manual && !manual.classList.contains("hidden")) ? manual : statusEl;
+      try { target.scrollIntoView({block:"center", behavior:"smooth"}); } catch(e){ target.scrollIntoView(false); }
+    }
+    function showManual(){ if(!manual) return; manual.value=url; manual.classList.remove("hidden"); }
     function copyPath(){
-      copyText(url, function(){ statusEl.textContent=copiedMsg; toast(t("toastCopied")); });
+      copyText(url, function(ok){
+        if(ok){ say(copiedMsg, "ok"); toast(t("toastCopied")); flashBtn(btn, t("btnCopiedFlash")); }
+        else { showManual(); say(t("copyFailManual"), "warn"); }
+      });
     }
     if(navigator.share){
-      navigator.share({title:t("shareTitle"), text:text, url:url}).then(function(){ statusEl.textContent=sharedMsg; })
-        .catch(function(err){ if(!(err&&err.name==="AbortError")) copyPath(); else statusEl.textContent=""; });
+      navigator.share({title:t("shareTitle"), text:text, url:url}).then(function(){ say(sharedMsg, "ok"); })
+        .catch(function(err){ if(err&&err.name==="AbortError"){ showManual(); say(t("shareCancelled"), "warn"); } else copyPath(); });
     } else copyPath();
   }
   function sendToOnePerson(){
@@ -5584,12 +5675,14 @@ var qrcode = function() {
     var seed=buildSceneSeed();
     markChapterCreated();
     logEvent("share_sent", {workId:state.workId, placeId:state.placeId});
-    shareOrCopy(result.url, t("shareText",{title:poeticTitle(seed.place.id)}), st, t("sentShared"), t("sentCopied"));
+    setShareStage(4);
+    shareOrCopy(result.url, t("shareText",{title:poeticTitle(seed.place.id)}), st, t("sentShared"), t("sentCopied"), {btn:"btnSendToFriend", manual:"shareManualLink"});
     showQr("qrBox","qrImg","qrTooLong", result.url);
   }
   function keepForMyself(statusEl, msg){
     silentSaveLocal();
     if(statusEl && statusEl.id==="shareStatus") markChapterCreated();
+    statusEl.classList.remove("notice"); statusEl.removeAttribute("data-kind");
     statusEl.textContent = msg || t("keptSelf");
     toast(t("toastKept"));
   }
@@ -5986,7 +6079,7 @@ var qrcode = function() {
     var rle=$("replyLineEdit"); if(rle) rle.value = state.friendText||"";
     $("replyCredit").classList.toggle("hidden", !(PLACE_PHOTOS[pid]&&PLACE_PHOTOS[pid].hero));
     $("replyUrlBox").textContent = res.ok ? res.url : ("（回应链接过长 · "+res.length+" > "+SEED_URL_SAFE_LEN+" · 不生成假短链）");
-    $("replyStatus").textContent = ""; $("replyQrBox").classList.add("hidden");
+    $("replyStatus").textContent = ""; resetSendFeedback("replyStatus","replyManualLink"); $("replyQrBox").classList.add("hidden");
     show("sReply");
   }
   function finishFriendReply(){
@@ -6052,7 +6145,7 @@ var qrcode = function() {
       addChapter((res.compact&&res.compact.w)||makeWorkId(), orig.place&&orig.place.id, "reply");
     }
     logEvent("reply_back", {rootWorkId:seedRoot(orig), placeId:orig.place&&orig.place.id});
-    shareOrCopy(res.url, t("shareTextBack",{title:poeticTitle(orig.place&&orig.place.id)}), st, t("backShared"), t("backCopied"));
+    shareOrCopy(res.url, t("shareTextBack",{title:poeticTitle(orig.place&&orig.place.id)}), st, t("backShared"), t("backCopied"), {btn:"btnSendBack", manual:"replyManualLink"});
     showQr("replyQrBox","replyQrImg","replyQrTooLong", res.url);
   });
   $("btnMakeMine").addEventListener("click", function(){
@@ -6324,6 +6417,7 @@ var qrcode = function() {
       else { $("sceneHeading").textContent=t("sceneHeading",{name:pt(p,"name")}); $("sceneSub").textContent=t("sceneSub"); }
     }
     if(!$("s5").classList.contains("hidden")){ renderFeelChips(); refreshSeedShareUI(); }
+    setCoachExpanded(!$("coachDock").classList.contains("compact"));
     if(!$("sSeed").classList.contains("hidden") && state.incomingSeed){ var sim=$("seedViewSimBadge").style.display!=="none"; showSeedView(state.incomingSeed, sim); }
     if(!$("sReply").classList.contains("hidden") && state.incomingSeed){ var rec=readJsonLS(REPLIED_KEY)[seedRoot(state.incomingSeed)]; if(rec) showFriendReply(rec.orig, rec.friendMarks, rec.res); }
     if(!$("sAuthorReply").classList.contains("hidden") && state.replySeed){ showAuthorReply(state.replySeed); }
