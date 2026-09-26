@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:scene-seed": "node tests/scene-seed-p0.mjs"
+    "test:scene-seed": "node tests/scene-seed-p0.mjs",
+    "test:immersive": "node tests/immersive-hawaii.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"

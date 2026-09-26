@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 380" width="400" height="380">
+  <!-- 示例占位：手绘卡通狗狗剪影，不是真实照片 / placeholder cartoon dog, not a real photo -->
+  <g fill="#3b2a21">
+    <path d="M318 214c30-6 52-30 50-58-1-10 12-12 15-3 10 34-14 70-58 78z"/>
+    <ellipse cx="238" cy="252" rx="112" ry="70"/>
+    <rect x="148" y="280" width="40" height="92" rx="20"/>
+    <rect x="200" y="290" width="38" height="82" rx="19"/>
+    <rect x="262" y="286" width="38" height="86" rx="19"/>
+    <rect x="310" y="276" width="38" height="96" rx="19"/>
+    <circle cx="150" cy="150" r="92"/>
+    <ellipse cx="138" cy="206" rx="58" ry="40"/>
+  </g>
+  <g fill="#2a1d17">
+    <path d="M76 92c-26 6-44 50-36 96 4 22 32 24 42 4 10-22 16-54 22-86 3-12-14-18-28-14z"/>
+    <path d="M224 92c26 6 44 50 36 96-4 22-32 24-42 4-10-22-16-54-22-86-3-12 14-18 28-14z"/>
+  </g>
+  <ellipse cx="238" cy="276" rx="62" ry="34" fill="#5a4034"/>
+  <ellipse cx="140" cy="210" rx="36" ry="24" fill="#5a4034"/>
+  <circle cx="116" cy="150" r="10" fill="#f6e7d6"/><circle cx="184" cy="150" r="10" fill="#f6e7d6"/>
+  <circle cx="119" cy="147" r="3.5" fill="#fff"/><circle cx="187" cy="147" r="3.5" fill="#fff"/>
+  <ellipse cx="150" cy="192" rx="14" ry="10" fill="#140d0a"/>
+  <path d="M138 212q12 12 24 0" stroke="#140d0a" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="96" cy="182" r="10" fill="#ff9aa2" opacity=".35"/><circle cx="204" cy="182" r="10" fill="#ff9aa2" opacity=".35"/>
+</svg>
