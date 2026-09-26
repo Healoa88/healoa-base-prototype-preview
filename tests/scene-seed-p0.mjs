@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-24-p)
+ * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-25-q)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -12,7 +12,8 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const INDEX = path.join(ROOT, "index.html");
-const EVIDENCE = "/workspace/docs/demo-evidence-2026-09-24";
+// HEALOA_EVIDENCE_DIR overrides the output dir (default unchanged) so parallel runs don't clobber shared evidence.
+const EVIDENCE = process.env.HEALOA_EVIDENCE_DIR || "/workspace/docs/demo-evidence-2026-09-24";
 const RESULTS = path.join(EVIDENCE, "14-test-results.json");
 
 fs.mkdirSync(EVIDENCE, { recursive: true });
@@ -189,7 +190,7 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-24-p"), banner);
+    record("version-banner", banner.includes("v2026-09-25-q"), banner);
 
     const heroMap = await sender.evaluate(() => window.__healoaSeedTest.placePhotoHeroMap());
     const expectedHeroes = {
@@ -1037,6 +1038,7 @@ async function main() {
         stageInView: stageRect.top < window.innerHeight && stageRect.bottom > 40,
         landmarkSvg: !!(landmark && landmark.querySelector("svg")),
         coachText: (coach && coach.innerText) || "",
+        coachLabel: (coach && coach.getAttribute("aria-label")) || "",
         lightOn: bg.classList.contains("light-on"),
         maxParticleA: maxA,
         canvasW: canvas.width,
@@ -1047,7 +1049,8 @@ async function main() {
     record("scene-not-blank-bg-gradient", blankCheck.bgGradient && blankCheck.bgOpacity > 0.5, JSON.stringify(blankCheck));
     record("scene-not-blank-stage-visible", blankCheck.stageH >= 180 && blankCheck.stageW >= 200 && blankCheck.stageInView, JSON.stringify({ h: blankCheck.stageH, w: blankCheck.stageW, inView: blankCheck.stageInView }));
     record("scene-not-blank-landmark", blankCheck.landmarkSvg, "landmarkSvg=" + blankCheck.landmarkSvg);
-    record("scene-not-blank-coach-dock", blankCheck.coachText.includes("你可以做什么"), blankCheck.coachText.slice(0, 80));
+    // v-q: coach is compact by default (one line + 「?」); the 「你可以做什么」 title is its accessible name and shows when expanded.
+    record("scene-not-blank-coach-dock", blankCheck.coachText.includes("你可以做什么") || (blankCheck.coachText.includes("① 选痕迹，点画面") && blankCheck.coachLabel === "你可以做什么"), blankCheck.coachText.slice(0, 80) + " | label=" + blankCheck.coachLabel);
     record("scene-not-blank-atmosphere", blankCheck.lightOn && blankCheck.maxParticleA >= 20, JSON.stringify({ lightOn: blankCheck.lightOn, maxA: blankCheck.maxParticleA }));
     await shot(sender, "scene-entered");
     await sender.locator("#sceneShell").screenshot({ path: path.join(EVIDENCE, "14-scene-shell.png") });
@@ -1512,6 +1515,190 @@ async function main() {
       await ovCtx.close();
     }
 
+    // ===== v2026-09-25-q · four fixes: P0-1 step status · P0-2 honest send feedback · P1-1 credit overlap · P1-2 compact coach =====
+    {
+      const Q_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+      const qOrigin = new URL(base).origin;
+      async function qPage({ width = 375, grant = true, init = null, lang = "zh" } = {}) {
+        const ctx = await browser.newContext({ viewport: { width, height: 812 }, deviceScaleFactor: 2, userAgent: Q_UA });
+        if (grant) await ctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: qOrigin });
+        if (init) await ctx.addInitScript(init);
+        const pg = await ctx.newPage();
+        pg.on("pageerror", (e) => pageErrors.push("Q:" + e));
+        await pg.goto(base);
+        if (lang === "en") await pg.click("#btnLang");
+        return { ctx, pg };
+      }
+      async function qToScene(pg) {
+        await pg.click("#btnStart");
+        await pg.click('.place[data-id="wudang"]');
+        await pg.click('.path-card[data-path="wudang-homestay"]');
+        await pg.waitForSelector("#s3:not(.hidden)");
+        await pg.waitForTimeout(500);
+      }
+      async function qMark(pg) {
+        if (!(await pg.locator("#markTools .tool.on").count())) await pg.locator("#markTools .tool").first().click();
+        const b = await pg.locator("#playStage").boundingBox();
+        await pg.mouse.click(b.x + b.width * 0.45, b.y + b.height * 0.45);
+        await pg.waitForTimeout(150);
+      }
+      async function qToCard(pg) {
+        await qToScene(pg); await qMark(pg);
+        await pg.click("#btnSendFriend"); await pg.waitForSelector("#s5:not(.hidden)");
+        await pg.fill("#cardLineEdit", "今天的风很轻。"); await pg.waitForTimeout(300);
+      }
+      async function qTapSend(pg) {
+        await pg.evaluate(() => { const r = document.getElementById("btnSendToFriend").getBoundingClientRect(); window.scrollBy(0, r.bottom - innerHeight + 60); });
+        await pg.waitForTimeout(250);
+        await pg.click("#btnSendToFriend");
+      }
+      const qState = (pg) => pg.evaluate(() => {
+        const st = document.getElementById("shareStatus"); const r = st.getBoundingClientRect();
+        const m = document.getElementById("shareManualLink"); const mr = m.getBoundingClientRect();
+        const t = document.getElementById("toast");
+        return { steps: [...document.querySelectorAll("#s5 .steps .on")].map((x) => x.innerText), h1: document.querySelector("#s5 h1").innerText, sub: document.getElementById("s5Sub").innerText,
+          status: st.innerText, statusInView: !!st.innerText && r.top >= 0 && r.bottom <= innerHeight, btn: document.getElementById("btnSendToFriend").innerText,
+          toast: t.classList.contains("show") ? t.innerText : "", manualShown: m.offsetParent !== null, manualInView: m.offsetParent !== null && mr.top >= 0 && mr.bottom <= innerHeight,
+          manualValue: m.value, manualReadonly: m.readOnly, keepSelf: !!document.getElementById("btnKeepSelf") && document.getElementById("btnKeepSelf").offsetParent !== null };
+      });
+
+      // P0-1 · step bar + heading follow the stage on #s5
+      {
+        const { ctx, pg } = await qPage();
+        await qToCard(pg);
+        const before = await qState(pg);
+        record("q-p01-card-editor-is-step-3", JSON.stringify(before.steps) === '["3 留一句"]' && before.h1 === "留一句", JSON.stringify({ steps: before.steps, h1: before.h1 }));
+        await qTapSend(pg); await pg.waitForTimeout(400);
+        const after = await qState(pg);
+        record("q-p01-send-lights-step-4-and-heading", JSON.stringify(after.steps) === '["4 发给一个人"]' && after.h1 === "发给一个人" && !after.sub.includes("卡片就是编辑器"), JSON.stringify({ steps: after.steps, h1: after.h1, sub: after.sub }));
+        await pg.click("#btnLang"); await pg.waitForTimeout(150);
+        const en = await qState(pg);
+        record("q-p01-send-stage-survives-lang-toggle", JSON.stringify(en.steps) === '["4 Send to one person"]' && en.h1 === "Send to one person", JSON.stringify({ steps: en.steps, h1: en.h1 }));
+        await pg.click("#btnLang"); await pg.waitForTimeout(150);
+        await pg.evaluate(() => window.__healoaSeedTest.goSendFriend());
+        const reopened = await qState(pg);
+        record("q-p01-reopen-card-resets-to-step-3", JSON.stringify(reopened.steps) === '["3 留一句"]' && reopened.h1 === "留一句" && reopened.status === "" && !reopened.manualShown, JSON.stringify({ steps: reopened.steps, h1: reopened.h1 }));
+        const s3Labels = await pg.evaluate(() => ({ brand: document.querySelector("#s3 .brand").innerText, on: [...document.querySelectorAll("#s3 .steps .on")].map((x) => x.innerText) }));
+        record("q-p01-scene-page-labels-stage-2", s3Labels.brand === "HEALOA BASE · 留一笔" && JSON.stringify(s3Labels.on) === '["2 留一笔"]', JSON.stringify(s3Labels));
+        await ctx.close();
+      }
+      {
+        const { ctx, pg } = await qPage({ init: () => { navigator.share = () => Promise.resolve(); } });
+        await qToCard(pg); await qTapSend(pg); await pg.waitForTimeout(400);
+        const sh = await qState(pg);
+        record("q-p01-share-sheet-lights-step-4", JSON.stringify(sh.steps) === '["4 发给一个人"]' && sh.h1 === "发给一个人" && sh.status.includes("由你决定") && sh.statusInView, JSON.stringify({ steps: sh.steps, status: sh.status, inView: sh.statusInView }));
+        await ctx.close();
+      }
+
+      // P0-2a · coach ③/④ never jump silently
+      {
+        const { ctx, pg } = await qPage();
+        await qToScene(pg);
+        const compact = await pg.evaluate(() => ({ compact: document.getElementById("coachDock").classList.contains("compact"), invVisible: document.getElementById("coachInvite").offsetParent !== null }));
+        record("q-p02a-invite-not-shown-in-compact-coach", compact.compact && !compact.invVisible, JSON.stringify(compact));
+        await pg.click("#coachToggle");
+        const expanded = await pg.evaluate(() => ({ exp: document.getElementById("coachToggle").getAttribute("aria-expanded"), invVisible: document.getElementById("coachInvite").offsetParent !== null, title: document.querySelector("#coachDock strong").offsetParent !== null }));
+        record("q-p02a-coach-expands-on-question-mark", expanded.exp === "true" && expanded.invVisible && expanded.title, JSON.stringify(expanded));
+        for (const id of ["coachInvite", "coachWrite"]) {
+          await pg.click("#" + id); await pg.waitForTimeout(200);
+          const r = await pg.evaluate(() => ({ s3: !document.getElementById("s3").classList.contains("hidden"), toast: document.getElementById("toast").innerText, hint: !document.getElementById("stageHint").classList.contains("hide") }));
+          record("q-p02a-" + id + "-before-mark-says-mark-first", r.s3 && r.toast === "先点画面放一笔" && r.hint, JSON.stringify(r));
+        }
+        await qMark(pg);
+        const collapsed = await pg.evaluate(() => document.getElementById("coachDock").classList.contains("compact"));
+        record("q-p12-coach-collapses-after-first-mark", collapsed, "compact=" + collapsed);
+        await pg.click("#coachToggle"); await pg.click("#coachInvite");
+        await pg.waitForSelector("#s5:not(.hidden)");
+        const inv = await qState(pg);
+        record("q-p02a-invite-after-mark-explains-send-is-next", inv.sub.includes("发送是下一步") && inv.sub.includes("发给一个人") && JSON.stringify(inv.steps) === '["3 留一句"]' && inv.status === "", JSON.stringify({ sub: inv.sub, steps: inv.steps }));
+        await ctx.close();
+      }
+
+      // P0-2b · copy failure is never reported as success
+      const failInit = () => {
+        Object.defineProperty(navigator, "clipboard", { value: { writeText: () => Promise.reject(new DOMException("denied", "NotAllowedError")) }, configurable: true });
+        document.execCommand = () => false;
+      };
+      for (const lang of ["zh", "en"]) {
+        const { ctx, pg } = await qPage({ grant: false, init: failInit, lang });
+        await qToCard(pg); await qTapSend(pg); await pg.waitForTimeout(500);
+        const f = await qState(pg);
+        const okMsg = lang === "zh" ? f.status.includes("没复制成功") && f.status.includes("长按下面的链接") : f.status.includes("Couldn't copy") && f.status.includes("Long-press the link below");
+        record("q-p02b-copy-fail-honest-" + lang, okMsg && !/已复制|copied/i.test(f.status) && !/已复制|Copied/.test(f.toast) && !f.btn.includes("✓") && f.manualShown && f.manualReadonly && f.manualValue.includes("#seed=") && f.manualInView && f.statusInView && f.keepSelf,
+          JSON.stringify({ status: f.status, toast: f.toast, btn: f.btn, manualShown: f.manualShown, manualInView: f.manualInView, statusInView: f.statusInView }));
+        await ctx.close();
+      }
+
+      // P0-2c · cancelling the share sheet keeps a visible message
+      {
+        const { ctx, pg } = await qPage({ init: () => { navigator.share = () => Promise.reject(new DOMException("cancel", "AbortError")); } });
+        await qToCard(pg); await qTapSend(pg); await pg.waitForTimeout(3200);
+        const c = await qState(pg);
+        record("q-p02c-share-cancel-visible-and-kept", c.status.includes("没发出去也没关系") && c.status.includes("再点一次") && c.statusInView && c.manualShown && c.manualValue.includes("#seed=") && c.keepSelf, JSON.stringify({ status: c.status, inView: c.statusInView, manual: c.manualShown }));
+        await ctx.close();
+      }
+
+      // P0-2d · success feedback is on screen and lasts ≥ 3s
+      {
+        const { ctx, pg } = await qPage();
+        await qToCard(pg); await qTapSend(pg); await pg.waitForTimeout(400);
+        const a = await qState(pg);
+        await pg.waitForTimeout(2900);
+        const b = await qState(pg);
+        await pg.waitForTimeout(1000);
+        const c = await qState(pg);
+        const clip = await pg.evaluate(() => navigator.clipboard.readText()).catch(() => null);
+        record("q-p02d-copy-success-visible-in-viewport", a.status.includes("链接已复制") && a.statusInView && a.btn === "✓ 链接已复制" && !a.manualShown && (clip == null || clip.includes("#seed=")), JSON.stringify({ status: a.status, inView: a.statusInView, btn: a.btn, clip: clip && clip.slice(0, 40) }));
+        record("q-p02d-button-confirmation-lasts-3s", b.btn === "✓ 链接已复制" && c.btn === "发给一个人" && c.status.includes("链接已复制"), JSON.stringify({ at3_3s: b.btn, at4_3s: c.btn }));
+        await ctx.close();
+      }
+
+      // P1-1 · #sceneCredit never overlaps #assetNote (all photo scenes · 375/390 · zh/en), credit visible exactly once
+      {
+        const rows = [];
+        for (const lang of ["zh", "en"]) for (const width of [375, 390]) {
+          const { ctx, pg } = await qPage({ width, lang });
+          const r = await pg.evaluate(async () => {
+            const T = window.__healoaSeedTest; const out = [];
+            const inter = (a, b) => { const w = Math.min(a.right, b.right) - Math.max(a.left, b.left); const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top); return w > 0 && h > 0 ? w * h : 0; };
+            for (const [id, hero] of Object.entries(T.placePhotoHeroMap())) {
+              if (!hero) continue;
+              T.enterPlaceDev(id); await new Promise((res) => setTimeout(res, 80));
+              const c = document.getElementById("sceneCredit"), n = document.getElementById("assetNote");
+              out.push({ id, overlap: Math.round(inter(c.getBoundingClientRect(), n.getBoundingClientRect())), creditVisible: c.offsetParent !== null && c.innerText.includes("Photo · Cindy Yang"),
+                credits: document.querySelectorAll("#sceneShell .photo-credit:not(.hidden)").length });
+            }
+            return out;
+          });
+          rows.push(...r.map((x) => ({ lang, width, ...x })));
+          await ctx.close();
+        }
+        const bad = rows.filter((x) => x.overlap > 0 || !x.creditVisible || x.credits !== 1);
+        record("q-p11-credit-no-overlap-zh-en-375-390", rows.length >= 48 && bad.length === 0, JSON.stringify({ checked: rows.length, bad: bad.slice(0, 4) }));
+      }
+
+      // P1-2 · compact coach covers far less of the photo (375px, Wudang homestay), teaching stays
+      {
+        const { ctx, pg } = await qPage();
+        await qToScene(pg);
+        const cov = await pg.evaluate(() => {
+          const a = document.getElementById("sceneBg").getBoundingClientRect(), b = document.getElementById("coachDock").getBoundingClientRect();
+          const w = Math.min(a.right, b.right) - Math.max(a.left, b.left), h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+          return { pct: +(100 * Math.max(0, w) * Math.max(0, h) / (a.width * a.height)).toFixed(2), text: document.getElementById("coachDock").innerText, pulse: document.getElementById("coachPlace").classList.contains("pulse"), hint: document.getElementById("stageHint").innerText };
+        });
+        record("q-p12-coach-compact-coverage-under-5pct", cov.pct < 5 && cov.text.includes("① 选痕迹，点画面") && cov.pulse && cov.hint.includes("点这里放下一笔"), JSON.stringify(cov));
+        await ctx.close();
+      }
+
+      // red lines for the new copy
+      {
+        const newKeys = ["s5H1Send", "s5SubSend", "s5SubFromInvite", "coachNeedMark", "copyFailManual", "shareCancelled", "btnCopiedFlash"];
+        const found = newKeys.flatMap((k) => html.match(new RegExp(k + ':"[^"]*"', "g")) || []);
+        const htmlNew = found.join(" ");
+        record("q-new-copy-redlines-zh-en", found.length === newKeys.length * 2 && !/日记|通知|已发送|已送达|notif|delivered|sent to/i.test(htmlNew), "keys=" + found.length + " " + htmlNew.slice(0, 160));
+      }
+    }
+
     // English (language toggle) · customer path
     const enCtx = await browser.newContext();
     const en = await enCtx.newPage();
@@ -1569,7 +1756,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-24-p",
+    version: "v2026-09-25-q",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
