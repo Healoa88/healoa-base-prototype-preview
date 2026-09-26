@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a1218" />
-<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-25-q）</title>
+<title>HeaLoa Base · Scene Seed Demo（可看 · 非正式 · v2026-09-26-r）</title>
 <style>
   :root {
     --bg: #0a1218; --card: rgba(18, 30, 38, 0.92); --text: #eef4f8; --muted: #8aa0b2;
@@ -675,7 +675,7 @@
   .invite-truth { font-size: 0.82rem; line-height: 1.55; color: var(--muted); }
   .invite-truth strong { color: var(--text); }
 
-  /* v2026-09-25-q · P0 single-round reply · card editor · QR · i18n */
+  /* v2026-09-26-r · P0 single-round reply · card editor · QR · i18n */
   .proto-banner { position: sticky; }
   .lang-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); appearance:none; border:1px solid var(--line);
     background:rgba(255,255,255,0.06); color:var(--text); border-radius:999px; padding:5px 11px; font-size:11px; font-weight:650; cursor:pointer; font-family:inherit; }
@@ -720,13 +720,94 @@
   .seed-line.friend-line { border-left-color: rgba(232,190,140,0.8); }
   .chapter-list { list-style:none; margin:8px 0 0; padding:0; font-size:0.82rem; color:var(--text); }
   .chapter-list li { padding:5px 0; border-bottom:1px solid var(--line); }
+
+  /* v2026-09-26-r · FX that read on real photos: wind / light / mist / pulse (combinable) */
+  .fx-layer { position:absolute; inset:0; pointer-events:none; z-index:1; opacity:0; transition:opacity 0.45s var(--ease); overflow:hidden; }
+  .fx-layer i { position:absolute; display:block; will-change:transform; }
+  /* 光 light: warm glow from the top + drifting rays; the photo itself gets a warm/bright grade */
+  .fx-light-layer {
+    background: radial-gradient(ellipse 85% 55% at 76% 0%, rgba(255,206,140,0.55) 0%, rgba(255,186,110,0.22) 45%, rgba(255,186,110,0) 72%),
+      linear-gradient(180deg, rgba(255,178,96,0.22) 0%, rgba(255,166,90,0.10) 55%, rgba(255,166,90,0) 82%); }
+  .fx-light-layer i { left:-35%; top:-45%; width:170%; height:150%;
+    background: repeating-linear-gradient(106deg, rgba(255,236,196,0) 0 28px, rgba(255,236,196,0.38) 38px, rgba(255,236,196,0) 52px, rgba(255,236,196,0) 84px);
+    -webkit-mask-image: radial-gradient(ellipse 60% 55% at 68% 22%, #000 18%, transparent 72%); mask-image: radial-gradient(ellipse 60% 55% at 68% 22%, #000 18%, transparent 72%);
+    animation: fxRays 8s ease-in-out infinite alternate; }
+  @keyframes fxRays { from { transform: translate3d(-14px,0,0) rotate(-1.2deg); } to { transform: translate3d(16px,0,0) rotate(1.2deg); } }
+  #sceneShell.fx-light .fx-light-layer { opacity:1; }
+  .scene-bg.light-on { filter: brightness(1.14) saturate(1.35) sepia(0.26) contrast(1.05); }
+  .scene-bg.pace-short.light-on { filter: brightness(1.18) saturate(1.38) sepia(0.26) contrast(1.05); }
+  .scene-bg.pace-linger.light-on { filter: brightness(1.1) saturate(1.38) sepia(0.28) contrast(1.05); }
+  /* 风 wind: the photo sways/leans (scaled so edges never show) + soft gust bands sweeping across; canvas particles blow diagonally with short trails */
+  .scene-bg.wind-on { animation: fxSway 2.6s ease-in-out infinite; transform-origin: 50% 100%; }
+  .scene-bg.wind-on.pace-short { animation: fxSway 1.9s ease-in-out infinite; }
+  .scene-bg.wind-on.pace-linger { animation: fxSway 3.4s ease-in-out infinite; }
+  @keyframes fxSway { 0%,100% { transform: scale(1.08) translate3d(-10px,0,0) rotate(-0.6deg); } 50% { transform: scale(1.08) translate3d(10px,-3px,0) rotate(0.6deg); } }
+  .fx-wind-layer i { left:-60%; top:-60%; width:220%; height:220%;
+    background: repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 60px, rgba(255,255,255,0.15) 84px, rgba(255,255,255,0) 110px, rgba(255,255,255,0) 176px);
+    animation: fxGust 1.4s linear infinite; }
+  @keyframes fxGust { from { transform: translate3d(0,0,0); } to { transform: translate3d(159.5px,74.4px,0); } }
+  #sceneShell.fx-wind .fx-wind-layer { opacity:1; }
+  /* 雾气 mist: layered fog banks drifting over the middle/lower photo */
+  .fx-fog-layer { background: linear-gradient(180deg, rgba(228,234,240,0) 24%, rgba(228,234,240,0.30) 46%, rgba(228,234,240,0.42) 64%, rgba(228,234,240,0.22) 84%, rgba(228,234,240,0.10) 100%); }
+  .fx-fog-layer i.a { left:-45%; top:30%; width:190%; height:48%;
+    background: radial-gradient(ellipse 34% 48% at 26% 50%, rgba(240,244,248,0.62), rgba(240,244,248,0) 70%),
+      radial-gradient(ellipse 30% 42% at 70% 56%, rgba(240,244,248,0.52), rgba(240,244,248,0) 70%);
+    animation: fxFogA 11s ease-in-out infinite alternate; }
+  .fx-fog-layer i.b { left:-50%; top:46%; width:200%; height:42%;
+    background: radial-gradient(ellipse 30% 46% at 40% 50%, rgba(236,241,246,0.58), rgba(236,241,246,0) 70%),
+      radial-gradient(ellipse 28% 40% at 84% 44%, rgba(236,241,246,0.48), rgba(236,241,246,0) 70%);
+    animation: fxFogB 8s ease-in-out infinite alternate; }
+  @keyframes fxFogA { from { transform: translate3d(-9%,0,0); } to { transform: translate3d(9%,-3%,0); } }
+  @keyframes fxFogB { from { transform: translate3d(8%,2%,0); } to { transform: translate3d(-8%,-1%,0); } }
+  #sceneShell.fx-mist .fx-fog-layer { opacity:1; }
+  /* 律动 pulse: a rhythmic breath of light (canvas particles breathe on the same 2.4s beat) */
+  .fx-pulse-layer { mix-blend-mode:screen;
+    background: radial-gradient(ellipse 72% 52% at 50% 44%, rgba(255,236,200,0.42) 0%, rgba(255,220,170,0.14) 50%, rgba(255,220,170,0) 74%); }
+  #sceneShell.fx-pulse .fx-pulse-layer { opacity:1; animation: fxBreath 2.4s ease-in-out infinite; }
+  #sceneShell.fx-pulse.fx-light .fx-light-layer { animation: fxBreathSoft 2.4s ease-in-out infinite; }
+  @keyframes fxBreath { 0%,100% { opacity:0.12; transform:scale(0.94); } 50% { opacity:1; transform:scale(1.07); } }
+  @keyframes fxBreathSoft { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
+  /* on-state is unmistakable: filled chip + ✓ + a short pop when toggled */
+  .tool.fx.on { background: rgba(226,188,140,0.94); color:#2a1a08; border-color: rgba(255,230,190,0.95); font-weight:700;
+    box-shadow: 0 0 0 2px rgba(212,176,138,0.35), 0 0 14px rgba(255,210,150,0.45); }
+  .tool.fx.on::before { content:"✓ "; }
+  .tool.fx.pop { animation: fxPop 0.45s var(--ease); }
+  @keyframes fxPop { 0% { transform:scale(1); } 40% { transform:scale(1.14); } 100% { transform:scale(1); } }
+  @media (prefers-reduced-motion: reduce) {
+    /* toned down, still visibly on: no sway loop (a static lean), static rays/fog/gusts, slow breathing */
+    .scene-bg.wind-on, .scene-bg.wind-on.pace-short, .scene-bg.wind-on.pace-linger { animation: none; transform: scale(1.06) translate3d(6px,0,0) rotate(0.5deg); }
+    .fx-light-layer i, .fx-fog-layer i.a, .fx-fog-layer i.b, .fx-wind-layer i { animation: none; }
+    #sceneShell.fx-pulse .fx-pulse-layer { animation: fxBreath 6s ease-in-out infinite; }
+    #sceneShell.fx-pulse.fx-light .fx-light-layer { animation: none; }
+    .tool.fx.pop { animation: none; }
+  }
+  /* v2026-09-26-r · first-time「怎么玩」guide (shown once; 「?」 reopens) */
+  #sceneShell { scroll-margin-top: 60px; } /* entering a scene scrolls the shell to just below the sticky banner, so the guide/top chips are not hidden */
+  .play-guide { position:absolute; left:12px; right:12px; top:8px; z-index:7; max-width:380px; margin:0 auto;
+    background:rgba(8,14,18,0.86); border:1px solid rgba(110,198,192,0.55); border-radius:14px; padding:8px 10px 9px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4); backdrop-filter:blur(8px); }
+  .play-guide.hidden { display:none; }
+  .play-guide .pg-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .play-guide .pg-head strong { flex:1; font-size:0.84rem; color:var(--aqua); letter-spacing:0.02em; }
+  .play-guide ol { list-style:none; margin:0; padding:0; }
+  .play-guide li { font-size:0.78rem; line-height:1.5; color:var(--text); }
+  .play-guide button { appearance:none; font-family:inherit; cursor:pointer; }
+  .play-guide .pg-ok { border:0; border-radius:999px; background:var(--aqua); color:#04201c; font-weight:650; font-size:0.74rem; padding:5px 11px; }
+  .play-guide .pg-x { border:1px solid var(--line); background:rgba(255,255,255,0.06); color:var(--text); border-radius:999px; width:26px; height:26px; font-size:0.9rem; line-height:1; }
+  /* v2026-09-26-r · result view after sending: what you made + what they will see */
+  .send-result { margin-top:14px; border:1px solid rgba(110,198,192,0.4); background:rgba(110,198,192,0.06); border-radius:16px; padding:14px; }
+  .send-result.hidden { display:none; }
+  .send-result h2 { font-size:1rem; margin:0 0 10px; }
+  .send-result-img { display:block; width:min(62%,240px); margin:0 auto 12px; border-radius:12px; border:1px solid var(--line); box-shadow:0 8px 24px rgba(0,0,0,0.35); }
+  .send-result-copy { font-size:0.9rem; line-height:1.6; color:var(--text); margin:0 0 6px; }
+  .send-result-note { font-size:0.78rem; line-height:1.5; color:var(--muted); margin:0 0 12px; }
 </style>
 </head>
 <body>
 
 <div class="proto-banner quiet-chrome">
   <button type="button" class="lang-toggle" id="btnLang" aria-label="Language / 语言">EN</button>
-  <strong data-i18n="bannerTitle">可看原型 · 非正式 Demo · 预览 v2026-09-25-q</strong>
+  <strong data-i18n="bannerTitle">可看原型 · 非正式 Demo · 预览 v2026-09-26-r</strong>
   <span data-i18n="bannerSub">选地方 · 留一笔 · 留一句 · 发给一个人</span>
 </div>
 <div class="wrap">
@@ -990,10 +1071,26 @@
 
     <div class="scene-shell" id="sceneShell">
       <div class="scene-bg wudang" id="sceneBg"></div>
+      <div class="fx-layer fx-light-layer" id="fxLightLayer" aria-hidden="true"><i></i></div>
+      <div class="fx-layer fx-fog-layer" id="fxFogLayer" aria-hidden="true"><i class="a"></i><i class="b"></i></div>
+      <div class="fx-layer fx-wind-layer" id="fxWindLayer" aria-hidden="true"><i></i></div>
+      <div class="fx-layer fx-pulse-layer" id="fxPulseLayer" aria-hidden="true"></div>
       <canvas class="scene-canvas" id="fxCanvas" width="420" height="420" aria-hidden="true"></canvas>
       <div class="scene-mist" id="sceneMist"></div>
       <div class="scene-landmark" id="sceneLandmark" aria-hidden="true"></div>
       <div class="first-run-spotlight" id="firstRunSpotlight" aria-hidden="true"></div>
+      <div class="play-guide hidden" id="playGuide" role="dialog" aria-labelledby="playGuideTitle">
+        <div class="pg-head">
+          <strong id="playGuideTitle" data-i18n="guideTitle">怎么玩</strong>
+          <button type="button" class="pg-ok" id="playGuideOk" data-i18n="guideOk">知道了</button>
+          <button type="button" class="pg-x" id="playGuideClose" aria-label="关闭">×</button>
+        </div>
+        <ol>
+          <li data-i18n="guide1">① 选一个痕迹，点画面留一笔</li>
+          <li data-i18n="guide2">② 开风／光／雾，让这一幕动起来</li>
+          <li data-i18n="guide3">③ 写一句话，发给一个人</li>
+        </ol>
+      </div>
       <div class="scene-top">
         <div class="scene-label" id="sceneLabel">武当山 · 实景预览</div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -1129,7 +1226,7 @@
         <div class="seed-meta">
           <span class="seed-credit" id="seedLiveCredit">Photo · Cindy Yang</span>
           <span class="sim-badge hidden" id="seedLiveSim">模拟</span>
-          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-25-q</span>
+          <span class="trial-badge" id="seedLiveVer">预览 v2026-09-26-r</span>
         </div>
         <div class="seed-foot hidden" id="seedLiveFoot"></div>
       </div>
@@ -1144,6 +1241,16 @@
       <button class="soft" type="button" id="btnKeepSelf" data-i18n="keepSelf">只留给自己</button>
       <p class="share-status" id="shareStatus" aria-live="polite"></p>
       <textarea class="manual-link hidden" id="shareManualLink" rows="3" readonly aria-label="link"></textarea>
+    </div>
+    <div class="send-result hidden" id="sendResult">
+      <h2 data-i18n="resultTitle">你做好的这一幕</h2>
+      <img class="send-result-img" id="sendResultImg" alt="" />
+      <p class="send-result-copy" id="sendResultCopy" data-i18n="resultCopy">对方打开链接会看到这一幕和你这句话，可以再加一笔发回给你。</p>
+      <p class="send-result-note" id="sendResultNote" data-i18n="resultNote">（Demo：对方看到的是一份副本，你这边不会自动更新；聊天里显示的是链接，不是这张图。）</p>
+      <div class="btn-row">
+        <button class="primary" type="button" id="btnResultAgain" data-i18n="resultAgain">再做一幕</button>
+        <button class="ghost" type="button" id="btnResultHome" data-i18n="resultHome">回到首页</button>
+      </div>
     </div>
     <div class="qr-box hidden" id="qrBox">
       <p class="hint" id="qrCaption" data-i18n="qrCaption">面对面？让 TA 用相机扫这个码。</p>
@@ -1197,7 +1304,7 @@
           <p class="hint" id="feelAckText" style="margin-top:10px;margin-bottom:0;display:none;color:var(--text)"></p>
         </div>
         <button class="ghost" type="button" id="btnEndReplay">再走一遍流程</button>
-        <p class="footer-meta">预览 v2026-09-25-q · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移 · 场景照片为演示用实景 · Photo · Cindy Yang</p>
+        <p class="footer-meta">预览 v2026-09-26-r · Scene Seed · 可看原型 · 非正式 healoa.app · 无用户数据迁移 · 场景照片为演示用实景 · Photo · Cindy Yang</p>
       </div>
     </details>
   </section>
@@ -1218,7 +1325,7 @@
         <div class="seed-meta">
           <span class="seed-credit" id="seedViewCredit">Photo · Cindy Yang</span>
           <span class="sim-badge" id="seedViewSim">模拟</span>
-          <span class="trial-badge" id="seedViewVer">预览 v2026-09-25-q</span>
+          <span class="trial-badge" id="seedViewVer">预览 v2026-09-26-r</span>
         </div>
       </div>
     </div>
@@ -1245,7 +1352,7 @@
         <div class="stroke-legend"><span class="lg mine" data-i18n="legendTheirs">TA 的笔</span><span class="lg friend" data-i18n="legendYours">你加的笔</span></div>
         <div class="seed-line" id="replyLine"></div>
         <textarea class="card-line-edit" id="replyLineEdit" rows="2" maxlength="80" data-i18n-ph="cardLinePh" placeholder="点这里留一句（可不写）"></textarea>
-        <div class="seed-meta"><span class="seed-credit" id="replyCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-25-q</span></div>
+        <div class="seed-meta"><span class="seed-credit" id="replyCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-26-r</span></div>
       </div>
     </div>
     <div class="btn-row" id="replyActions">
@@ -1279,7 +1386,7 @@
         <div class="stroke-legend"><span class="lg mine" data-i18n="legendMine">你的笔</span><span class="lg friend" data-i18n="legendTa">TA 加的笔</span></div>
         <div class="seed-line" id="authorLine"></div>
         <div class="seed-line friend-line hidden" id="authorFriendLine"></div>
-        <div class="seed-meta"><span class="seed-credit" id="authorCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-25-q</span></div>
+        <div class="seed-meta"><span class="seed-credit" id="authorCredit">Photo · Cindy Yang</span><span class="trial-badge">预览 v2026-09-26-r</span></div>
       </div>
     </div>
     <div class="btn-row" id="authorActions">
@@ -3601,10 +3708,10 @@ var qrcode = function() {
 <script>
 (function () {
   var STORAGE_KEY = "healoa_base_cocreate_v1";
-  var VERSION = "v2026-09-25-q";
+  var VERSION = "v2026-09-26-r";
   var MAX_MARKS = 6;
   var MAX_FRIEND_MARKS = 3;
-  /* ===== UI copy · language table (zh default · en second) · v2026-09-25-q ===== */
+  /* ===== UI copy · language table (zh default · en second) · v2026-09-26-r ===== */
   var I18N = {
     zh: {
       langBtn:"EN",
@@ -3658,6 +3765,12 @@ var qrcode = function() {
       coachTitle:"你可以做什么", coachPlace:"① 选痕迹，点画面", coachFx:"② 开风 / 光", coachWrite:"③ 留一句", coachInvite:"④ 发给一个人",
       fxWind:"风", fxLight:"光", fxMist:"雾气", fxPulse:"律动",
       fxNames:{wind:"风",light:"光",mist:"雾气",pulse:"律动"},
+      fxOnWind:"风 · 已开：粒子斜着吹，画面跟着摇", fxOnLight:"光 · 已开：画面变暖变亮，上方有光束", fxOnMist:"雾气 · 已开：画面中下部起雾", fxOnPulse:"律动 · 已开：光和粒子一呼一吸",
+      guideTitle:"怎么玩", guideOk:"知道了", guideClose:"关闭", guide1:"① 选一个痕迹，点画面留一笔", guide2:"② 开风／光／雾，让这一幕动起来", guide3:"③ 写一句话，发给一个人",
+      resultTitle:"你做好的这一幕", resultImgAlt:"你这一幕的预览图（含你的痕迹和这句话）",
+      resultCopy:"对方打开链接会看到这一幕和你这句话，可以再加一笔发回给你。",
+      resultNote:"（Demo：对方看到的是一份副本，你这边不会自动更新；聊天里显示的是链接，不是这张图。）",
+      resultAgain:"再做一幕", resultHome:"回到首页",
       markCount:"痕迹 {n} / {max} · 气氛{fx}", fxOff:"未开",
       btnLeaveLine:"留一句", btnReplyDone:"下一步 · 留一句", changePlace:"换一个地方",
       presenceSolo:"1 人在场", presenceFriend:"你的副本 · 不会自动同步给 TA", presenceFriendSim:"好友进场（同机模拟 · 副本）",
@@ -3765,6 +3878,12 @@ var qrcode = function() {
       coachTitle:"What you can do", coachPlace:"① Pick a mark, tap", coachFx:"② Wind / light", coachWrite:"③ Leave a line", coachInvite:"④ Send to one person",
       fxWind:"Wind", fxLight:"Light", fxMist:"Mist", fxPulse:"Pulse",
       fxNames:{wind:"wind",light:"light",mist:"mist",pulse:"pulse"},
+      fxOnWind:"Wind on: particles blow diagonally, the picture sways", fxOnLight:"Light on: warmer, brighter picture with light rays", fxOnMist:"Mist on: fog drifts over the middle and lower picture", fxOnPulse:"Pulse on: light and particles breathe in a rhythm",
+      guideTitle:"How to play", guideOk:"Got it", guideClose:"Close", guide1:"① Pick a mark, tap the picture to place it", guide2:"② Turn on wind / light / mist to bring it alive", guide3:"③ Write a line, send it to one person",
+      resultTitle:"The scene you made", resultImgAlt:"Preview of your scene (your marks and your line)",
+      resultCopy:"When they open the link they'll see this scene and your line, and can add a mark and send it back to you.",
+      resultNote:"(Demo: they get their own copy — yours won't update automatically; the chat shows a link, not this picture.)",
+      resultAgain:"Make another scene", resultHome:"Back to home",
       markCount:"Marks {n} / {max} · mood: {fx}", fxOff:"off",
       btnLeaveLine:"Leave a line", btnReplyDone:"Next · leave a line", changePlace:"Try another place",
       presenceSolo:"Just you", presenceFriend:"Your copy · not synced to them", presenceFriendSim:"Friend inside (same-device simulation · copy)",
@@ -4557,41 +4676,99 @@ var qrcode = function() {
     c.width = Math.floor(r.width * dpr); c.height = Math.floor(r.height * dpr);
     c.style.width = r.width + "px"; c.style.height = r.height + "px";
   }
+  /* v2026-09-26-r · particle type follows the place; wind blows diagonal trails, pulse breathes, reduced-motion slows everything down. */
+  var REDUCED_MOTION = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function particleKindFor(id){
+    id=id||"wudang";
+    if(id==="harbin" || id==="forest-cabin") return "snow";
+    if(id==="onsen") return "steam";
+    if(id==="forest-path") return "leaf";
+    if(id==="thai-dive") return "bubble";
+    if(id.indexOf("thai")===0) return "glint";
+    if(id==="forest" || id==="forest-porch") return "dust";
+    return "mote"; // Wudang cloud/mist motes, Yunnan
+  }
+  var fxKind = "mote", fxLastTs = 0;
   function seedParticles() {
     fxParticles = [];
+    fxKind = particleKindFor(state.placeId);
     var n = state.duration==="short" ? 68 : (state.duration==="linger" ? 58 : 52);
-    for (var i=0;i<n;i++) fxParticles.push({ x:Math.random(), y:Math.random(), r:1.1+Math.random()*3.4,
-      vx:(Math.random()-0.5)*0.0022, vy:-0.00045-Math.random()*0.0018, a:0.28+Math.random()*0.55,
-      kind: Math.random()>0.55?"spark":"dust" });
+    if(fxKind==="snow") n = Math.round(n*1.45);
+    for (var i=0;i<n;i++){
+      var p = { x:Math.random(), y:Math.random(), r:1.1+Math.random()*3.4,
+        vx:(Math.random()-0.5)*0.0022, vy:-0.00045-Math.random()*0.0018, a:0.28+Math.random()*0.55,
+        kind: Math.random()>0.55?"spark":"dust", ph:Math.random()*Math.PI*2, rot:Math.random()*Math.PI };
+      if(fxKind==="snow"){ p.vy = 0.0009+Math.random()*0.0016; p.r = 1.0+Math.random()*2.6; p.a = 0.55+Math.random()*0.4; }
+      else if(fxKind==="leaf"){ p.vy = 0.0006+Math.random()*0.0012; p.r = 2.2+Math.random()*2.4; p.a = 0.5+Math.random()*0.35; }
+      else if(fxKind==="bubble"){ p.vy = -0.0012-Math.random()*0.002; p.r = 1.4+Math.random()*3.2; p.a = 0.45+Math.random()*0.4; }
+      else if(fxKind==="steam"){ p.vy = -0.0012-Math.random()*0.0016; p.r = 2.4+Math.random()*4.6; p.a = 0.18+Math.random()*0.3; }
+      else if(fxKind==="mote"){ p.r = 1.6+Math.random()*4.2; p.a = 0.24+Math.random()*0.42; }
+      fxParticles.push(p);
+    }
   }
   function drawFx(ts) {
     var c = $("fxCanvas"); if (!c) return;
+    var s3=$("s3"); if (s3 && s3.classList.contains("hidden")) { fxLastTs = 0; return; }
     var ctx = c.getContext("2d"); var w=c.width, h=c.height; ctx.clearRect(0,0,w,h);
     var wind=state.fx.wind?1:0, light=state.fx.light?1:0, mist=state.fx.mist?1:0, pulse=state.fx.pulse?1:0;
-    var always = true; // ambient atmosphere even without toggles — procedural preview
     var t=(ts||0)/1000; var pf=paceFactor();
+    var dt = fxLastTs ? Math.min(3, Math.max(0.25, ((ts||0)-fxLastTs)/16.67)) : 1; fxLastTs = ts||0;
+    var mo = REDUCED_MOTION ? 0.35 : 1;           // reduced motion: slower, same visible state
+    var beatPeriod = REDUCED_MOTION ? 6 : 2.4;
+    var beat = pulse ? (0.5+0.5*Math.sin(t*2*Math.PI/beatPeriod)) : 0.5;
+    var dpr = window.devicePixelRatio||1;
     // soft place wash
     var wash = ctx.createRadialGradient(w*0.5, h*0.2, 0, w*0.5, h*0.55, w*0.7);
     var id=state.placeId||"wudang";
-    if(id==="yunnan" || (id && id.indexOf("forest")===0)){ wash.addColorStop(0,"rgba(100,170,120,"+(0.18+light*0.1)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
-    else if(id==="onsen"){ wash.addColorStop(0,"rgba(212,176,138,"+(0.2+mist*0.1)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
-    else if(id==="thai"){ wash.addColorStop(0,"rgba(255,200,120,"+(0.18+light*0.12)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
-    else { wash.addColorStop(0,"rgba(160,190,230,"+(0.18+mist*0.1)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    var washBoost = pulse ? (0.6+0.8*beat) : 1;
+    if(id==="yunnan" || (id && id.indexOf("forest")===0)){ wash.addColorStop(0,"rgba(100,170,120,"+((0.18+light*0.1)*washBoost)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    else if(id==="onsen"){ wash.addColorStop(0,"rgba(212,176,138,"+((0.2+mist*0.1)*washBoost)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    else if(id==="thai" || id.indexOf("thai")===0){ wash.addColorStop(0,"rgba(255,200,120,"+((0.18+light*0.12)*washBoost)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
+    else { wash.addColorStop(0,"rgba(160,190,230,"+((0.18+mist*0.1)*washBoost)+")"); wash.addColorStop(1,"rgba(0,0,0,0)"); }
     ctx.fillStyle=wash; ctx.fillRect(0,0,w,h);
+    // wind vector: left→right and downward — reads as a diagonal gust
+    var wvx = wind*0.0068, wvy = wind*0.0030;
+    var k = fxKind;
+    ctx.lineCap="round";
     fxParticles.forEach(function(p){
-      p.x += (p.vx + wind*0.0014*Math.sin(t + p.y*8)) * pf;
-      p.y += p.vy*(1+pulse*0.9)*pf;
+      var sway = (k==="snow"||k==="leaf") ? 0.0006*Math.sin(t*1.3 + p.ph) : 0;
+      var vx = (p.vx*(wind?0.4:1) + sway + wvx*(0.75+0.5*((p.ph%1)))) * pf * mo;
+      var vy = (p.vy*(1+pulse*0.6) + wvy*(k==="bubble"||k==="steam"?0.3:1)) * pf * mo;
+      p.x += vx*dt; p.y += vy*dt;
       if (p.y<-0.05){p.y=1.05;p.x=Math.random();}
-      if (p.x<-0.05)p.x=1.05; if (p.x>1.05)p.x=-0.05;
-      var base = always ? 0.85 : 0.25;
-      var alpha = p.a*(base+mist*0.45+light*0.35+wind*0.12);
-      if(!(wind||light||mist||pulse)) alpha *= 0.85;
+      if (p.y>1.05){p.y=-0.05;p.x=Math.random()*(wind?0.8:1)-(wind?0.1:0);}
+      if (p.x<-0.08)p.x=1.05; if (p.x>1.08){p.x=-0.05;p.y=Math.random()*0.9;}
+      var alpha = p.a*(0.85+mist*0.25+light*0.3+wind*0.25);
+      if(pulse) alpha *= 0.35+1.05*beat;
+      if(k==="steam"||k==="mote") alpha *= 1+mist*0.4;
+      alpha = Math.min(1, alpha);
+      var rr = p.r*(1+light*0.2)*dpr;
+      if(mist && (k==="mote"||k==="steam")) rr *= 1.25;
+      if(pulse) rr *= 0.85+0.4*beat;
+      if(p.kind==="spark" && k!=="snow") rr *= 1.15;
+      var px=p.x*w, py=p.y*h;
+      var col = (k==="snow") ? "rgba(255,255,255,"+alpha+")"
+        : (k==="leaf") ? (light?"rgba(236,220,120,"+alpha+")":"rgba(176,214,110,"+alpha+")")
+        : (k==="bubble") ? "rgba(200,236,255,"+alpha+")"
+        : (k==="steam") ? "rgba(255,240,228,"+alpha+")"
+        : (k==="glint") ? "rgba(255,222,160,"+alpha+")"
+        : placeParticleColor(alpha, !!light || p.kind==="spark");
+      if(wind){ // diagonal motion trail
+        var len = (18+p.r*5)*dpr*(REDUCED_MOTION?0.6:1);
+        var dxp = vx*w, dyp = vy*h, mag = Math.sqrt(dxp*dxp+dyp*dyp)||1;
+        ctx.strokeStyle = col; ctx.globalAlpha = 0.75; ctx.lineWidth = Math.min(2.6*dpr, Math.max(1.2*dpr, rr*0.6));
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px - (dxp/mag)*len, py - (dyp/mag)*len); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
       ctx.beginPath();
-      ctx.fillStyle = placeParticleColor(alpha, !!light || p.kind==="spark");
-      var rr = p.r*(1+light*0.7)*(window.devicePixelRatio||1);
-      if(p.kind==="spark") rr *= 1.15;
-      ctx.arc(p.x*w, p.y*h, rr, 0, Math.PI*2);
-      ctx.fill();
+      if(k==="bubble"){
+        ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, dpr*0.9); ctx.arc(px, py, rr*1.3, 0, Math.PI*2); ctx.stroke();
+      } else if(k==="leaf"){
+        ctx.fillStyle = col; p.rot += 0.02*dt*mo*(1+wind*2);
+        ctx.ellipse(px, py, rr*1.6, rr*0.7, p.rot, 0, Math.PI*2); ctx.fill();
+      } else {
+        ctx.fillStyle = col; ctx.arc(px, py, rr, 0, Math.PI*2); ctx.fill();
+      }
     });
   }
   function startFxLoop() {
@@ -4609,8 +4786,12 @@ var qrcode = function() {
     else if(state.duration==="linger") bg.classList.add("pace-linger");
     else bg.classList.add("pace-free");
     if (mist) mist.classList.toggle("steam-on", !!state.fx.mist || !!state.fx.pulse);
+    var shell=$("sceneShell");
+    if (shell) ["wind","light","mist","pulse"].forEach(function(k){ shell.classList.toggle("fx-"+k, !!state.fx[k]); });
+    if (fxKind !== particleKindFor(state.placeId)) seedParticles();
     document.querySelectorAll("#fxTools .tool").forEach(function(btn){
-      btn.classList.toggle("on", !!state.fx[btn.getAttribute("data-fx")]);
+      var on=!!state.fx[btn.getAttribute("data-fx")];
+      btn.classList.toggle("on", on); btn.setAttribute("aria-pressed", on?"true":"false");
     });
     updateMarkCount();
   }
@@ -5072,7 +5253,7 @@ var qrcode = function() {
     var ile0=$("inlineLineEdit"); if(ile0) ile0.value="";
     clearJoinTimers(); clearStageMarks(); $("stageHint").classList.remove("hide");
     $("cmpSolo").classList.remove("on"); $("cmpDuo").classList.add("on");
-    paintScene(false); show("s3"); updateAudioChip(); startSoftTimer(); syncSendFriendCta(); setCoachExpanded(false);
+    paintScene(false); show("s3"); updateAudioChip(); startSoftTimer(); syncSendFriendCta(); setCoachExpanded(false); maybeShowPlayGuide();
     requestAnimationFrame(function(){
       resizeFxCanvas(); startFxLoop();
       scrollSceneIntoView();
@@ -5115,12 +5296,29 @@ var qrcode = function() {
       if(!$("s5").classList.contains("hidden")){ var sub=$("s5Sub"); sub.setAttribute("data-i18n","s5SubFromInvite"); sub.textContent=t("s5SubFromInvite"); }
     });
     var tg=$("coachToggle");
-    if(tg) tg.addEventListener("click", function(){ setCoachExpanded($("coachDock").classList.contains("compact")); });
+    if(tg) tg.addEventListener("click", function(){
+      var opening = $("coachDock").classList.contains("compact");
+      setCoachExpanded(opening);
+      if(opening && !state.recipientMode) showPlayGuide(); else hidePlayGuide();
+    });
     if(save) save.addEventListener("click", function(){
       $("btnSoloSave").scrollIntoView({behavior:"smooth", block:"center"});
       toast("可先保存本机，或直接发给朋友");
     });
   }
+  /** v2026-09-26-r · first-time「怎么玩」guide: 3 steps, shown once per device (localStorage), 「?」 on the coach reopens it. */
+  var GUIDE_KEY = "healoa_base_guide_seen_v1";
+  function guideSeen(){ try { return localStorage.getItem(GUIDE_KEY)==="1"; } catch(e){ return false; } }
+  function showPlayGuide(){
+    var g=$("playGuide"); if(!g) return;
+    g.classList.remove("hidden");
+    var x=$("playGuideClose"); if(x) x.setAttribute("aria-label", t("guideClose"));
+    try { localStorage.setItem(GUIDE_KEY, "1"); } catch(e){}
+  }
+  function hidePlayGuide(){ var g=$("playGuide"); if(g) g.classList.add("hidden"); }
+  function maybeShowPlayGuide(){ if(guideSeen()) hidePlayGuide(); else showPlayGuide(); }
+  if($("playGuideOk")) $("playGuideOk").addEventListener("click", hidePlayGuide);
+  if($("playGuideClose")) $("playGuideClose").addEventListener("click", hidePlayGuide);
   /** v2026-09-25-q · P1-2: coach is one compact line by default; 「?」 expands the full list, first mark collapses it again. */
   function setCoachExpanded(open){
     var dock=$("coachDock"), tg=$("coachToggle"); if(!dock) return;
@@ -5132,8 +5330,10 @@ var qrcode = function() {
   document.querySelectorAll("#fxTools .tool").forEach(function(btn){
     btn.addEventListener("click", function(){
       var key=btn.getAttribute("data-fx"); state.fx[key]=!state.fx[key]; applyFxClasses();
+      btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop");
       if(state.joined) refreshCompare();
-      toast(t(state.fx[key]?"toastFxOn":"toastFxOff",{f:btn.textContent.trim()}));
+      var onKey = {wind:"fxOnWind",light:"fxOnLight",mist:"fxOnMist",pulse:"fxOnPulse"}[key];
+      toast(state.fx[key] ? (onKey ? t(onKey) : t("toastFxOn",{f:btn.textContent.trim()})) : t("toastFxOff",{f:btn.textContent.trim()}));
     });
   });
 
@@ -5207,7 +5407,7 @@ var qrcode = function() {
   }
   function openShareScreen(opts){
     opts=opts||{};
-    $("shareStatus").textContent=""; resetSendFeedback("shareStatus","shareManualLink");
+    $("shareStatus").textContent=""; resetSendFeedback("shareStatus","shareManualLink"); hideSendResult();
     setShareStage(3);
     // v-n: the card IS the editor (WYSIWYG) — what is on the card is what gets sent; no extra confirm gate.
     state.privacyLineConfirmed = true;
@@ -5649,6 +5849,7 @@ var qrcode = function() {
     if(manual) manual.classList.add("hidden");
     function say(msg, kind){
       statusEl.textContent=msg; statusEl.classList.add("notice"); statusEl.setAttribute("data-kind", kind);
+      if(opts.after) opts.after(kind);
       var target = (manual && !manual.classList.contains("hidden")) ? manual : statusEl;
       try { target.scrollIntoView({block:"center", behavior:"smooth"}); } catch(e){ target.scrollIntoView(false); }
     }
@@ -5664,6 +5865,19 @@ var qrcode = function() {
         .catch(function(err){ if(err&&err.name==="AbortError"){ showManual(); say(t("shareCancelled"), "warn"); } else copyPath(); });
     } else copyPath();
   }
+  /** v2026-09-26-r · after 发给一个人 (sent / copied / manual link): show what you made + what the recipient sees. Reuses the share-card PNG. */
+  function hideSendResult(){ var r=$("sendResult"); if(r) r.classList.add("hidden"); }
+  function showSendResult(){
+    var r=$("sendResult"), img=$("sendResultImg"); if(!r) return;
+    r.classList.remove("hidden");
+    function paint(){
+      try { var cv=drawShareCard("vertical"); if(img){ img.src=cv.toDataURL("image/png"); img.alt=t("resultImgAlt"); } } catch(e){}
+    }
+    paint();
+    if(PLACE_PHOTOS[state.placeId] && !placeHeroReady(state.placeId)) ensurePlacePhotoReady(state.placeId).then(paint);
+  }
+  if($("btnResultAgain")) $("btnResultAgain").addEventListener("click", function(){ hideSendResult(); stopAudio(); stopSoftTimer(); clearJoinTimers(); show("s2"); });
+  if($("btnResultHome")) $("btnResultHome").addEventListener("click", function(){ hideSendResult(); resetFlow(); });
   function sendToOnePerson(){
     refreshSeedShareUI();
     var result=state.lastSeedUrlResult;
@@ -5676,7 +5890,7 @@ var qrcode = function() {
     markChapterCreated();
     logEvent("share_sent", {workId:state.workId, placeId:state.placeId});
     setShareStage(4);
-    shareOrCopy(result.url, t("shareText",{title:poeticTitle(seed.place.id)}), st, t("sentShared"), t("sentCopied"), {btn:"btnSendToFriend", manual:"shareManualLink"});
+    shareOrCopy(result.url, t("shareText",{title:poeticTitle(seed.place.id)}), st, t("sentShared"), t("sentCopied"), {btn:"btnSendToFriend", manual:"shareManualLink", after:showSendResult});
     showQr("qrBox","qrImg","qrTooLong", result.url);
   }
   function keepForMyself(statusEl, msg){
@@ -6199,6 +6413,7 @@ var qrcode = function() {
     $("presenceText").textContent=t(asSim?"presenceFriendSim":"presenceFriend");
     syncSendFriendCta();
     show("s3"); updateAudioChip(); startSoftTimer();
+    hidePlayGuide();
     requestAnimationFrame(function(){ resizeFxCanvas(); startFxLoop(); scrollSceneIntoView(); armFirstRunCoach(); });
   });
   $("btnSeedDismiss").addEventListener("click", function(){
@@ -6322,6 +6537,8 @@ var qrcode = function() {
     makeQr: function(text){ var r=makeQrDataUrl(text); return r; },
     lastQr: function(){ return lastQr; },
     SCENE_OVERLAY_MAX: SCENE_OVERLAY_MAX,
+    fxInfo: function(){ return { kind: fxKind, kindFor: particleKindFor(state.placeId), reduced: REDUCED_MOTION, n: fxParticles.length, fx: JSON.parse(JSON.stringify(state.fx)) }; },
+    fxSample: function(){ return fxParticles.slice(0, 24).map(function(p){ return { x:p.x, y:p.y }; }); },
     lastReplyUrl: function(){ return state.lastReplyUrlResult; },
     chapters: function(){ return readArrLS(CHAPTERS_KEY); },
     events: function(){ return readArrLS(EVENTS_KEY); },

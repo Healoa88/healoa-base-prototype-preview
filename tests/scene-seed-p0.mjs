@@ -1,5 +1,5 @@
 /**
- * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-25-q)
+ * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-26-r)
  * Run:
  *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
  */
@@ -190,7 +190,7 @@ async function main() {
     sender.on("pageerror", (e) => pageErrors.push(String(e)));
     await sender.goto(base);
     const banner = await sender.locator(".proto-banner strong").innerText();
-    record("version-banner", banner.includes("v2026-09-25-q"), banner);
+    record("version-banner", banner.includes("v2026-09-26-r"), banner);
 
     const heroMap = await sender.evaluate(() => window.__healoaSeedTest.placePhotoHeroMap());
     const expectedHeroes = {
@@ -1699,6 +1699,263 @@ async function main() {
       }
     }
 
+    // ===== v2026-09-26-r · FX visible on real photos · first-time guide · result view after send =====
+    {
+      const R_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+      const rOrigin = new URL(base).origin;
+      async function rPage({ lang = "zh", guideSeen = true, reducedMotion = "no-preference", grant = true, init = null } = {}) {
+        const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, userAgent: R_UA, reducedMotion });
+        if (grant) await ctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: rOrigin });
+        if (guideSeen) await ctx.addInitScript(() => { try { localStorage.setItem("healoa_base_guide_seen_v1", "1"); } catch (e) {} });
+        if (init) await ctx.addInitScript(init);
+        const pg = await ctx.newPage();
+        pg.on("pageerror", (e) => pageErrors.push("R:" + e));
+        await pg.goto(base);
+        if (lang === "en") await pg.click("#btnLang");
+        return { ctx, pg };
+      }
+      const setFx = (pg, want) => pg.evaluate((want) => {
+        for (const k of ["wind", "light", "mist", "pulse"]) {
+          const b = document.querySelector(`#fxTools [data-fx="${k}"]`);
+          if (b.classList.contains("on") !== !!want[k]) b.click();
+        }
+      }, want);
+      // decode a screenshot in the page and return mean RGB / luminance stats for a region (fractions of the image)
+      async function imgStats(pg, buf, region) {
+        return pg.evaluate(async ({ b64, region }) => {
+          const img = new Image(); img.src = "data:image/png;base64," + b64; await img.decode();
+          const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight;
+          const x = c.getContext("2d"); x.drawImage(img, 0, 0);
+          const X = Math.floor(c.width * region[0]), Y = Math.floor(c.height * region[1]), W = Math.floor(c.width * region[2]), H = Math.floor(c.height * region[3]);
+          const d = x.getImageData(X, Y, W, H).data; let r = 0, g = 0, bl = 0, n = 0, l2 = 0;
+          for (let i = 0; i < d.length; i += 16) { r += d[i]; g += d[i + 1]; bl += d[i + 2]; const L = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; l2 += L * L; n++; }
+          r /= n; g /= n; bl /= n; const L = 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+          return { r, g, b: bl, L, sd: Math.sqrt(Math.max(0, l2 / n - L * L)), warm: r - bl };
+        }, { b64: buf.toString("base64"), region });
+      }
+      async function imgDiff(pg, a, b) {
+        return pg.evaluate(async ({ a, b }) => {
+          const load = async (s) => { const i = new Image(); i.src = "data:image/png;base64," + s; await i.decode(); const c = document.createElement("canvas"); c.width = i.naturalWidth; c.height = i.naturalHeight; const x = c.getContext("2d"); x.drawImage(i, 0, 0); return x.getImageData(0, 0, c.width, c.height).data; };
+          const A = await load(a), B = await load(b); let s = 0, n = 0;
+          for (let i = 0; i < A.length; i += 16) { s += Math.abs(A[i] - B[i]) + Math.abs(A[i + 1] - B[i + 1]) + Math.abs(A[i + 2] - B[i + 2]); n++; }
+          return s / n / 3;
+        }, { a: a.toString("base64"), b: b.toString("base64") });
+      }
+      const photoBox = async (pg) => { const b = await pg.locator("#sceneBg").boundingBox(); return { x: b.x, y: Math.max(b.y, 60), width: b.width, height: Math.min(b.height, 812 - Math.max(b.y, 60)) }; };
+
+      // 1 · every photo scene: each FX alone turns on a measurable, visible layer/filter/animation (375px)
+      {
+        const { ctx, pg } = await rPage();
+        const rows = await pg.evaluate(async () => {
+          const T = window.__healoaSeedTest; const out = [];
+          const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+          const btn = (k) => document.querySelector(`#fxTools [data-fx="${k}"]`);
+          const setOnly = (k) => { for (const f of ["wind", "light", "mist", "pulse"]) { const b = btn(f); if (b.classList.contains("on") !== (f === k)) b.click(); } };
+          const op = (id) => parseFloat(getComputedStyle(document.getElementById(id)).opacity);
+          for (const [id, hero] of Object.entries(T.placePhotoHeroMap())) {
+            if (!hero) continue;
+            T.enterPlaceDev(id); await wait(120);
+            const bg = document.getElementById("sceneBg"), shell = document.getElementById("sceneShell");
+            setOnly(null); await wait(600);
+            const off = { wind: op("fxWindLayer"), light: op("fxLightLayer"), mist: op("fxFogLayer"), pulse: op("fxPulseLayer"), filter: getComputedStyle(bg).filter, anim: getComputedStyle(bg).animationName };
+            const r = { id, kind: T.fxInfo().kind, photo: getComputedStyle(bg).backgroundImage.includes("url("), off };
+            // wind
+            setOnly("wind"); await wait(600);
+            const s1 = T.fxSample(); await wait(500); const s2 = T.fxSample();
+            const d = s1.map((p, i) => ({ dx: s2[i].x - p.x, dy: s2[i].y - p.y })).filter((q) => Math.abs(q.dx) < 0.5 && Math.abs(q.dy) < 0.5);
+            const med = (a) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)] || 0; };
+            r.wind = { cls: shell.classList.contains("fx-wind") && bg.classList.contains("wind-on"), anim: getComputedStyle(bg).animationName, transform: getComputedStyle(bg).transform, layer: op("fxWindLayer"),
+              dx: +med(d.map((q) => q.dx)).toFixed(4), dy: +med(d.map((q) => q.dy)).toFixed(4), btnOn: btn("wind").classList.contains("on") && btn("wind").getAttribute("aria-pressed") === "true" && getComputedStyle(btn("wind"), "::before").content.includes("✓"),
+              toast: document.getElementById("toast").innerText };
+            // light
+            setOnly("light"); await wait(600);
+            r.light = { filter: getComputedStyle(bg).filter, layer: op("fxLightLayer"), grad: getComputedStyle(document.getElementById("fxLightLayer")).backgroundImage.includes("radial-gradient"), toast: document.getElementById("toast").innerText };
+            // mist
+            setOnly("mist"); await wait(600);
+            const fr = document.querySelector("#fxFogLayer i.b").getBoundingClientRect(), sr = shell.getBoundingClientRect();
+            r.mist = { layer: op("fxFogLayer"), fogTopPct: Math.round(100 * (fr.top - sr.top) / sr.height), fogBottomPct: Math.round(100 * (fr.bottom - sr.top) / sr.height), toast: document.getElementById("toast").innerText };
+            // pulse
+            setOnly("pulse"); await wait(150);
+            const ops = []; for (let i = 0; i < 9; i++) { ops.push(op("fxPulseLayer")); await wait(160); }
+            r.pulse = { anim: getComputedStyle(document.getElementById("fxPulseLayer")).animationName, min: Math.min(...ops), max: Math.max(...ops), toast: document.getElementById("toast").innerText };
+            // all together still combine
+            for (const f of ["wind", "light", "mist", "pulse"]) if (!btn(f).classList.contains("on")) btn(f).click();
+            await wait(300);
+            r.all = ["wind", "light", "mist", "pulse"].every((f) => shell.classList.contains("fx-" + f)) && bg.classList.contains("wind-on") && bg.classList.contains("light-on");
+            // text stays above the fx layers, scrims intact
+            const z = (el) => parseInt(getComputedStyle(el).zIndex, 10) || 0;
+            const footer = document.querySelector("#sceneShell .scene-footer-bar");
+            r.textAbove = ["fxWindLayer", "fxLightLayer", "fxFogLayer", "fxPulseLayer", "fxCanvas"].every((l) => z(document.getElementById(l)) < z(footer)) && /gradient/.test(getComputedStyle(footer).backgroundImage) && getComputedStyle(footer).backgroundImage.includes("0.62");
+            out.push(r);
+          }
+          return out;
+        });
+        const expectKind = (id) => (id === "harbin" || id === "forest-cabin") ? "snow" : id === "onsen" ? "steam" : id.startsWith("wudang") ? "mote" : null;
+        const bad = rows.filter((r) => {
+          const ek = expectKind(r.id);
+          return !(r.photo && r.off.wind < 0.05 && r.off.light < 0.05 && r.off.mist < 0.05 && r.off.pulse < 0.05 && r.off.anim === "none"
+            && r.wind.cls && r.wind.anim === "fxSway" && r.wind.transform !== "none" && r.wind.layer > 0.9 && r.wind.dx > 0.004 && Math.abs(r.wind.dy) > 0.0005 && r.wind.btnOn
+            && /sepia/.test(r.light.filter) && /brightness\(1\.[1-9]/.test(r.light.filter) && r.light.layer > 0.9 && r.light.grad
+            && r.mist.layer > 0.9 && r.mist.fogTopPct >= 30 && r.mist.fogTopPct <= 70
+            && r.pulse.anim === "fxBreath" && r.pulse.max - r.pulse.min > 0.3
+            && r.all && r.textAbove && (!ek || r.kind === ek));
+        });
+        record("r-fx-each-effect-visible-all-photo-scenes-375", rows.length >= 12 && bad.length === 0,
+          JSON.stringify({ scenes: rows.length, bad: bad.slice(0, 2), sample: rows.find((r) => r.id === "harbin") }));
+        const kinds = Object.fromEntries(rows.map((r) => [r.id, r.kind]));
+        record("r-fx-particle-type-matches-place", kinds.harbin === "snow" && kinds["forest-cabin"] === "snow" && kinds.onsen === "steam" && kinds["wudang-homestay"] === "mote" && kinds["thai-dive"] === "bubble", JSON.stringify(kinds));
+        const toasts = rows[0] ? [rows[0].wind.toast, rows[0].light.toast, rows[0].mist.toast, rows[0].pulse.toast] : [];
+        record("r-fx-toggle-feedback-says-what-changed", toasts[0].includes("斜着吹") && toasts[1].includes("变暖变亮") && toasts[2].includes("起雾") && toasts[3].includes("一呼一吸"), JSON.stringify(toasts));
+        await ctx.close();
+      }
+
+      // 2 · pixel-level: on the real Wudang / Harbin photos each FX changes what is on screen (screenshots, 375px)
+      for (const scene of ["wudang-homestay", "harbin"]) {
+        const { ctx, pg } = await rPage();
+        await pg.evaluate((id) => window.__healoaSeedTest.enterPlaceDev(id), scene);
+        await pg.waitForTimeout(900);
+        await pg.evaluate(() => { const s = document.getElementById("sceneShell"); window.scrollTo(0, s.getBoundingClientRect().top + scrollY - 60); });
+        await setFx(pg, {}); await pg.waitForTimeout(700);
+        const clip = await photoBox(pg);
+        const offA = await pg.screenshot({ clip }); await pg.waitForTimeout(300); const offB = await pg.screenshot({ clip });
+        const offSt = await imgStats(pg, offA, [0, 0, 1, 1]); const offMid = await imgStats(pg, offA, [0, 0.35, 1, 0.35]);
+        const offMotion = await imgDiff(pg, offA, offB);
+        await setFx(pg, { light: 1 }); await pg.waitForTimeout(800);
+        const lightSt = await imgStats(pg, await pg.screenshot({ clip }), [0, 0, 1, 1]);
+        await setFx(pg, { mist: 1 }); await pg.waitForTimeout(800);
+        const mistMid = await imgStats(pg, await pg.screenshot({ clip }), [0, 0.35, 1, 0.35]);
+        await setFx(pg, { wind: 1 }); await pg.waitForTimeout(800);
+        const wA = await pg.screenshot({ clip }); await pg.waitForTimeout(300); const wB = await pg.screenshot({ clip });
+        const windMotion = await imgDiff(pg, wA, wB);
+        await setFx(pg, { pulse: 1 }); await pg.waitForTimeout(300);
+        const Ls = []; for (let i = 0; i < 6; i++) { Ls.push((await imgStats(pg, await pg.screenshot({ clip }), [0.1, 0.2, 0.8, 0.5])).L); await pg.waitForTimeout(220); }
+        await setFx(pg, {}); await pg.waitForTimeout(700);
+        const Loff = []; for (let i = 0; i < 4; i++) { Loff.push((await imgStats(pg, await pg.screenshot({ clip }), [0.1, 0.2, 0.8, 0.5])).L); await pg.waitForTimeout(220); }
+        const res = {
+          light: { dL: +(lightSt.L - offSt.L).toFixed(1), dWarm: +(lightSt.warm - offSt.warm).toFixed(1) },
+          mist: { dL: +(mistMid.L - offMid.L).toFixed(1), dSd: +(mistMid.sd - offMid.sd).toFixed(1) },
+          wind: { motion: +windMotion.toFixed(2), offMotion: +offMotion.toFixed(2) },
+          pulse: { range: +(Math.max(...Ls) - Math.min(...Ls)).toFixed(1), offRange: +(Math.max(...Loff) - Math.min(...Loff)).toFixed(1) },
+        };
+        record("r-fx-pixels-light-warmer-brighter-" + scene, res.light.dL > 6 && res.light.dWarm > 6, JSON.stringify(res.light));
+        record("r-fx-pixels-mist-covers-middle-" + scene, res.mist.dL > 8, JSON.stringify(res.mist));
+        record("r-fx-pixels-wind-moves-picture-" + scene, res.wind.motion > res.wind.offMotion * 2 && res.wind.motion > 2, JSON.stringify(res.wind));
+        record("r-fx-pixels-pulse-breathes-" + scene, res.pulse.range > 3 && res.pulse.range > res.pulse.offRange * 2, JSON.stringify(res.pulse));
+        await ctx.close();
+      }
+
+      // 3 · prefers-reduced-motion: toned down, never switched off
+      {
+        const { ctx, pg } = await rPage({ reducedMotion: "reduce" });
+        await pg.evaluate(() => window.__healoaSeedTest.enterPlaceDev("harbin"));
+        await pg.waitForTimeout(500);
+        await setFx(pg, { wind: 1, light: 1, mist: 1, pulse: 1 }); await pg.waitForTimeout(700);
+        const rm = await pg.evaluate(() => {
+          const bg = document.getElementById("sceneBg"), cs = getComputedStyle(bg), pl = getComputedStyle(document.getElementById("fxPulseLayer"));
+          return { reduced: window.__healoaSeedTest.fxInfo().reduced, bgAnim: cs.animationName, bgTransform: cs.transform, wind: getComputedStyle(document.getElementById("fxWindLayer")).opacity,
+            fog: getComputedStyle(document.getElementById("fxFogLayer")).opacity, fogAnim: getComputedStyle(document.querySelector("#fxFogLayer i.a")).animationName,
+            light: getComputedStyle(document.getElementById("fxLightLayer")).opacity, filter: cs.filter, pulseDur: pl.animationDuration, pulseAnim: pl.animationName };
+        });
+        record("r-fx-reduced-motion-toned-down-still-visible", rm.reduced && rm.bgAnim === "none" && rm.bgTransform !== "none" && +rm.wind > 0.9 && +rm.fog > 0.9 && rm.fogAnim === "none" && +rm.light > 0.9 && /sepia/.test(rm.filter) && rm.pulseAnim === "fxBreath" && rm.pulseDur === "6s", JSON.stringify(rm));
+        await ctx.close();
+      }
+
+      // 4 · 「怎么玩」guide: shown once on first scene, dismissable, reopened by 「?」, zh + en
+      for (const lang of ["zh", "en"]) {
+        const { ctx, pg } = await rPage({ lang, guideSeen: false });
+        await pg.click("#btnStart"); await pg.click('.place[data-id="wudang"]'); await pg.click('.path-card[data-path="wudang-homestay"]');
+        await pg.waitForSelector("#s3:not(.hidden)"); await pg.waitForTimeout(1200);
+        const g = await pg.evaluate(() => {
+          const el = document.getElementById("playGuide"), r = el.getBoundingClientRect(), banner = document.querySelector(".proto-banner").getBoundingClientRect();
+          return { shown: el.offsetParent !== null, text: el.innerText, top: Math.round(r.top), bottom: Math.round(r.bottom), bannerBottom: Math.round(banner.bottom), items: el.querySelectorAll("li").length, seen: localStorage.getItem("healoa_base_guide_seen_v1") };
+        });
+        const txtOk = lang === "zh" ? g.text.includes("怎么玩") && g.text.includes("点画面留一笔") && g.text.includes("开风／光／雾") && g.text.includes("发给一个人")
+          : g.text.includes("How to play") && g.text.includes("tap the picture") && g.text.includes("wind / light / mist") && g.text.includes("send it to one person") && !/[\u4e00-\u9fff]/.test(g.text);
+        record("r-guide-shown-first-scene-" + lang, g.shown && g.items === 3 && txtOk && g.top >= g.bannerBottom - 1 && g.bottom <= 812 && g.seen === "1", JSON.stringify(g));
+        if (lang === "zh") {
+          // guide does not block placing a mark
+          const b = await pg.locator("#playStage").boundingBox();
+          await pg.mouse.click(b.x + b.width * 0.45, b.y + b.height * 0.5); await pg.waitForTimeout(200);
+          const marks = await pg.evaluate(() => window.__healoaSeedTest.myMarkCount());
+          record("r-guide-does-not-block-stage", marks === 1, "marks=" + marks);
+        }
+        await pg.click("#playGuideOk"); await pg.waitForTimeout(150);
+        const closed = await pg.evaluate(() => document.getElementById("playGuide").offsetParent === null);
+        await pg.evaluate(() => window.__healoaSeedTest.enterPlaceDev("harbin")); await pg.waitForTimeout(300);
+        const again = await pg.evaluate(() => document.getElementById("playGuide").offsetParent !== null);
+        await pg.reload(); if (lang === "en" && !(await pg.evaluate(() => document.documentElement.lang === "en"))) await pg.click("#btnLang");
+        await pg.evaluate(() => window.__healoaSeedTest.enterPlaceDev("onsen")); await pg.waitForTimeout(300);
+        const afterReload = await pg.evaluate(() => document.getElementById("playGuide").offsetParent !== null);
+        record("r-guide-dismiss-and-shown-once-" + lang, closed && !again && !afterReload, JSON.stringify({ closed, again, afterReload }));
+        await pg.click("#coachToggle"); await pg.waitForTimeout(150);
+        const reopened = await pg.evaluate(() => ({ guide: document.getElementById("playGuide").offsetParent !== null, expanded: document.getElementById("coachToggle").getAttribute("aria-expanded") }));
+        await pg.click("#playGuideClose"); await pg.waitForTimeout(100);
+        const closedX = await pg.evaluate(() => document.getElementById("playGuide").offsetParent === null);
+        record("r-guide-reopens-from-question-mark-" + lang, reopened.guide && reopened.expanded === "true" && closedX, JSON.stringify({ ...reopened, closedX }));
+        await ctx.close();
+      }
+
+      // 5 · result view after send: preview PNG + what the recipient sees + next actions (copy ok / manual link · zh + en)
+      async function rToSent(pg, line) {
+        await pg.evaluate(() => window.__healoaSeedTest.enterPlaceDev("harbin")); await pg.waitForTimeout(400);
+        const b = await pg.locator("#playStage").boundingBox();
+        await pg.mouse.click(b.x + b.width * 0.45, b.y + b.height * 0.55); await pg.waitForTimeout(150);
+        await pg.click("#btnSendFriend"); await pg.waitForSelector("#s5:not(.hidden)");
+        await pg.fill("#cardLineEdit", line); await pg.waitForTimeout(300);
+        const pre = await pg.evaluate(() => document.getElementById("sendResult").offsetParent !== null);
+        await pg.evaluate(() => { const r = document.getElementById("btnSendToFriend").getBoundingClientRect(); window.scrollBy(0, r.bottom - innerHeight + 60); });
+        await pg.waitForTimeout(200); await pg.click("#btnSendToFriend"); await pg.waitForTimeout(900);
+        return pre;
+      }
+      const resultState = (pg) => pg.evaluate(() => {
+        const r = document.getElementById("sendResult"), img = document.getElementById("sendResultImg"), st = document.getElementById("shareStatus").getBoundingClientRect();
+        return { shown: r.offsetParent !== null, text: r.innerText, png: (img.src || "").startsWith("data:image/png"), w: img.naturalWidth, h: img.naturalHeight, alt: img.alt,
+          btns: [...r.querySelectorAll("button")].map((b) => b.innerText), statusInView: st.top >= 0 && st.bottom <= innerHeight, usedPhoto: window.__healoaSeedTest.getState().lastShareExport.usedPhoto, line: window.__healoaSeedTest.getState().soloText };
+      });
+      for (const lang of ["zh", "en"]) {
+        const { ctx, pg } = await rPage({ lang });
+        const line = lang === "zh" ? "今晚的雪很安静。" : "The snow is quiet tonight.";
+        const pre = await rToSent(pg, line);
+        const r = await resultState(pg);
+        const copyOk = lang === "zh" ? r.text.includes("对方打开链接会看到这一幕和你这句话") && r.text.includes("可以再加一笔发回给你") && r.text.includes("Demo") && r.text.includes("副本") && JSON.stringify(r.btns) === '["再做一幕","回到首页"]'
+          : r.text.includes("they'll see this scene and your line") && r.text.includes("send it back to you") && r.text.includes("Demo") && r.text.includes("own copy") && JSON.stringify(r.btns) === '["Make another scene","Back to home"]' && !/[\u4e00-\u9fff]/.test(r.text);
+        record("r-result-view-after-send-" + lang, !pre && r.shown && r.png && r.w === 1080 && r.h === 1440 && r.usedPhoto && r.line === line && copyOk && r.statusInView, JSON.stringify({ pre, ...r, text: r.text.slice(0, 120) }));
+        if (lang === "zh") {
+          await pg.evaluate(() => window.__healoaSeedTest.goSendFriend()); await pg.waitForTimeout(200);
+          const hiddenOnReopen = await pg.evaluate(() => document.getElementById("sendResult").offsetParent === null);
+          await pg.click("#btnSendToFriend"); await pg.waitForTimeout(700);
+          await pg.click("#btnResultAgain"); await pg.waitForTimeout(200);
+          const again = await pg.evaluate(() => !document.getElementById("s2").classList.contains("hidden"));
+          await pg.evaluate(() => window.__healoaSeedTest.goSendFriend()); await pg.waitForTimeout(200);
+          await pg.click("#btnSendToFriend"); await pg.waitForTimeout(700);
+          await pg.click("#btnResultHome"); await pg.waitForTimeout(200);
+          const home = await pg.evaluate(() => !document.getElementById("s0").classList.contains("hidden"));
+          record("r-result-view-next-actions", hiddenOnReopen && again && home, JSON.stringify({ hiddenOnReopen, again, home }));
+        }
+        await ctx.close();
+      }
+      {
+        const failInit = () => {
+          Object.defineProperty(navigator, "clipboard", { value: { writeText: () => Promise.reject(new DOMException("denied", "NotAllowedError")) }, configurable: true });
+          document.execCommand = () => false;
+        };
+        const { ctx, pg } = await rPage({ grant: false, init: failInit });
+        await rToSent(pg, "手动复制也看得到结果。");
+        const r = await resultState(pg);
+        const manual = await pg.evaluate(() => { const m = document.getElementById("shareManualLink"), mr = m.getBoundingClientRect(); return { shown: m.offsetParent !== null, inView: mr.top >= 0 && mr.bottom <= innerHeight }; });
+        record("r-result-view-after-manual-link", r.shown && r.png && manual.shown && manual.inView && r.statusInView, JSON.stringify({ shown: r.shown, manual, statusInView: r.statusInView }));
+        await ctx.close();
+      }
+
+      // 6 · red lines for the new copy
+      {
+        const newKeys = ["fxOnWind", "fxOnLight", "fxOnMist", "fxOnPulse", "guideTitle", "guide1", "guide2", "guide3", "resultTitle", "resultCopy", "resultNote", "resultAgain", "resultHome"];
+        const found = newKeys.flatMap((k) => html.match(new RegExp(k + ':"[^"]*"', "g")) || []);
+        const joined = found.join(" ");
+        record("r-new-copy-redlines-zh-en", found.length === newKeys.length * 2 && !/日记|通知|已发送|已送达|notif|delivered|sent to|实时|同步更新/i.test(joined) && /副本/.test(joined) && /own copy/.test(joined), "keys=" + found.length);
+      }
+    }
+
     // English (language toggle) · customer path
     const enCtx = await browser.newContext();
     const en = await enCtx.newPage();
@@ -1756,7 +2013,7 @@ async function main() {
   const passed = steps.filter((s) => s.ok).length;
   const failed = steps.filter((s) => !s.ok).length;
   const out = {
-    version: "v2026-09-25-q",
+    version: "v2026-09-26-r",
     generatedAt: new Date().toISOString(),
     summary: { passed, failed, total: steps.length },
     twoContext,
