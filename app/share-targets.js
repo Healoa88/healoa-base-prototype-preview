@@ -1,4 +1,4 @@
-/* HeaLoa · per-platform share targets (v2026-09-27-v)
+/* HeaLoa · per-platform share targets (v2026-09-27-w)
  * Sharing the user's own card, with no login and no backend. Order of use in the share panel:
  *   1. native share sheet first (navigator.share, with the PNG file when the device supports files);
  *   2. then one explicit button per platform below (per locale), each of which works on its own.

@@ -1,4 +1,4 @@
-/* HeaLoa · rule-based recommendation (v2026-09-27-v)
+/* HeaLoa · rule-based recommendation (v2026-09-27-w)
  * Deterministic: same (condition, season) → same result. No randomness, no paid ranking.
  * Places without a photo are never in the top 3.
  * All wording comes from the active locale via t(key) (app/i18n/<locale>.js); no customer text is hard-coded here.
@@ -109,22 +109,33 @@
     return { cond: cond, season: season, top: top, skip: skip, more: more };
   }
 
+  /* Index (0 = 小寒 … 23 = 冬至) of the solar term in effect on `date`: the latest term start ≤ date.
+   * Uses the exact dates for the year when known (D.SOLAR_TERM_DATES), else the typical dates (D.SOLAR_TERMS). */
+  function termDates(year) {
+    var exact = D.SOLAR_TERM_DATES && D.SOLAR_TERM_DATES[year];
+    return exact || D.SOLAR_TERMS.map(function (x) { return [x.m, x.d]; });
+  }
+  function termIndexFor(date) {
+    var y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate(), T = termDates(y), cur = 23; /* before 小寒 → still 冬至 of last year */
+    for (var i = 0; i < T.length; i++) if (m > T[i][0] || (m === T[i][0] && d >= T[i][1])) cur = i;
+    return cur;
+  }
+  /* Real season by solar term: 立春 → spring, 立夏 → summer, 立秋 → autumn, 立冬 → winter. */
   function seasonFor(date) {
-    var m = date.getMonth() + 1;
-    if (m === 12 || m <= 2) return "winter";
-    return "autumn"; /* Phase 1 only has autumn + winter; spring/summer fall back to autumn. */
+    var i = termIndexFor(date), S = D.SEASON_START_TERM;
+    if (i >= S.spring && i < S.summer) return "spring";
+    if (i >= S.summer && i < S.autumn) return "summer";
+    if (i >= S.autumn && i < S.winter) return "autumn";
+    return "winter";
   }
+  /* Season whose content we show. Only autumn + winter content exists (Phase 1); in spring / summer the app says so
+   * and shows the coming autumn, labelled as a look ahead (never presented as "today is autumn"). */
+  function contentSeasonFor(season) { return D.SEASONS[season] ? season : "autumn"; }
 
-  function solarTermFor(date) {
-    var m = date.getMonth() + 1, d = date.getDate(), T = D.SOLAR_TERMS, cur = T[T.length - 1];
-    for (var i = 0; i < T.length; i++) {
-      if (m > T[i].m || (m === T[i].m && d >= T[i].d)) cur = T[i];
-    }
-    return cur.name;
-  }
+  function solarTermFor(date) { return D.SOLAR_TERMS[termIndexFor(date)].name; }
 
   root.HEALOA_RULES = {
     recommend: recommend, reasons: reasons, skipReason: skipReason, score: score,
-    placeById: placeById, seasonFor: seasonFor, solarTermFor: solarTermFor, deg: deg
+    placeById: placeById, seasonFor: seasonFor, contentSeasonFor: contentSeasonFor, solarTermFor: solarTermFor, termIndexFor: termIndexFor, deg: deg
   };
 })(typeof window !== "undefined" ? window : globalThis);

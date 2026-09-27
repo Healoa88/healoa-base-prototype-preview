@@ -3,7 +3,9 @@
  * practice cues over time, card/share texts, private PNG hash) into one normalized JSON object.
  * Used to prove zh renders identically to the intentional zh snapshot (tests/golden/zh-baseline.json).
  * History: captured from v2026-09-27-s before the i18n refactor; re-captured ON PURPOSE for v2026-09-27-u
- * (zh copy polish for first-time 55+ users, 留一句 / 发给一个人 / per-platform share).
+ * (zh copy polish for first-time 55+ users, 留一句 / 发给一个人 / per-platform share); re-captured ON PURPOSE for v2026-09-27-w
+ * (audit fixes: private card without condition text when 「写出我的情况」 is off, 睡前慢呼吸 吸4呼6 replaces 4-7-8,
+ * plain wording instead of 网格 / 待人工核对 / 样品 / 照片待补, exact solar-term dates).
  * Regenerate the golden only on purpose: node tests/lib/capture-zh.mjs --write
  */
 import { chromium } from "playwright";
@@ -117,7 +119,7 @@ export async function captureZh({ query = "" } = {}) {
 
     // practices: initial state + cues over time (controlled clock)
     out.practice = {};
-    const ids = ["breath46", "breath478", "walk", "soak", "baduanjin1", "taiji1"];
+    const ids = ["breath46", "breathNight", "walk", "soak", "baduanjin1", "taiji1"];
     for (const cond of ["bp", "sleep", "tense", "cold"]) for (const id of ids) {
       const q = await fresh(base + Q("2026-09-26"), true);
       await q.evaluate(({ cond, id }) => window.__healoa.go("practice", { cond, practiceId: id }, true), { cond, id });

@@ -103,8 +103,9 @@ check("血压偏高+冬: warm place first, Harbin + hot-spring town in 这个季
 check("血压偏高+冬: hot-spring caution ≤41℃ and ≤10 分钟", /41℃/.test(D.CARE.bp.winter.safety) && /10 分钟/.test(D.CARE.bp.winter.safety), D.CARE.bp.winter.safety);
 const slA = R.recommend("sleep", "autumn");
 check("睡不踏实+秋 differs from 血压偏高+冬", sig["sleep/autumn"] !== sig["bp/winter"] && slA.top[0].id !== bpW.top[0].id, { sleepAutumnTop: slA.top.map((x) => x.id), bpWinterTop: bpW.top.map((x) => x.id) });
-check("practice defaults: 睡不踏实 → 4-7-8, 心里绷得紧 → 慢走节奏, 血压偏高 → 吸4呼6 (no breath-hold)",
-  D.PRACTICE_DEFAULT.sleep === "breath478" && D.PRACTICE_DEFAULT.tense === "walk" && D.PRACTICE_DEFAULT.bp === "breath46");
+check("practice defaults: 睡不踏实 → 睡前慢呼吸 (吸4呼6, no hold), 心里绷得紧 → 慢走节奏, 血压偏高 → 吸4呼6; 4-7-8 is gone (v2026-09-27-w)",
+  D.PRACTICE_DEFAULT.sleep === "breathNight" && D.PRACTICE_DEFAULT.tense === "walk" && D.PRACTICE_DEFAULT.bp === "breath46" && !D.PRACTICES.breath478 &&
+  JSON.stringify(D.PRACTICES.breathNight.phases.map((x) => x.sec)) === "[4,6]");
 
 // 6. Share code path never reads the condition.
 const app = read("app/app.js");
@@ -126,9 +127,12 @@ check("i18n: en + ja are DRAFTS (meta.draft true, complete false) → not comple
   EN && JA && EN.meta.draft === true && JA.meta.draft === true && EN.meta.complete === false && JA.meta.complete === false && I.isDraft("en") && I.isDraft("ja") && !I.isComplete("en") && !I.isComplete("ja") && !I.isDraft("zh") && !I.isDraft("es"));
 function shape(o, pth = "") {
   if (Array.isArray(o)) return pth.endsWith("privateWords") ? "A" : "A" + o.length;
-  if (o && typeof o === "object") return Object.keys(o).sort().reduce((r, k) => { r[k] = shape(o[k], pth + "." + k); return r; }, {});
+  // conditionBreaks = optional per-locale line-break hints for the home buttons (ja only; checked below), not content
+  if (o && typeof o === "object") return Object.keys(o).filter((k) => k !== "conditionBreaks").sort().reduce((r, k) => { r[k] = shape(o[k], pth + "." + k); return r; }, {});
   return typeof o;
 }
+check("i18n: ja conditionBreaks (button line-break hints) cover the 6 conditions and, without the 「|」 marks, equal the ja labels exactly",
+  JA.content.conditionBreaks && Object.keys(JA.content.conditions).every((k) => typeof JA.content.conditionBreaks[k] === "string" && JA.content.conditionBreaks[k].replace(/\|/g, "") === JA.content.conditions[k]));
 for (const [code, Lc] of [["en", EN], ["ja", JA]]) {
   const zk = Object.keys(ZH.strings), lk = Object.keys(Lc.strings);
   const miss = zk.filter((k) => typeof Lc.strings[k] !== "string" || Lc.strings[k] === ""), extra = lk.filter((k) => !(k in ZH.strings));

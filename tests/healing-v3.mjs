@@ -136,7 +136,7 @@ try {
   p = await fresh();
   await p.click('#homeConds [data-cond="bp"]');
   await p.click('#resultBody [data-action="openPractice"][data-practice="breath46"] >> nth=0');
-  check("bp: 4-7-8 (breath-hold) not offered as a mode", (await p.$$('#practiceModes [data-practice="breath478"]')).length === 0);
+  check("bp: every offered mode is hold-free (no 4-7-8; 睡前慢呼吸 吸4呼6 offered to everyone)", (await p.$$('#practiceModes [data-practice="breath478"]')).length === 0 && (await p.$$('#practiceModes [data-practice="breathNight"]')).length === 1);
   await p.click("#btnStart");
   await p.waitForTimeout(3000);
   const e1 = await p.evaluate(() => window.__healoa.elapsedMs());
@@ -161,15 +161,15 @@ try {
   // completion with a controlled clock (deterministic; still time-delta based)
   p = await fresh(base + D, { clock: true });
   await p.click('#homeConds [data-cond="sleep"]');
-  await p.click('#resultBody [data-action="openPractice"][data-practice="breath478"] >> nth=0');
-  check("睡不踏实: default practice is 4-7-8 (4 轮 = 1:16)", (await p.textContent("#practiceClock")) === "1:16" && (await p.textContent("#practiceTitle")).includes("4-7-8"));
+  await p.click('#resultBody [data-action="openPractice"][data-practice="breathNight"] >> nth=0');
+  check("睡不踏实: default practice is 睡前慢呼吸 吸4呼6 (10 轮 = 1:40, no breath hold)", (await p.textContent("#practiceClock")) === "1:40" && (await p.textContent("#practiceTitle")).includes("吸 4 呼 6"));
   await p.click("#btnStart");
   await p.clock.runFor(40000);
   const mid = await p.textContent("#practiceClock");
-  await p.clock.runFor(37000);
+  await p.clock.runFor(61000);
   const donePanel = await p.isVisible("#donePanel");
   const ev = await p.evaluate(() => window.__healoa.events().map((e) => e.e));
-  check("timer: 4-7-8 runs to completion → 做完了 panel + practice_completed event", mid === "0:36" && donePanel && ev.includes("practice_completed"), { mid, donePanel, ev });
+  check("timer: 睡前慢呼吸 runs to completion → 做完了 panel + practice_completed event", mid === "1:00" && donePanel && ev.includes("practice_completed"), { mid, donePanel, ev });
   check("practice copy only claims 当场放松", (await p.textContent("#donePanel")).includes("当场放松"));
   await p.close();
 

@@ -1,5 +1,5 @@
 /**
- * Founder-rule suite (v2026-09-27-v): every rule in rules/healoa-rules.json (human-readable: HEALOA_RULES.md)
+ * Founder-rule suite (v2026-09-27-w): every rule in rules/healoa-rules.json (human-readable: HEALOA_RULES.md)
  * has at least one automated check here. Check ids ("R05.b") are listed in each rule's `enforcedBy`,
  * and the META checks fail if a rule has no passing check or the doc and the JSON drift apart.
  * Static part (no browser) + Playwright part (390×844, zh default; en/ja drafts via ?lang=).
@@ -55,7 +55,7 @@ function outcomeHits(text) {
 
 // ================= static =================
 // R01 / R02 / R03 / R04 / R07 / R12 — per-rule word lists over every customer-facing source.
-const WORD_CHECKS = { R01: "R01.a", R02: "R02.a", R03: "R03.a", R04: "R04.a", R07: "R07.a", R12: "R12.a" };
+const WORD_CHECKS = { R01: "R01.a", R02: "R02.a", R03: "R03.a", R04: "R04.a", R07: "R07.a", R12: "R12.a", R13: "R13.a", R14: "R14.a" };
 for (const [rid, cid] of Object.entries(WORD_CHECKS)) {
   const r = rule(rid), hits = scanRule(r);
   const counts = Object.entries(r.banned).map(([l, w]) => `${l} ${w.length}`).join(", ");
@@ -91,6 +91,44 @@ const D = ctx.HEALOA_DATA, I = ctx.HEALOA_I18N;
   }
   check("R02.c", `疗愈 / restorative / 癒し describe only a place / atmosphere / feeling (${n} uses checked)`, bad.length === 0, bad.length ? bad : null);
 }
+// R14.b — no practice (any locale) holds the breath longer than maxHoldSec: breath phases whose circle keeps its size,
+// and step / intro / phase texts that say "停 N 秒 / hold N / N秒止め" with N > max.
+function holdsOf(pr) {
+  const out = [];
+  if (pr.phases) pr.phases.forEach((ph, i) => { const prev = pr.phases[(i - 1 + pr.phases.length) % pr.phases.length]; if (pr.phases.length > 1 && ph.scale === prev.scale) out.push({ phase: ph.name, sec: ph.sec }); });
+  return out;
+}
+const CN_NUM = { 一: 1, 两: 2, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+const HOLD_TEXT = [
+  /(?:停|屏|憋)[^，。；]{0,3}?(\d+|[一两二三四五六七八九十])\s*秒/gu,
+  /(?:hold|pause|stay)[^.,;]{0,20}?\b(\d+|one|two|three|four|five|six|seven|eight)\s*(?:s\b|sec|second)/giu,
+  /(\d+)\s*秒[^、。]{0,2}(?:止め|止ま|キープ)/gu,
+];
+const EN_NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8 };
+function textHolds(txt) {
+  const out = [];
+  for (const re of HOLD_TEXT) for (const m of String(txt).matchAll(re)) { const k = m[1].toLowerCase(); const n = /^\d+$/.test(k) ? +k : CN_NUM[k] || EN_NUM[k] || 99; out.push({ n, m: m[0] }); }
+  return out;
+}
+{
+  const MAX = rule("R14").maxHoldSec, bad = [];
+  let n = 0;
+  if (D.MAX_HOLD_SEC !== MAX) bad.push({ MAX_HOLD_SEC: D.MAX_HOLD_SEC });
+  for (const [id, pr] of Object.entries(D.PRACTICES)) {
+    for (const h of holdsOf(pr)) { n++; if (h.sec > MAX) bad.push({ id, ...h }); }
+    if (pr.steps) pr.steps.forEach((st) => { for (const h of textHolds(st.text)) { n++; if (h.n > MAX) bad.push({ id, step: h.m }); } });
+  }
+  for (const [code, L] of Object.entries(ctx.HEALOA_LOCALES)) {
+    const P = (L.content && L.content.practices) || {};
+    for (const [id, tx] of Object.entries(P)) for (const t of [tx.intro, ...(tx.steps || []), ...(tx.phases || [])]) for (const h of textHolds(t)) { n++; if (h.n > MAX) bad.push({ code, id, text: h.m }); }
+    for (const t of Object.values((L.content && L.content.homePlan) || {}).flat()) for (const h of textHolds(t)) { n++; if (h.n > MAX) bad.push({ code, homePlan: h.m }); }
+  }
+  // the detector itself works: a 4-7-8 shape and 「停 7 秒」 text are caught
+  const selfTest = holdsOf({ phases: [{ name: "in", sec: 4, scale: 1 }, { name: "hold", sec: 7, scale: 1 }, { name: "out", sec: 8, scale: 0 }] }).some((h) => h.sec === 7) &&
+    textHolds("吸 4 秒，停 7 秒，呼 8 秒").some((h) => h.n === 7) && textHolds("pause for 7 seconds").some((h) => h.n === 7) && textHolds("7秒止めて").some((h) => h.n === 7) && textHolds("在上面停两秒").every((h) => h.n === 2);
+  check("R14.b", `no practice step holds the breath > ${MAX}s: ${Object.keys(D.PRACTICES).length} practices (phase shapes + step timings) and every intro / step / home-plan text in ${Object.keys(ctx.HEALOA_LOCALES).length} locales (${n} holds found, all ≤ ${MAX}s); detector self-test catches 4-7-8`, bad.length === 0 && selfTest, { bad: bad.slice(0, 6), selfTest });
+}
+
 // R05.a — the share builder never reads the body state and only emits allowed URL params.
 {
   const app = read("app/app.js");
@@ -238,8 +276,74 @@ try {
     await p.click("#btnOpenLine"); await p.fill("#lineInput", probe); await p.click('[data-action="saveLine"]');
     await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
     const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText() }));
-    const e2e = !new URL(sh.share.url).searchParams.has("l") && !sh.drawn.some((t) => t.includes(probe)) && (await p.textContent("#cardLine")).includes(probe);
-    check("R05.c", `留一句 naming a body state stays off the share link + image (${Object.values(r.lineProbesMustStayPrivate).flat().length} probes zh/en/ja rejected by lineTravels; plain lines still travel; end-to-end with 「${probe}」)`, priv.length === 0 && travel.length === 0 && e2e, { travelsButShouldNot: priv, blocked: travel, e2e, url: sh.share.url });
+    const hiddenWhenOff = (await p.$$("#cardLine")).length === 0 && (await p.$$("#cardLineHidden")).length === 1;
+    await p.click("#cardShowCond");
+    const e2e = hiddenWhenOff && !new URL(sh.share.url).searchParams.has("l") && !sh.drawn.some((t) => t.includes(probe)) && (await p.textContent("#cardLine")).includes(probe);
+    check("R05.c", `留一句 naming a body state stays off the share link + image (${Object.values(r.lineProbesMustStayPrivate).flat().length} probes zh/en/ja rejected by lineTravels; plain lines still travel; end-to-end with 「${probe}」: off the link + share image; on the own card only when 「写出我的情况」 is on)`, priv.length === 0 && travel.length === 0 && e2e, { travelsButShouldNot: priv, blocked: travel, e2e, url: sh.share.url });
+    await c.close();
+  }
+
+  // ---- R05.d: private card + 「存成图片」 PNG with 「写出我的情况」 OFF carry no condition-identifying text ----
+  {
+    const L = ctx.HEALOA_LOCALES;
+    const labelsAll = Object.values(L).flatMap((x) => Object.values((x.content && x.content.conditions) || {}));
+    const stemsAll = Object.values(L).flatMap((x) => (x.content && x.content.privateWords) || []);
+    const bad = [], runs = [];
+    let control = null;
+    for (const [lang, q, loc] of [["zh", "", "zh-CN"], ["en", "&lang=en", "en-US"], ["ja", "&lang=ja", "ja-JP"]]) {
+      const { c, p } = await open(base + "?" + DQ + q, loc);
+      // a line that names a body state is saved too: it must stay off the card while the toggle is off
+      const care = L[lang].content.care;
+      const specific = [];
+      for (const cid of Object.keys(care)) for (const se of Object.keys(care[cid])) { const k = care[cid][se]; specific.push(k.safety, k.eat.tip, k.move[0]); }
+      for (const season of ["autumn", "winter"]) for (const id of D.CONDITIONS.map((x) => x.id)) {
+        await p.evaluate(({ id, season }) => { window.__healoa.state.line = "我血压偏高，最近睡不踏实"; window.__healoa.go("card", { cond: id, season }, true); }, { id, season });
+        const off = await p.evaluate(() => !document.getElementById("cardShowCond").checked);
+        const dom = await p.evaluate(() => document.getElementById("cardPreview").innerText);
+        const png = await p.evaluate(async () => { const url = await window.__healoa.privatePng(); return { ok: url.startsWith("data:image/png"), text: window.__healoa.lastPrivateText().join("\n") }; });
+        // the fixed disclaimer is identical on every card (it names no condition), so it is not scanned
+        const blob = (dom + "\n" + png.text).split(L[lang].strings.disclaimer).join(" ");
+        const hits = [...labelsAll, ...stemsAll].filter((w) => w && blob.toLowerCase().includes(String(w).toLowerCase()));
+        const lines = [...new Set(specific)].filter((line) => line && blob.includes(line));
+        runs.push(`${lang} ${id}/${season}`);
+        if (!off || !png.ok || png.text.length < 40 || hits.length || lines.length) bad.push({ lang, id, season, off, png: png.ok, hits, lines: lines.map((x) => x.slice(0, 30)) });
+      }
+      if (lang === "zh") {
+        // positive control: with the toggle ON the same test does see the condition (so the check is not vacuous)
+        await p.evaluate(() => window.__healoa.go("card", { cond: "bp", season: "autumn" }, true));
+        await p.click("#cardShowCond");
+        const on = await p.evaluate(async () => { await window.__healoa.privatePng(); return window.__healoa.lastPrivateText().join("\n"); });
+        control = on.includes("血压偏高") && on.includes(L.zh.content.care.bp.autumn.safety);
+      }
+      await c.close();
+    }
+    check("R05.d", `「写出我的情况」 off: private card screen + 「存成图片」 PNG text for ${runs.length} runs (zh/en/ja × 6 conditions × 2 seasons, with a condition-naming 留一句 saved) contain no condition label / privateWords stem (any locale) and no condition-specific safety / eat / move line; control: toggle on → label + safety line appear`, bad.length === 0 && runs.length === 36 && control === true, { bad: bad.slice(0, 4), control });
+  }
+
+  // ---- R14.c: every practice reachable from any condition / season is hold-free ----
+  {
+    const MAX = rule("R14").maxHoldSec;
+    const { c, p } = await open(base + "?" + DQ);
+    const reach = new Set(), bad = [];
+    for (const season of ["autumn", "winter"]) for (const id of D.CONDITIONS.map((x) => x.id)) {
+      await p.evaluate(({ id, season }) => window.__healoa.go("result", { cond: id, season }, true), { id, season });
+      const ids = await p.evaluate(() => [...document.querySelectorAll('#resultBody [data-action="openPractice"]')].map((b) => b.getAttribute("data-practice")));
+      const def = await p.evaluate(() => { const b = document.querySelector('#resultBody .btn.primary[data-action="openPractice"]'); return b && b.getAttribute("data-practice"); });
+      for (const pr of ids) {
+        await p.evaluate(({ pr, id }) => window.__healoa.go("practice", { cond: id, practiceId: pr }, true), { pr, id });
+        const modes = await p.evaluate(() => [...document.querySelectorAll('#practiceModes [data-practice]')].map((b) => b.getAttribute("data-practice")));
+        for (const m of [pr, ...modes]) reach.add(m);
+        for (const m of [pr, ...modes]) {
+          const P = D.PRACTICES[m];
+          const long = P ? holdsOf(P).filter((h) => h.sec > MAX) : [{ missing: m }];
+          if (long.length) bad.push({ cond: id, season, practice: m, long });
+        }
+        const txt = await p.evaluate(() => document.getElementById("vPractice").innerText);
+        for (const h of textHolds(txt)) if (h.n > MAX) bad.push({ cond: id, season, practice: pr, text: h.m });
+      }
+      if (id === "bp" || id === "sleep") reach.add("default:" + id + "=" + def);
+    }
+    check("R14.c", `all 6 conditions × 2 seasons: every practice reachable from the result page and the practice chips (${[...reach].filter((x) => !x.startsWith("default")).length} distinct) holds the breath ≤ ${MAX}s (shape + on-screen text); 睡不踏实 default is ${D.PRACTICE_DEFAULT.sleep}`, bad.length === 0 && !reach.has("breath478") && D.PRACTICE_DEFAULT.sleep !== "breath478", { bad: bad.slice(0, 5), reach: [...reach] });
     await c.close();
   }
 

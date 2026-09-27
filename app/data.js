@@ -1,4 +1,4 @@
-/* HeaLoa · content structure (v2026-09-27-v)
+/* HeaLoa · content structure (v2026-09-27-w)
  * Language-neutral data only: ids, climate numbers, photos, attributes, timings.
  * Every customer-facing string comes from the active locale (app/i18n/<locale>.js, default zh)
  * via window.HEALOA_I18N.content() and is merged here, so HEALOA_DATA keeps the same shape as before.
@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-09-27-v";
+  var VERSION = "v2026-09-27-w";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -25,7 +25,19 @@
     SEASONS[id] = { id: id, label: x.label, months: x.months, monthNames: x.monthNames.slice() };
   });
 
-  /* Approximate solar-term start dates (common years; may differ by one day). Names: content.solarTerms (same order). */
+  /* Solar-term start dates (Beijing time), order = content.solarTerms: 小寒 … 冬至.
+   * Exact dates for 2025–2028 (sun's apparent ecliptic longitude 285° + 15°·i, computed with astronomy-engine,
+   * matching the official Chinese calendar); other years fall back to SOLAR_TERMS (typical dates, ±1 day). */
+  var SOLAR_TERM_DATES = {
+    2025: [[1, 5], [1, 20], [2, 3], [2, 18], [3, 5], [3, 20], [4, 4], [4, 20], [5, 5], [5, 21], [6, 5], [6, 21], [7, 7], [7, 22], [8, 7], [8, 23], [9, 7], [9, 23], [10, 8], [10, 23], [11, 7], [11, 22], [12, 7], [12, 21]],
+    2026: [[1, 5], [1, 20], [2, 4], [2, 18], [3, 5], [3, 20], [4, 5], [4, 20], [5, 5], [5, 21], [6, 5], [6, 21], [7, 7], [7, 23], [8, 7], [8, 23], [9, 7], [9, 23], [10, 8], [10, 23], [11, 7], [11, 22], [12, 7], [12, 22]],
+    2027: [[1, 5], [1, 20], [2, 4], [2, 19], [3, 6], [3, 21], [4, 5], [4, 20], [5, 6], [5, 21], [6, 6], [6, 21], [7, 7], [7, 23], [8, 8], [8, 23], [9, 8], [9, 23], [10, 8], [10, 23], [11, 7], [11, 22], [12, 7], [12, 22]],
+    2028: [[1, 6], [1, 20], [2, 4], [2, 19], [3, 5], [3, 20], [4, 4], [4, 19], [5, 5], [5, 20], [6, 5], [6, 21], [7, 6], [7, 22], [8, 7], [8, 22], [9, 7], [9, 22], [10, 8], [10, 23], [11, 7], [11, 22], [12, 6], [12, 21]]
+  };
+  /* Season starts at 立春 / 立夏 / 立秋 / 立冬 (term index 2 / 8 / 14 / 20). Content exists for autumn + winter only. */
+  var SEASON_START_TERM = { spring: 2, summer: 8, autumn: 14, winter: 20 };
+  var SEASON_NAMES = {};
+  ["spring", "summer", "autumn", "winter"].forEach(function (id) { SEASON_NAMES[id] = root.HEALOA_I18N.t("season." + id); });
   var SOLAR_TERMS = [
     [1, 5], [1, 20], [2, 4], [2, 19], [3, 5], [3, 20], [4, 4], [4, 20], [5, 5], [5, 21], [6, 5], [6, 21],
     [7, 7], [7, 22], [8, 7], [8, 23], [9, 7], [9, 23], [10, 8], [10, 23], [11, 7], [11, 22], [12, 7], [12, 21]
@@ -92,7 +104,10 @@
   var CARE = C.care;
 
   /* Default relaxation per condition. Only claim: relaxing right now. */
-  var PRACTICE_DEFAULT = { bp: "breath46", sleep: "breath478", cold: "breath46", gut: "breath46", tense: "walk", quiet: "breath46" };
+  var PRACTICE_DEFAULT = { bp: "breath46", sleep: "breathNight", cold: "breath46", gut: "breath46", tense: "walk", quiet: "breath46" };
+  /* Safe for everyone (only one condition can be picked, so no practice may rely on it): no breath hold longer than
+   * MAX_HOLD_SEC anywhere. A "hold" = a breath phase whose circle does not change size (same scale as the phase before). */
+  var MAX_HOLD_SEC = 2;
 
   /* Timings, shapes and photos; label / short / intro / phase names / step texts come from content.practices. */
   var PRACTICE_BASE = {
@@ -102,10 +117,10 @@
       durations: [180, 300], defaultDuration: 180,
       photo: "assets/places/wudang/01-cloud-sea-sun.jpg"
     },
-    breath478: {
-      id: "breath478", kind: "breath",
-      phases: [{ sec: 4, scale: 1 }, { sec: 7, scale: 1 }, { sec: 8, scale: 0 }],
-      rounds: 4, durations: [76, 152], defaultDuration: 76,
+    breathNight: {
+      id: "breathNight", kind: "breath",
+      phases: [{ sec: 4, scale: 1 }, { sec: 6, scale: 0 }],
+      rounds: 10, durations: [100, 200], defaultDuration: 100,
       photo: "assets/places/cabin/04-soup-window-warm.jpg"
     },
     walk: {
@@ -158,6 +173,8 @@
     VERSION: VERSION, CONDITIONS: CONDITIONS, SEASONS: SEASONS, SOLAR_TERMS: SOLAR_TERMS,
     CLIMATE: CLIMATE, PLACES: PLACES, CARE: CARE, PRACTICES: PRACTICES,
     PRACTICE_DEFAULT: PRACTICE_DEFAULT, CREDIT: CREDIT, DISCLAIMER: DISCLAIMER,
-    HOME_PLAN: HOME_PLAN, QUIZ: QUIZ, SEASON_PHOTO: SEASON_PHOTO
+    HOME_PLAN: HOME_PLAN, QUIZ: QUIZ, SEASON_PHOTO: SEASON_PHOTO,
+    SOLAR_TERM_DATES: SOLAR_TERM_DATES, SEASON_START_TERM: SEASON_START_TERM, SEASON_NAMES: SEASON_NAMES,
+    CARE_GENERIC: C.careGeneric, MAX_HOLD_SEC: MAX_HOLD_SEC
   };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -107,8 +107,11 @@ try {
     const note2 = await p.textContent("#lineNote");
     const sh2 = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText() }));
     const u2 = new URL(sh2.share.url);
-    check("a line that mentions a body state stays on the user's own card only (not in the link or the share image)",
-      note2.includes("不会带上") && JSON.stringify([...u2.searchParams.keys()]) === '["s"]' && !sh2.drawn.some((t) => t.includes("睡不踏实")) && (await p.textContent("#cardLine")).includes("睡不踏实"), { note2, url: sh2.share.url });
+    // v2026-09-27-w: with 「写出我的情况」 off the line is not written on the card (a note says so); turning it on shows it
+    const hiddenOff = (await p.$$("#cardLine")).length === 0 && (await p.$$("#cardLineHidden")).length === 1;
+    await p.click("#cardShowCond");
+    check("a line that mentions a body state stays private: not in the link or the share image, and on the user's own card only with 「写出我的情况」 on",
+      hiddenOff && note2.includes("不会带上") && JSON.stringify([...u2.searchParams.keys()]) === '["s"]' && !sh2.drawn.some((t) => t.includes("睡不踏实")) && (await p.textContent("#cardLine")).includes("睡不踏实"), { hiddenOff, note2, url: sh2.share.url });
     await p.click("#btnOpenLine"); await p.click("#btnClearLine");
     check("「删掉这一句」 removes the line from the card and the phone", (await p.$$("#cardLine")).length === 0 && (await p.evaluate(() => localStorage.getItem("healoa.line.v1"))) === null);
     await ctx.close();
@@ -279,7 +282,7 @@ try {
       for (const pl of ["wudang", "pattaya", "onsen", "harbin"]) { await p.evaluate((pl) => window.__healoa.go("place", { placeId: pl }, true), pl); await scan(`place ${pl} ${id}/${season}`); }
       await p.evaluate(() => window.__healoa.go("card", {}, true)); await scan(`card ${id}/${season}`);
     }
-    for (const pr of ["breath46", "breath478", "walk", "soak", "baduanjin1", "taiji1"]) { await p.evaluate((pr) => window.__healoa.go("practice", { cond: "sleep", practiceId: pr }, true), pr); await scan("practice " + pr); }
+    for (const pr of ["breath46", "breathNight", "walk", "soak", "baduanjin1", "taiji1"]) { await p.evaluate((pr) => window.__healoa.go("practice", { cond: "sleep", practiceId: pr }, true), pr); await scan("practice " + pr); }
     await p.evaluate(() => window.__healoa.go("card", { cond: "sleep", season: "autumn" }, true));
     await p.click("#btnOpenLine");
     out.lineLead = await p.textContent(".line-lead");

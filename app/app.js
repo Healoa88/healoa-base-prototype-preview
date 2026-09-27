@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-09-27-v)
+/* HeaLoa · app (v2026-09-27-w)
  * Main path: home (one tap) → result (season × condition) → relaxation (real timer) → season care card (private by default).
  * After the card (optional, never before it): 「留一句」 a line the user writes for themselves (local only, shown on their card)
  * → 「发给一个人」 native share sheet first, then per-platform buttons (app/share-targets.js), 9:16 story image.
@@ -36,10 +36,11 @@
     if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) { var p = q.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
     return new Date();
   })();
-  var naturalSeason = R.seasonFor(today);
+  var naturalSeason = R.seasonFor(today); /* real season by solar term: spring / summer / autumn / winter */
   var term = R.solarTermFor(today);
+  var contentSeason = R.contentSeasonFor(naturalSeason); /* autumn / winter (the only content so far) */
 
-  var state = { view: "home", season: naturalSeason, cond: null, placeId: null, practiceId: null, cardShowCond: false, shareUrl: null, from: null, line: "" };
+  var state = { view: "home", season: contentSeason, cond: null, placeId: null, practiceId: null, cardShowCond: false, shareUrl: null, from: null, line: "" };
   (function () { var l = lsGet(LS_LINE); if (l && typeof l.text === "string") state.line = cleanLine(l.text); })();
 
   /* ---------- the user's own line (留一句) ---------- */
@@ -116,9 +117,17 @@
   });
 
   /* ---------- home ---------- */
+  /* A locale without spaces (ja) can list where a button label may break (content.conditionBreaks, "|" = break point).
+   * Rendered as <wbr> with CSS keep-all, so a label never leaves its last kana alone on a second line. Others: plain text. */
+  var COND_BREAKS = (I18N.content && I18N.content().conditionBreaks) || {};
+  function condLabelHtml(c) {
+    var b = COND_BREAKS[c.id];
+    if (!b || b.replace(/\|/g, "") !== c.label) return esc(c.label);
+    return b.split("|").map(esc).join("<wbr>");
+  }
   function condButtons(container) {
     container.innerHTML = D.CONDITIONS.map(function (c) {
-      return '<button type="button" class="cond-btn" data-action="pickCond" data-cond="' + c.id + '">' + esc(c.label) + "</button>";
+      return '<button type="button" class="cond-btn" data-action="pickCond" data-cond="' + c.id + '">' + condLabelHtml(c) + "</button>";
     }).join("");
   }
   function renderSeasonButtons() {
@@ -130,7 +139,8 @@
   }
   function renderHome() {
     var S = D.SEASONS[state.season];
-    $("homeSeasonNow").textContent = state.season === naturalSeason ? t("home.seasonToday", { term: term, season: S.label }) : t("home.seasonAhead", { season: S.label });
+    $("homeSeasonNow").textContent = state.season === naturalSeason ? t("home.seasonToday", { term: term, season: S.label }) :
+      !D.SEASONS[naturalSeason] ? t("home.seasonPending", { term: term, now: D.SEASON_NAMES[naturalSeason], season: S.label }) : t("home.seasonAhead", { season: S.label });
     condButtons($("homeConds"));
     var saved = lsGet(LS_CARD);
     var hint = $("returnHint");
@@ -241,7 +251,7 @@
     if (rec.more.length) {
       h += '<div class="block" id="blkMore"><h3>' + esc(t("result.moreTitle")) + '</h3><p class="muted small">' + esc(t("result.moreSub")) + '</p><ul class="more-list">' + rec.more.map(function (m) {
         var p = R.placeById(m.id);
-        return "<li><b>" + esc(p.name) + '</b><span class="pending">' + esc(t("result.photoPending")) + "</span>" + esc(t("punct.colon")) + esc(m.line) + "</li>";
+        return "<li><b>" + esc(p.name) + "</b>" + esc(t("punct.colon")) + esc(m.line) + "</li>";
       }).join("") + "</ul></div>";
     }
     h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">' + esc(t("result.relaxCta", { label: prac.label })) + "</button></div>";
@@ -291,7 +301,7 @@
     h += '<div class="home-card"><h3>' + esc(t("place.homeTitle")) + "</h3><ul>" + D.HOME_PLAN[cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     var prac = D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
     h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">' + esc(t("result.relaxCta", { label: prac.short })) + "</button></div>";
-    h += '<p class="src-note">' + esc(t("place.srcNote", { elev: D.CLIMATE[p.climate].elev })) + "</p>";
+    h += '<p class="src-note">' + esc(t("place.srcNote")) + "</p>";
     $("placeBody").innerHTML = h;
   }
 
@@ -309,8 +319,8 @@
   }
   function mmss(sec) { sec = Math.max(0, Math.ceil(sec)); return Math.floor(sec / 60) + ":" + ("0" + (sec % 60)).slice(-2); }
   function modeList() {
-    var ids = ["breath46", "breath478", "walk", "soak"];
-    if (state.cond === "bp") ids = ["breath46", "walk", "soak"];
+    /* Every practice is safe for every condition (no breath hold > D.MAX_HOLD_SEC), so the list is the same for all. */
+    var ids = ["breath46", "breathNight", "walk", "soak"];
     if (state.practiceId && ids.indexOf(state.practiceId) < 0) ids.push(state.practiceId);
     return ids;
   }
@@ -327,7 +337,7 @@
     var opts = "";
     if (p.durations && p.kind !== "guided") {
       opts += p.durations.map(function (d) {
-        var label = p.rounds ? t("practice.rounds", { n: Math.round(d / 19) }) : t("practice.minutes", { n: Math.round(d / 60) });
+        var label = p.rounds ? t("practice.rounds", { n: Math.round(d / p.phases.reduce(function (a, x) { return a + x.sec; }, 0)) }) : t("practice.minutes", { n: Math.round(d / 60) });
         return '<button type="button" class="chip' + (d === T.duration ? " on" : "") + '" data-action="practiceOpt" data-duration="' + d + '">' + label + "</button>";
       }).join("");
     }
@@ -498,17 +508,22 @@
     var cond = state.cond, season = state.season, S = D.SEASONS[season];
     var rec = R.recommend(cond, season), top = rec.top[0], place = top ? R.placeById(top.id) : null;
     var care = D.CARE[cond][season], prac = D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
+    /* 「写出我的情况」 off (default): the card and its image carry NO condition-specific text — generic season items and a
+     * generic safety line (same for every condition), and a 留一句 that names a body state stays off (rule R05). */
+    var show = !!state.cardShowCond, G = D.CARE_GENERIC[season];
+    var lineOk = show || lineTravels(state.line);
     return {
       seasonLine: season === naturalSeason ? t("card.seasonToday", { season: S.label, term: term }) : t("card.seasonAhead", { season: S.label, months: S.months }),
       head: t("card.head", { who: state.cardShowCond ? condById(cond).label : t("card.whoAnon"), season: S.label }),
       place: place ? { name: place.name, photo: place.photo, reason: top.reasons[0] } : null,
-      items: [
+      items: show ? [
         t("card.itemEat", { tip: care.eat.tip, foods: care.eat.more.split(t("punct.listSep")).slice(0, 3).join(t("punct.listSep")) }),
         t("card.itemMove", { move: care.move[0] }),
         t("card.itemRelax", { label: prac.label })
-      ],
-      safety: care.safety,
-      line: state.line
+      ] : [G.eat, G.move, G.relax],
+      safety: show ? care.safety : G.safety,
+      line: lineOk ? state.line : "",
+      lineHidden: !!state.line && !lineOk
     };
   }
   function renderCard() {
@@ -521,6 +536,7 @@
     if (m.place) h += "<p><b>" + esc(t("card.placeLabel")) + "</b>" + esc(m.place.name) + '<br><span class="muted small">' + esc(m.place.reason) + "</span></p>";
     h += "<ol>" + m.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ol>";
     if (m.line) h += '<p class="care-line" id="cardLine">' + esc(t("line.onCard", { line: m.line })) + "</p>";
+    else if (m.lineHidden) h += '<p class="muted small" id="cardLineHidden">' + esc(t("card.lineHidden")) + "</p>";
     h += '<p class="care-safe">' + esc(m.safety) + '</p><p class="care-foot">' + esc(t("card.foot", { disclaimer: D.DISCLAIMER })) + "</p></div>";
     $("cardPreview").innerHTML = h;
     $("savedNote").classList.add("hidden");
@@ -585,25 +601,27 @@
     if (log) log.push(text);
     return y + lines.length * lh;
   }
+  var lastPrivateText = [];
   async function privatePng() {
-    var m = cardModel(), W = 1080, H = 1560, c = document.createElement("canvas");
+    var m = cardModel(), W = 1080, H = 1560, c = document.createElement("canvas"), L = [];
+    lastPrivateText = L;
     c.width = W; c.height = H;
     var ctx = c.getContext("2d");
     ctx.fillStyle = "#fffdf9"; ctx.fillRect(0, 0, W, H);
     var im = m.place ? await loadImg(m.place.photo) : null;
     coverDraw(ctx, im, 0, 0, W, 560);
     ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fillRect(W - 300, 510, 280, 40);
-    ctx.fillStyle = "#fff"; ctx.font = "26px " + FONT; ctx.fillText(D.CREDIT, W - 285, 540);
+    ctx.fillStyle = "#fff"; ctx.font = "26px " + FONT; ctx.fillText(D.CREDIT, W - 285, 540); L.push(D.CREDIT);
     var y = 640, X = 64, MW = W - 128;
-    ctx.fillStyle = "#2f5d50"; ctx.font = "bold 38px " + FONT; y = wrap(ctx, m.seasonLine, X, y, MW, 50) + 20;
-    ctx.fillStyle = "#26241f"; ctx.font = "bold 56px " + FONT; y = wrap(ctx, m.head, X, y, MW, 70); y += 20;
+    ctx.fillStyle = "#2f5d50"; ctx.font = "bold 38px " + FONT; y = wrap(ctx, m.seasonLine, X, y, MW, 50, L) + 20;
+    ctx.fillStyle = "#26241f"; ctx.font = "bold 56px " + FONT; y = wrap(ctx, m.head, X, y, MW, 70, L); y += 20;
     ctx.font = "40px " + FONT;
-    if (m.place) { y = wrap(ctx, t("card.placeLabel") + m.place.name, X, y, MW, 56); ctx.fillStyle = "#5f5a50"; ctx.font = "32px " + FONT; y = wrap(ctx, m.place.reason, X, y, MW, 46) + 20; }
+    if (m.place) { y = wrap(ctx, t("card.placeLabel") + m.place.name, X, y, MW, 56, L); ctx.fillStyle = "#5f5a50"; ctx.font = "32px " + FONT; y = wrap(ctx, m.place.reason, X, y, MW, 46, L) + 20; }
     ctx.fillStyle = "#26241f"; ctx.font = "40px " + FONT;
-    m.items.forEach(function (it, i) { y = wrap(ctx, (i + 1) + ". " + it, X, y, MW, 56) + 10; });
-    if (m.line) { ctx.fillStyle = "#9a5530"; ctx.font = "bold 40px " + FONT; y = wrap(ctx, t("line.onCard", { line: m.line }), X, y + 10, MW, 54) + 6; }
-    ctx.fillStyle = "#7a3b12"; ctx.font = "32px " + FONT; y = wrap(ctx, m.safety, X, y + 10, MW, 46);
-    ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, t("card.foot", { disclaimer: D.DISCLAIMER }), X, H - 60, MW, 40);
+    m.items.forEach(function (it, i) { y = wrap(ctx, (i + 1) + ". " + it, X, y, MW, 56, L) + 10; });
+    if (m.line) { ctx.fillStyle = "#9a5530"; ctx.font = "bold 40px " + FONT; y = wrap(ctx, t("line.onCard", { line: m.line }), X, y + 10, MW, 54, L) + 6; }
+    ctx.fillStyle = "#7a3b12"; ctx.font = "32px " + FONT; y = wrap(ctx, m.safety, X, y + 10, MW, 46, L);
+    ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, t("card.foot", { disclaimer: D.DISCLAIMER }), X, H - 60, MW, 40, L);
     return c.toDataURL("image/png");
   }
 
@@ -998,6 +1016,8 @@
     storyPng: function () { return storyPng(buildShare()); },
     shareConfig: SHARE_CFG, targetHref: function (id) { return targetHref(id, buildShare()); },
     incoming: incoming, lineTravels: lineTravels,
-    cardModel: cardModel
+    cardModel: cardModel,
+    privatePng: function () { return privatePng(); },
+    lastPrivateText: function () { return lastPrivateText.slice(); }
   };
 })();
