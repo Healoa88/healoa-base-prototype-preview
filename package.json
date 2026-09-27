@@ -1,9 +1,14 @@
 {
   "name": "healoa-base-prototype-preview",
+  "version": "2026.9.27-s",
   "private": true,
   "type": "module",
   "scripts": {
-    "test:scene-seed": "node tests/scene-seed-p0.mjs"
+    "test": "node tests/static-checks.mjs && node tests/healing-v3.mjs",
+    "test:static": "node tests/static-checks.mjs",
+    "test:browser": "node tests/healing-v3.mjs",
+    "shots": "node tests/shots.mjs",
+    "test:legacy": "node tests/legacy-scene-seed-p0.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"

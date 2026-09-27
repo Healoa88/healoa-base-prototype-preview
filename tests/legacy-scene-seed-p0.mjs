@@ -1,7 +1,10 @@
 /**
+ * LEGACY (SUPERSEDED 2026-09-26): archived Scene Seed demo, now served from scene-seed-legacy.html (not on the main path).
+ * Kept so the archived page keeps working for old #seed= links. Main-path tests: tests/healing-v3.mjs + tests/static-checks.mjs.
+ *
  * Scene Seed P0 + place/path share PNG heroes + Wudang/Forest/Thai chooser + Harbin (v2026-09-25-q)
  * Run:
- *   cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs
+ *   cd /workspace/healoa-base-prototype-preview && node tests/legacy-scene-seed-p0.mjs
  */
 import { chromium } from "playwright";
 import http from "http";
@@ -11,7 +14,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const INDEX = path.join(ROOT, "index.html");
+const INDEX = path.join(ROOT, "scene-seed-legacy.html");
 // HEALOA_EVIDENCE_DIR overrides the output dir (default unchanged) so parallel runs don't clobber shared evidence.
 const EVIDENCE = process.env.HEALOA_EVIDENCE_DIR || "/workspace/docs/demo-evidence-2026-09-24";
 const RESULTS = path.join(EVIDENCE, "14-test-results.json");
@@ -32,7 +35,7 @@ function startServer() {
   };
   const server = http.createServer((req, res) => {
     let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-    if (urlPath === "/" || urlPath === "") urlPath = "/index.html";
+    if (urlPath === "/" || urlPath === "") urlPath = "/scene-seed-legacy.html";
     const rel = urlPath.replace(/^\/+/, "");
     const filePath = path.resolve(ROOT, rel);
     if (!filePath.startsWith(ROOT + path.sep) && filePath !== ROOT) {
@@ -1228,7 +1231,7 @@ async function main() {
       const raw = JSON.stringify(seed);
       return {
         privacy: seed.privacy,
-        rawHasFatigueWord: raw.includes("肩颈") || raw.includes("累、想放空"),
+        rawHasFatigueWord: raw.includes("肩颈") || raw.includes("想放空"),
         publicLine: seed.publicLine,
       };
     });
@@ -1762,7 +1765,7 @@ async function main() {
     twoContext,
     pageErrors,
     steps,
-    runCommand: "cd /workspace/healoa-base-prototype-preview && node tests/scene-seed-p0.mjs",
+    runCommand: "cd /workspace/healoa-base-prototype-preview && node tests/legacy-scene-seed-p0.mjs",
   };
   fs.writeFileSync(RESULTS, JSON.stringify(out, null, 2));
   fs.writeFileSync(path.join(ROOT, "tests/scene-seed-p0-results.json"), JSON.stringify(out, null, 2));
