@@ -1,91 +1,41 @@
-# HeaLoa Base · prototype preview (throwaway)
-
-**Not** a formal App launch. **Not** aurora-companions / healoa.com website work.
+# HeaLoa Base · 顺着季节养（可点原型）
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- Version stamp: **预览 v2026-09-24-n** · **Scene Seed / 场景种子**
-- Single-file offline HTML demo + local place photos: pick a place → see/hear/operate a scene → solo create → optional **simulated** second person → save / restore → emit a **Scene Seed** (`#seed=` reopenable work URL) → friend opens **their own copy** and can add a stroke
+- 版本：**预览 v2026-09-27-s** · 疗愈主线（Cindy 2026-09-26 锁定 v3）
+- 当前产品定义只看 **[`PRODUCT_CURRENT.md`](PRODUCT_CURRENT.md)**；历史规则与 SUPERSEDED 标记见 **[`DECISIONS.md`](DECISIONS.md)**。
+- 这是可点原型，不是正式 App；纯静态页面（GitHub Pages，main 分支），无后端、无账号、无网络请求。
 
-App social currency (Living Editions · App side) = **Scene Seed** — “我发现了一个美的地方，并把创作邀请给你”.
+## 主路径
 
-## v2026-09-24-n UX (P0 · 单轮回应闭环)
+首页点一下自己的情况（血压偏高 / 睡不踏实 / 怕冷手脚凉 / 肠胃弱 / 心里绷得紧 / 想安静一点）→ 本季要留意、吃喝、怎么动、去哪里养（带真实气候数字和原因，以及「这个季节先不选」）→ 真实计时的放松练习 → 本季养护卡（默认只留给自己；分享是次要按钮，分享卡和链接不含身体或感受信息）。季节按日期自动（秋 / 冬），可切换。
 
-- Customer path = 4 steps: **选地方 → 留一笔 → 留一句 → 发给一个人**. Body×season is out of the first round (no entry buttons, no step pill).
-- 「疗愈民宿 · 慢住」 renamed **山居慢住**. 「热门打卡」 wording → 「热门景点」.
-- Card is the editor (「留一句」, skippable). Feeling words optional, ≤5, **not printed by default**.
-- Share page: only **发给一个人** / **只留给自己**; seed/JSON/UNKNOWN/tech honesty folded into 「关于这份 Demo」. healoa.com/circles funnel removed.
-- Friend adds a stroke → **Reply Seed** (`k:"r"`, rootWorkId `r`, parentWorkId `pa`, original work, friend strokes `fm`) → 「发回给 TA」 (Web Share, else copy; manual) / 「做一张我的」 / 「只留给自己」. One reply per root per device.
-- Author opens Reply Seed → 「TA 在你的作品旁边加了一笔」 with both strokes. **Stops there** (no reply-to-reply).
-- QR: inline qrcode-generator (MIT); only when link ≤ 520 chars (QR v≤15, ECC L). No fake short links.
-- zh/en language table + toggle; 「Photo · Cindy Yang」 credit on scene / card / PNG.
-- 日本森林温泉 = single top-level real-photo place (`assets/places/onsen/`); honesty 温泉气氛预览 · 非医疗功效 · 非预订. 北极小木屋 pending.
-- Tests: **181/181 PASS** (`npm run test:scene-seed`).
+## 文件
 
-## v2026-09-24-m UX (share-card PNG · place + path heroes)
-
-- Share PNG / 种子预览图 hero keys off **selected place id + path id** via `resolveShareHero` → `PLACE_PHOTOS[placeId].hero`.
-- Covered photo families: Wudang subs (`wudang-homestay` / `vista` / `bustle`) · Harbin · Forest paths (`forest-porch` / `path` / `cabin`) · Thai paths (`thai-pool` / `market` / `dive` / `sunset`).
-- Missing / not-ready photo → **procedural** draw with `usedPhoto:false` (never borrow another place’s photo, e.g. no Wudang terrace on Forest/Thai/onsen).
-- Honesty foot unchanged: **页内PNG≠链接富卡片** · 演示用实景 · no `#seedId=` fake invite.
-- Place chooser / scene CTA / `startViaPlaces` untouched.
-- Tests: **144/144 PASS**.
-
-## v2026-09-24-l UX (泰国 · 拥抱大海 四路径选择)
-
-- Pick **泰国 · 拥抱大海** from the place list → **path chooser** `#s2t` (not body questionnaire, not auto one path). Mirror of Wudang `#s2w` / Forest `#s2f`.
-- Four photo paths: **泳池看海** (`thai-pool`, soft-cycles deck/canopy) · **水上市场** (`thai-market`) · **潜入海里** (`thai-dive`) · **港湾日落** (`thai-sunset`).
-- Honesty: 度假／海边放松气氛预览 · 不是行程报价或报名 · 演示用实景.
-- Default CTA remains **直接进 · 武当**. Wudang + Harbin + Forest stay green. Thai assets committed this tip.
-- Scene Seed P0 honesty unchanged.
-
-## v2026-09-24-k UX (森林三路径选择)
-
-- Pick **森林** from the place list → **path chooser** `#s2f` (not body questionnaire, not auto one path). Mirror of Wudang `#s2w`.
-- Three photo paths: **廊前远望** (`forest-porch`) · **林中路** (`forest-path`, soft-cycles leaf/monstera/canopy) · **屋里创作** (`forest-cabin`, merges cabin set; honesty **窗外可能很冷 · 非医疗主张**).
-- Default CTA remains **直接进 · 武当**. Harbin + Wudang paths unchanged. Thai wired in **v2026-09-24-l**.
-- Scene Seed P0 honesty unchanged. (Forest tip tests were **138/138**; share-path tip **v-m** is **144/144**.)
-
-## v2026-09-24-j UX (武当三路径选择)
-
-- Pick **武当** or **直接进 · 武当** → **path chooser** (not body questionnaire, not auto one path).
-- Three photo paths: **疗愈民宿 · 慢住** (`wudang-homestay`) · **山中胜景 · 被山震住** (`wudang-vista`) · **热闹观景** (`wudang-bustle`, honesty badge **人多／热门打卡**).
-- Tap path → enter that playable scene immediately (matching `PLACE_PHOTOS` hero; 民宿 soft-cycles tea terrace).
-- Harbin intact; cabin photos may exist on disk but are **not wired** in this tip (parent next).
-- No medical claims; P0 seed honesty unchanged.
-
-## Prior v2026-09-24-i (哈尔滨冰雪实景 + 武当 · share PNG)
-
-- **Default CTA family stays 武当**. Harbin is **additional**.
-- **Real-photo places**: 武当 + **哈尔滨冰雪** under `assets/places/{wudang,harbin}/` (relative paths for GitHub Pages).
-- Harbin place card: photo thumb + cold / ~2-month / 雪乡奶茶／暖食 bullets (customer-readable in ~3s). Scene feel copy is honest (约零下28℃ · 并不适合每个人 · 年开约两月) — **not** a medical prescription.
-- Scene shell / Scene Seed live card / share PNG: `PLACE_PHOTOS` + `ensurePlacePhotoReady` cover-draw hero (same path as Wudang).
-- Homepage badge: **多地实景（武当太极／哈尔滨冰雪）** without lengthening the form wall.
-- Honesty: **演示用实景（武当／哈尔滨）· 非正式付费素材包 · 页内PNG≠富卡片** — no Keeper / Choose Again / Circle signup; no Track B.
-- Other places may stay procedural for now.
-
-## Prior (v2026-09-24-h / g / f)
-
-- h: polish share-card PNG with real Wudang hero.
-- g: embed real Wudang photos as default hero place.
-- f: Primary CTA「走进场景试试」goes to place pick; body×season optional.
-- Share-tail: after one mark →「发给朋友」; P0 honesty (copy ≠ live shared work / UNKNOWN). No `#seedId=` fake invites.
-
-## Invite honesty (P0)
-
-| | |
+| 路径 | 内容 |
 |---|---|
-| **Implemented** | Friend opens `#seed=` and continues on **their own copy** |
-| **UNKNOWN / not implemented** | Both sides share **one continuously updating work** |
-| **Simulated** | Same-device “第二人加入” — always labeled **模拟** |
-| **Never ship** | `#seedId=` as a friend invite |
+| `index.html` | 页面结构（首页、结果、地点、练习、养护卡、分享链接打开页、可选小测） |
+| `app/data.js` | 全部面向用户的内容：六个入口、秋冬养护、地点、练习、气候数字 |
+| `app/rules.js` | 确定性推荐规则（先不选 + 排序；无照片不进前三） |
+| `app/app.js` | 交互、真实计时（时间差 + Wake Lock）、养护卡 PNG、分享卡 + 二维码 |
+| `app/app.css` | 移动优先、大字、高对比 |
+| `vendor/qrcode.js` | qrcode-generator（MIT）离线副本 |
+| `data/climate/*.json` | NASA POWER 2001–2020 气候月均值原始数据（CC BY 4.0） |
+| `tools/climate-summary.mjs` | 由原始数据推导季节数字（测试校验与 `app/data.js` 一致） |
+| `assets/places/` | Cindy 实拍照片（Photo · Cindy Yang，见 `assets/places/SOURCES.md`） |
+| `scene-seed-legacy.html` | 旧 Scene Seed 演示归档（SUPERSEDED，不在主路径；旧 `#seed=` 链接自动跳转到这里） |
 
-## Tests
+## 测试
 
 ```bash
-cd /workspace/healoa-base-prototype-preview
 npm i
-npx playwright install chromium   # once
-npm run test:scene-seed
+npx playwright install chromium   # 第一次
+npm test              # static-checks + healing-v3（禁用词、App-only、首页→结果 1 次点击、结果随输入变化、每个按钮有响应、分享无身体信息、真实计时）
+npm run shots         # 390×844 主路径截图（默认输出 /workspace/hb-v3-shots，可用 HEALOA_SHOTS_DIR 改）
+npm run test:legacy   # 归档页旧测试（可选，较慢）
 ```
 
-Evidence: `/workspace/docs/demo-evidence-2026-09-24/` (`harbin-*.png`, `wudang-*.png`, `14-*`).
+CI：`ci/github-actions-tests.yml` 是可直接使用的 GitHub Actions 工作流；放到 `.github/workflows/` 即可启用（当前推送凭据没有 workflow 权限，所以先放在 `ci/`）。
+
+## 待 Cindy
+
+地点署名一句真实感受（`cindyLine` 空位，没填就不显示）、云南等地照片（补齐前不进前三）、慢呼吸真人语音、各地原声、草津照片拍摄地确认。详见 `PRODUCT_CURRENT.md`。
