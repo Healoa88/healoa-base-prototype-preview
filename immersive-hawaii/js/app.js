@@ -60,7 +60,7 @@ varying vec2 v;
 uniform sampler2D uImg,uDep,uCut,uSpr;
 uniform vec2 uRes,uOff,uCutPos,uCen;uniform float uAsp,uZoom,uT;
 uniform float uHasCut,uCutD,uCutAsp,uCutH;uniform vec4 uAnim;
-uniform float uMorning,uGrowth,uSprOn,uSprK,uStage,uWarm;
+uniform float uMorning,uGrowth,uSprOn,uSprK,uStage,uWarm;uniform vec3 uCutGain;
 const vec2 SB=vec2(.331,.3425);const vec2 BMIN=vec2(.2225,.08);const vec2 BSZ=vec2(.3008,.2625);
 float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+1.),f.x),f.y);}
@@ -68,6 +68,14 @@ float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*n2(p);p*=2.03;a*=.5;
 vec2 mirror(vec2 u){return 1.-abs(1.-mod(u,2.));}
 float dep(vec2 u){return texture2D(uDep,mirror(u)).r;}
 vec4 spr(vec2 p,vec2 B,float k,out vec2 su){vec2 src=SB+(p-B)/k;su=(src-BMIN)/BSZ;if(su.x<0.||su.y<0.||su.x>1.||su.y>1.)return vec4(0.);return texture2D(uSpr,su);}
+// daytime frames (door/lanai/mango) graded toward the same golden-hour look, then dusk -> morning.
+// The SAME grade is applied to the companion cutout so it sits in the same light as the scene.
+vec3 grade(vec3 col,float sky){
+  if(uWarm>0.){vec3 w=col*vec3(1.07,.97,.86);w=mix(vec3(dot(w,vec3(.3,.59,.11))),w,1.08);w=pow(max(w,0.),vec3(1.06));col=mix(col,w,uWarm);}
+  vec3 morn=col*vec3(.96,1.02,1.08)+vec3(.035,.04,.05)*(1.-col);
+  morn=mix(morn,morn*vec3(1.05,.98,1.1)+vec3(.05,.03,.06),sky*.6);
+  return mix(col,morn,uMorning);
+}
 void main(){
   float sa=uRes.x/uRes.y; vec2 sc=v-.5; sc.y=-sc.y;
   vec2 base = sa<uAsp ? vec2(sc.x*sa/uAsp, sc.y) : vec2(sc.x, sc.y*uAsp/sa);
@@ -109,13 +117,8 @@ void main(){
       }
     }
   }
-  // ---- daytime frames (door/lanai/mango) graded toward the same golden-hour look
-  if(uWarm>0.){vec3 w=col*vec3(1.07,.97,.86);w=mix(vec3(dot(w,vec3(.3,.59,.11))),w,1.08);w=pow(w,vec3(1.06));col=mix(col,w,uWarm);}
-  // ---- grade: dusk -> morning
   float sky=smoothstep(.12,.0,d);
-  vec3 morn=col*vec3(.96,1.02,1.08)+vec3(.035,.04,.05)*(1.-col);
-  morn=mix(morn,morn*vec3(1.05,.98,1.1)+vec3(.05,.03,.06),sky*.6);
-  col=mix(col,morn,uMorning);
+  col=grade(col,sky);
   float gr=max(col.g-max(col.r,col.b),0.)+max(col.g-col.b,0.)*.5;
   float plant=smoothstep(.02,.1,gr)*smoothstep(.05,.2,d);
   col=mix(col,col*vec3(.92,1.18,.92),plant*uGrowth);
@@ -139,11 +142,10 @@ void main(){
     if(lc.x>0.&&lc.x<1.&&lc.y>0.&&lc.y<1.){
       vec4 c=texture2D(uCut,lc);
       float a=c.a*(1.-step(uCutD+.035,d));
-      vec3 cc=c.rgb; float L=dot(cc,vec3(.299,.587,.114));
-      vec3 warm=mix(vec3(1.,.82,.68),vec3(.97,.98,1.02),uMorning);
-      cc=mix(cc,vec3(L),.2)*warm*mix(.74,.92,uMorning)*mix(1.06,.66,lc.y)+vec3(.02,.01,0.);
+      // light match: gain measured from the background around the placement (JS, HLCutout.lightMatch), then the scene's own grade
+      vec3 cc=grade(clamp(c.rgb*uCutGain,0.,1.),0.)*mix(1.04,.86,lc.y);
       float aUp=texture2D(uCut,lc+vec2(0.,-.02)).a;
-      cc+=vec3(1.,.68,.42)*max(c.a-aUp,0.)*.8*(1.-uMorning*.5);
+      cc+=vec3(1.,.68,.42)*max(c.a-aUp,0.)*.35*(1.-uMorning*.5);
       col=mix(col,cc,a);
     }
   }
@@ -157,7 +159,7 @@ function initGL() {
   const pr = gl.createProgram(); gl.attachShader(pr, shd(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, shd(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr);
   const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
   const l = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 2, gl.FLOAT, false, 0, 0);
-  'uImg uDep uCut uSpr uRes uOff uCutPos uCen uAsp uZoom uT uHasCut uCutD uCutAsp uCutH uAnim uMorning uGrowth uSprOn uSprK uStage uWarm'.split(' ').forEach(n => U[n] = gl.getUniformLocation(pr, n));
+  'uImg uDep uCut uSpr uRes uOff uCutPos uCen uAsp uZoom uT uHasCut uCutD uCutAsp uCutH uAnim uMorning uGrowth uSprOn uSprK uStage uWarm uCutGain'.split(' ').forEach(n => U[n] = gl.getUniformLocation(pr, n));
   gl.uniform1i(U.uImg, 0); gl.uniform1i(U.uDep, 1); gl.uniform1i(U.uCut, 2); gl.uniform1i(U.uSpr, 3);
 }
 function mkTex(src) {
@@ -172,10 +174,44 @@ async function loadScene(id) {
   const sc = SCENES[id]; const [img, dimg] = await Promise.all([loadImg(sc.img), loadImg(sc.dep)]);
   gl.activeTexture(gl.TEXTURE0); const t = mkTex(img); const dt = mkTex(dimg);
   const c = document.createElement('canvas'); c.width = dimg.width; c.height = dimg.height; const x = c.getContext('2d'); x.drawImage(dimg, 0, 0);
-  return (cache[id] = { t, dt, dd: x.getImageData(0, 0, c.width, c.height).data, dw: c.width, dh: c.height });
+  const g = document.createElement('canvas'); g.width = 96; g.height = Math.round(96 / sc.asp); g.getContext('2d').drawImage(img, 0, 0, g.width, g.height);
+  return (cache[id] = { t, dt, dd: x.getImageData(0, 0, c.width, c.height).data, dw: c.width, dh: c.height, gd: g.getContext('2d').getImageData(0, 0, g.width, g.height).data, gw: g.width, gh: g.height });
 }
 function depthAt(id, x, y) { const c = cache[id]; if (!c) return .5; const i = Math.min(c.dh - 1, Math.max(0, Math.round(y * (c.dh - 1)))) * c.dw + Math.min(c.dw - 1, Math.max(0, Math.round(x * (c.dw - 1)))); return c.dd[i * 4] / 255; }
-function resize() { if (S.recording) return; const dpr = Math.min(devicePixelRatio || 1, 2); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); }
+// mean RGB of the scene photo in a box around the companion (a bit wider than TA, from head to just below the feet)
+function bgRGBAt(id, pos) { const c = cache[id]; if (!c || !c.gd) return null; const hw = Math.max(.06, pos.h * (S.cut ? S.cut.w / S.cut.h : .8) / SCENES[id].asp);
+  const x0 = Math.max(0, Math.floor((pos.x - hw) * c.gw)), x1 = Math.min(c.gw - 1, Math.ceil((pos.x + hw) * c.gw)), y0 = Math.max(0, Math.floor((pos.y - pos.h * 1.1) * c.gh)), y1 = Math.min(c.gh - 1, Math.ceil((pos.y + .03) * c.gh));
+  const box = []; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const i = (y * c.gw + x) * 4; box.push(c.gd[i], c.gd[i + 1], c.gd[i + 2], 255); }
+  return box.length ? HLCutout.meanRGB(box) : null; }
+function cutGain(id) { const pos = S.pos[id]; if (!S.cut || !pos || !S.cut.mean) return [1, 1, 1]; const k = `${id}|${pos.x.toFixed(3)}|${pos.y.toFixed(3)}|${pos.h.toFixed(3)}|${S.cut.v}`;
+  if (cutGain._k !== k) { const bg = bgRGBAt(id, pos); cutGain._k = k; cutGain._g = bg ? HLCutout.lightMatch(bg, S.cut.mean) : [1, 1, 1]; } return cutGain._g; }
+// ---- what you see is what you get: while placing (step 2) and writing the line (step 3) the canvas IS the postcard's top layer
+const CARD = { W: 1080, SH: 1380 };
+const framedPanel = () => (S.panel === 'p2' || S.panel === 'p3') && S.scene !== 'door';
+function frameRect() {
+  const top = 50, bottom = innerHeight - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panelH')) || 0) - 60;
+  const aw = innerWidth - 16, ah = Math.max(120, bottom - top), a = CARD.W / CARD.SH; let fh = Math.min(ah, aw / a), fw = fh * a;
+  return { left: Math.round((innerWidth - fw) / 2), top: Math.round(top + (ah - fh) / 2), width: Math.round(fw), height: Math.round(fh) };
+}
+function resize() {
+  if (S.recording) return; const dpr = Math.min(devicePixelRatio || 1, 2); S.framed = framedPanel(); const st = cv.style, fr = $('#frameOv'), stage_ = $('#stage');
+  stage_.classList.toggle('framed', S.framed);
+  if (S.framed) { const r = frameRect(); Object.assign(st, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto' });
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    Object.assign(fr.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); fr.width = cv.width; fr.height = cv.height; fr.classList.remove('hidden'); drawFrameOverlay(); }
+  else { ['left', 'top', 'width', 'height', 'right', 'bottom'].forEach(k => st[k] = ''); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); fr.classList.add('hidden'); }
+}
+// the postcard's text layer, drawn at any size (scale = width / 1080). Used by the postcard AND by the live frame preview.
+function drawTopOverlay(x, W, SH) { const k = W / CARD.W;
+  const g = x.createLinearGradient(0, SH - 480 * k, 0, SH); g.addColorStop(0, 'rgba(23,16,13,0)'); g.addColorStop(1, 'rgba(23,16,13,.94)'); x.fillStyle = g; x.fillRect(0, SH - 480 * k, W, 480 * k);
+  x.fillStyle = '#fff7ee'; x.font = `600 ${58 * k}px ` + F; const lines = wrap(x, lineText(), W - 160 * k).slice(0, 3); let y = SH - 50 * k - (lines.length - 1) * 76 * k; lines.forEach(l => { x.fillText(l, 80 * k, y); y += 76 * k; }); }
+function drawFrameOverlay() { const fr = $('#frameOv'); if (!fr || fr.classList.contains('hidden')) return; const x = fr.getContext('2d'); x.clearRect(0, 0, fr.width, fr.height); drawTopOverlay(x, fr.width, fr.height); }
+function relayout() { requestAnimationFrame(() => { const el = S.panel && $('#' + S.panel); document.documentElement.style.setProperty('--panelH', (el ? el.offsetHeight : 0) + 'px'); resize(); if (S.framed) clampPos(); }); }
+// visible part of the photo (image uv) for the current canvas at zoom 1 — the placement area
+function visibleBox() { const sc = SCENES[S.scene], sa = cv.width / cv.height, cx = centerX(S.scene, 1, cv.width, cv.height);
+  return sa < sc.asp ? { x0: cx - .5 * sa / sc.asp, x1: cx + .5 * sa / sc.asp, y0: 0, y1: 1 } : { x0: 0, x1: 1, y0: .5 - .5 * sc.asp / sa, y1: .5 + .5 * sc.asp / sa }; }
+function clampPos() { const p = S.pos[S.scene]; if (!p || !S.cut) return; const b = visibleBox(), hw = p.h * (S.cut.w / S.cut.h) / SCENES[S.scene].asp / 2;
+  p.h = Math.min(p.h, (b.y1 - b.y0) * .95); p.x = Math.min(b.x1 - Math.min(hw, (b.x1 - b.x0) / 2), Math.max(b.x0 + Math.min(hw, (b.x1 - b.x0) / 2), p.x)); p.y = Math.min(b.y1 - .005, Math.max(b.y0 + p.h * 1.08, p.y)); }
 
 const AMP = 0.034;
 let zoom = 1;
@@ -193,7 +229,7 @@ function draw(now, f = {}) {
   const id = f.scene || S.scene, c = cache[id]; if (!c) return;
   const t = (now - S.t0) / 1000, w = cv.width, h = cv.height;
   gl.viewport(0, 0, w, h);
-  let z, cen;
+  let z, cen; const card = S.framed && f.zoom == null && !f.scene; if (card) f = { ...f, zoom: 1.0, ox: 0, oy: 0, anim: [0, 0, 1, 1] };
   if (f.zoom != null) { z = f.zoom; } else if (S.zoomAnim) { z = S.zoomAnim.z; } else {
     const e = S.enterT ? Math.min(1, (now - S.enterT) / 6000) : 1; const ez = 1 - Math.pow(1 - e, 3);
     z = 1.02 + .05 * ez + .004 * Math.sin(t * .2);
@@ -212,6 +248,7 @@ function draw(now, f = {}) {
   if (showCut) {
     gl.uniform1f(U.uCutAsp, S.cut.w / S.cut.h); gl.uniform1f(U.uCutH, pos.h * S.cut.h / S.cutBase.height); gl.uniform2f(U.uCutPos, pos.x, pos.y);
     gl.uniform1f(U.uCutD, cutDepth(id)); const a = f.anim || petAnim(t, now); gl.uniform4f(U.uAnim, a[0], a[1], a[2], a[3]);
+    const cg = cutGain(id); gl.uniform3f(U.uCutGain, cg[0], cg[1], cg[2]);
   }
   const st = stage(), m = f.morning ?? S.morning;
   gl.uniform1f(U.uMorning, id === 'door' ? Math.min(m, .3) : m); gl.uniform1f(U.uGrowth, STAGES[st].g);
@@ -245,15 +282,15 @@ cv.addEventListener('pointerdown', e => {
 cv.addEventListener('pointermove', e => {
   if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const pos = S.pos[S.scene];
-  if (mode === 'pinch' && ptrs.size >= 2) { const [a, b] = [...ptrs.values()]; pos.h = clampH(pinch0.h * Math.hypot(a.x - b.x, a.y - b.y) / pinch0.d); updDepthLbl(); return; }
-  if (mode === 'move') { const p = screenToImg(e.clientX, e.clientY); pos.x = Math.min(.95, Math.max(.05, p.x + grab.dx)); pos.y = Math.min(.99, Math.max(.3, p.y + grab.dy)); updDepthLbl(); return; }
+  if (mode === 'pinch' && ptrs.size >= 2) { const [a, b] = [...ptrs.values()]; pos.h = clampH(pinch0.h * Math.hypot(a.x - b.x, a.y - b.y) / pinch0.d); clampPos(); updDepthLbl(); return; }
+  if (mode === 'move') { const p = screenToImg(e.clientX, e.clientY); pos.x = p.x + grab.dx; pos.y = p.y + grab.dy; clampPos(); updDepthLbl(); return; }
   if (mode === 'look') { const r = cv.getBoundingClientRect(); S.target.x = ((e.clientX - r.left) / r.width - .5) * 2; S.target.y = ((e.clientY - r.top) / r.height - .5) * 2; if (!lookedAround) { lookedAround = true; if (S.panel === 'p1') setHint('很好 ✿ 下一步，把 TA 放进来'); } }
 });
 const up = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2 && mode === 'pinch') mode = null; if (!ptrs.size) mode = null; };
 cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 const clampH = h => Math.min(.6, Math.max(.05, h));
-$('#smaller').onclick = () => { const p = S.pos[S.scene]; p.h = clampH(p.h / 1.15); updDepthLbl(); };
-$('#bigger').onclick = () => { const p = S.pos[S.scene]; p.h = clampH(p.h * 1.15); updDepthLbl(); };
+$('#smaller').onclick = () => { const p = S.pos[S.scene]; p.h = clampH(p.h / 1.15); clampPos(); updDepthLbl(); };
+$('#bigger').onclick = () => { const p = S.pos[S.scene]; p.h = clampH(p.h * 1.15); clampPos(); updDepthLbl(); };
 function updDepthLbl() { if (!S.pos[S.scene]) return; const d = cutDepth(S.scene); $('#depthLbl').textContent = '距离：' + (d > .62 ? '近处' : d > .35 ? '中间' : '远处'); }
 function onOri(e) { if (e.gamma == null) return; S.tilt = { x: Math.max(-1, Math.min(1, e.gamma / 25)), y: Math.max(-1, Math.min(1, ((e.beta || 45) - 45) / 25)) }; }
 $('#tiltBtn').onclick = async () => {
@@ -275,9 +312,18 @@ function chime(kind = 'soft') {
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.08, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .9); o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 1); });
   } catch (e) {}
 }
-const syncSound = () => { $('#soundBtn').textContent = ui.sound ? '🔈' : '🔇'; };
-$('#soundBtn').onclick = () => { ui.sound = !ui.sound; lsSet(UI_KEY, ui); syncSound(); chime('soft'); toast(ui.sound ? '声音已开（很轻）' : '已静音'); };
+// theme music: the speaker button loops ONE audio file. PLACEHOLDER path — Cindy will supply the theme MP3 (drop it in at exactly this path).
+const THEME_SRC = 'assets/audio/PLACEHOLDER-hawaii-theme-cindy-will-supply.mp3';
+const theme = new Audio(); theme.loop = true; theme.preload = 'none'; theme.volume = .55; let themeMissing = false; window.__theme = theme;
+theme.addEventListener('error', () => { themeMissing = true; if (ui.sound) toast('主题音乐还没放进来（等 Cindy 的 MP3），先只有轻提示音', 3200); });
+theme.addEventListener('canplay', () => { themeMissing = false; });
+function playTheme() { if (!ui.sound) return; if (!theme.src) theme.src = THEME_SRC; const pr = theme.play(); if (pr && pr.catch) pr.catch(() => {}); }
+const syncSound = () => { $('#soundBtn').textContent = ui.sound ? '🔈' : '🔇'; $('#soundBtn').setAttribute('aria-pressed', ui.sound ? 'true' : 'false'); };
+$('#soundBtn').onclick = () => { ui.sound = !ui.sound; lsSet(UI_KEY, ui); syncSound(); chime('soft');
+  if (ui.sound) { playTheme(); toast('音乐已开（循环播放）'); } else { theme.pause(); toast('已静音'); } };
 syncSound();
+// browsers only start audio after a tap: if sound was left on last time, start the loop on the first touch
+if (ui.sound) addEventListener('pointerdown', playTheme, { once: true });
 
 // ---------- plumeria petal confetti ----------
 const pc = $('#petals'), px = pc.getContext('2d'); let petals = [];
@@ -323,11 +369,11 @@ const HINTS = { pDoor: '点「推开门」走进去', p1: '试试左右拖动画
 function show(id) {
   S.panel = id; PANELS.forEach(p => $(p).classList.toggle('hidden', p !== '#' + id));
   S.placing = id === 'p2' && !!S.cut;
-  requestAnimationFrame(() => { const el = $('#' + id); document.documentElement.style.setProperty('--panelH', (el ? el.offsetHeight : 0) + 'px'); });
-  setHint(id === 'p2' && S.cut ? '拖动 TA 换位置 · 双指缩放 · 戴个花环' : id === 'hub' ? hubHint() : HINTS[id]);
+  relayout();
+  setHint(id === 'p2' && S.cut ? '框里就是明信片的画面 · 拖动 TA 换位置' : id === 'p3' ? '框里就是明信片的画面 · 写一句，然后生成' : id === 'hub' ? hubHint() : HINTS[id]);
   poke();
 }
-function setHint(t) { const h = $('#hint'); if (!t) { h.classList.add('hidden'); return; } h.textContent = t; h.classList.remove('hidden'); h.style.animation = 'none'; void h.offsetWidth; h.style.animation = ''; requestAnimationFrame(() => { const el = S.panel && $('#' + S.panel); document.documentElement.style.setProperty('--panelH', (el ? el.offsetHeight : 0) + 'px'); }); }
+function setHint(t) { const h = $('#hint'); if (!t) { h.classList.add('hidden'); return; } h.textContent = t; h.classList.remove('hidden'); h.style.animation = 'none'; void h.offsetWidth; h.style.animation = ''; relayout(); }
 let idleT = null;
 function poke() { clearTimeout(idleT); $$('.btn.pulse').forEach(b => b.id !== 'doorBtn' && b.classList.remove('pulse')); idleT = setTimeout(() => {
   const primary = { p1: '#to2', p2: S.cut ? '#to3' : '#sampleBtn', p3: '#makeVideo', hub: '#waterBtn' }[S.panel]; if (primary) { $(primary).classList.add('pulse'); setHint('不知道下一步？点亮着的按钮就好'); } }, 9000); }
@@ -426,6 +472,12 @@ function drawCrown(x, cx, y, W) { for (let i = 0; i < 5; i++) { const u = i / 4 
 function drawMango(x, cx, y, r) { const g = x.createLinearGradient(cx - r, y - r, cx + r, y + r); g.addColorStop(0, '#ffd34d'); g.addColorStop(.6, '#ff9a3c'); g.addColorStop(1, '#e8643a');
   x.save(); x.beginPath(); x.ellipse(cx, y, r * .82, r, .5, 0, Math.PI * 2); x.fillStyle = g; x.fill(); x.beginPath(); x.ellipse(cx + r * .5, y - r * .95, r * .45, r * .18, -.6, 0, Math.PI * 2); x.fillStyle = '#5fae5a'; x.fill();
   x.beginPath(); x.ellipse(cx - r * .25, y - r * .35, r * .18, r * .28, .5, 0, Math.PI * 2); x.fillStyle = 'rgba(255,255,255,.35)'; x.fill(); x.restore(); }
+// remove same-colour background left by the remover (flood fill from the removed area) + specks + halo; srcCanvas = the photo before removal
+function cleanCut(srcCanvas, cutImg) {
+  const w = srcCanvas.width, h = srcCanvas.height, o = document.createElement('canvas'); o.width = w; o.height = h; const x = o.getContext('2d'); x.drawImage(cutImg, 0, 0, w, h);
+  const cd = x.getImageData(0, 0, w, h), sd = srcCanvas.getContext('2d').getImageData(0, 0, w, h).data; const r = HLCutout.clean(sd, cd.data, w, h); x.putImageData(cd, 0, 0);
+  S.lastClean = { removed: r.removed, specks: r.specks, palette: r.palette.length }; return o;
+}
 function compose() {
   const b = S.cutBase; if (!b) return; const a = anchors(b, S.kind);
   const padT = Math.round(b.height * .1), padR = S.acc.mango ? Math.round(b.height * .28) : 0;
@@ -436,7 +488,7 @@ function compose() {
   if (S.acc.lei || S.acc.goldlei) drawLei(x, ox + a.hx, padT + a.neckY, a.headW * 1.15, !!S.acc.goldlei);
   if (S.acc.shades) drawShades(x, ox + a.hx, padT + a.eyeY, a.headW * .95);
   if (S.acc.mango) drawMango(x, ox + b.width + padR * .12, c.height - padR * .4, padR * .36);
-  S.cut = { canvas: c, w: c.width, h: c.height, padR };
+  S.cut = { canvas: c, w: c.width, h: c.height, padR, mean: HLCutout.meanRGB(b.getContext('2d').getImageData(0, 0, b.width, b.height).data), v: (S.cut ? S.cut.v || 0 : 0) + 1 };
   gl.activeTexture(gl.TEXTURE2); if (cutTex) gl.deleteTexture(cutTex); cutTex = mkTex(c);
 }
 function renderAccRow() {
@@ -446,15 +498,15 @@ function renderAccRow() {
 function setCutBase(c, kind) {
   S.cutBase = c; S.kind = kind; if (!S.pos[S.scene]) S.pos[S.scene] = { ...SCENES[S.scene].cut };
   if (!Object.keys(S.acc).length) S.acc = { lei: true };
-  compose(); $('#placeCtl').classList.remove('hidden'); $('#p2').classList.add('placed'); S.placing = true; updDepthLbl(); renderAccRow();
+  compose(); $('#placeCtl').classList.remove('hidden'); $('#p2').classList.add('placed'); S.placing = true; relayout(); updDepthLbl(); renderAccRow();
   celebratePlaced();
 }
 function celebratePlaced() {
-  S.happyT = performance.now(); chime('big'); confetti(24); setHint('TA 很开心 ✿ 拖动换位置，双指缩放');
+  S.happyT = performance.now(); chime('big'); confetti(24); setHint('TA 很开心 ✿ 框里就是明信片 · 拖动换位置');
   earn('place_companion');
   if (isArrival && !me.welcomed) { const r = P.earn('referral_welcome', { ref: refIn }); me.welcomed = true; lsSet(ME_KEY, me); syncPts(true);
     S.acc.shades = true; compose(); renderAccRow(); setTimeout(() => toast(`朋友的见面礼：小墨镜 + ${r.points || 0} 积分（演示）`, 3200), 900); }
-  requestAnimationFrame(() => document.documentElement.style.setProperty('--panelH', $('#p2').offsetHeight + 'px'));
+  relayout();
 }
 $('#sampleBtn').onclick = async () => {
   const img = await loadImg('assets/placeholder-dog.svg'); const c = document.createElement('canvas'); c.width = 400; c.height = 360; c.getContext('2d').drawImage(img, 0, 0, 400, 360);
@@ -473,15 +525,16 @@ $('#file').onchange = async e => {
     const mod = await Promise.race([import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm'), new Promise((_, r) => setTimeout(() => r(new Error('load timeout')), 20000))]);
     const rb = mod.removeBackground || mod.default; const blob = await new Promise(r => c.toBlob(r, 'image/png'));
     const out = await rb(blob, { model: 'isnet_quint8', output: { format: 'image/png' }, progress: (k, cur, tot) => { if (tot) bar.style.width = Math.round(cur / tot * 100) + '%'; } });
-    setCutBase(trimToCanvas(await loadImg(URL.createObjectURL(out))), kind); $('#p2msg').textContent = '抠好了，全程在你的手机里完成。';
+    setCutBase(trimToCanvas(cleanCut(c, await loadImg(URL.createObjectURL(out)))), kind); $('#p2msg').textContent = '抠好了，全程在你的手机里完成。';
   } catch (err) {
     console.warn('bg removal failed', err);
     const o = document.createElement('canvas'); o.width = c.width; o.height = c.height; const x = o.getContext('2d'); x.drawImage(c, 0, 0); x.globalCompositeOperation = 'destination-in';
     const g = x.createRadialGradient(o.width / 2, o.height / 2, Math.min(o.width, o.height) * .28, o.width / 2, o.height / 2, Math.min(o.width, o.height) * .5); g.addColorStop(0, '#000'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(0, 0, o.width, o.height);
-    setCutBase(trimToCanvas(o), kind); $('#p2msg').textContent = '这台设备上没能自动抠图，先用柔边圆形代替（照片仍然没有上传）。';
+    setCutBase(trimToCanvas(cleanCut(c, o)), kind); $('#p2msg').textContent = '这台设备上没能自动抠图，先用柔边圆形代替（照片仍然没有上传）。';
   } finally { meter.classList.add('hidden'); }
 };
 $('#to3').onclick = () => { S.placing = false; save(); show('p3'); };
+$('#lineIn').addEventListener('input', () => drawFrameOverlay());
 
 // ---------- QR (qrcode-generator, MIT, from CDN) ----------
 let qrLib = null;
@@ -500,18 +553,29 @@ function withCanvasSize(w, h, fn) { const pw = cv.width, ph = cv.height; cv.widt
 const lineText = () => ($('#lineIn').value.trim() || (rec && rec.line) || '我来过这里');
 function dateStr() { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; }
 function creditTxt() { return CREDIT + (S.isPlaceholder ? ' · 狗狗为示例占位' : ''); }
+// the postcard's photo layer: same camera as the framed live view (zoom 1, no parallax, still pose)
+function renderTop(W = CARD.W, SH = CARD.SH, sceneId = S.scene === 'door' ? 'lava' : S.scene) {
+  return withCanvasSize(W, SH, () => { draw(performance.now(), { scene: sceneId, ox: 0, oy: 0, zoom: 1.0, anim: [0, 0, 1, 1] }); const c = document.createElement('canvas'); c.width = W; c.height = SH; c.getContext('2d').drawImage(cv, 0, 0); return c; });
+}
 async function makePostcard() {
   const W = 1080, H = 1620, SH = 1380; const sceneId = S.scene === 'door' ? 'lava' : S.scene;
-  const sc = withCanvasSize(W, SH, () => { draw(performance.now(), { scene: sceneId, ox: 0, oy: 0, zoom: 1.0, anim: [0, 0, 1, 1] }); const c = document.createElement('canvas'); c.width = W; c.height = SH; c.getContext('2d').drawImage(cv, 0, 0); return c; });
+  const sc = renderTop(W, SH, sceneId);
   const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
   x.fillStyle = '#17100d'; x.fillRect(0, 0, W, H); x.drawImage(sc, 0, 0);
-  const g = x.createLinearGradient(0, SH - 480, 0, SH); g.addColorStop(0, 'rgba(23,16,13,0)'); g.addColorStop(1, 'rgba(23,16,13,.94)'); x.fillStyle = g; x.fillRect(0, SH - 480, W, 480);
-  x.fillStyle = '#fff7ee'; x.font = '600 58px ' + F; const lines = wrap(x, lineText(), W - 160).slice(0, 3); let y = SH - 50 - (lines.length - 1) * 76; lines.forEach(l => { x.fillText(l, 80, y); y += 76; });
+  drawTopOverlay(x, W, SH);
   x.fillStyle = 'rgba(255,207,154,.96)'; x.font = '600 36px ' + F; x.fillText('夏威夷 · 火山', 80, SH + 78);
   x.fillStyle = 'rgba(255,247,238,.62)'; x.font = '27px ' + F; x.fillText(`${dateStr()} · HeaLoa 样张`, 80, SH + 124); x.fillText(creditTxt(), 80, SH + 166);
   x.fillStyle = '#fff7ee'; x.font = '600 30px ' + F; x.fillText('带你的狗也来这里 →', 80, SH + 216);
   const q = await qrCanvas(shareURL(), 170); if (q) { x.drawImage(q, W - 80 - 170, SH + 24, 170, 170); x.fillStyle = 'rgba(255,247,238,.62)'; x.font = '21px ' + F; x.textAlign = 'center'; x.fillText('扫码，把你的它也放进来', W - 80 - 85, SH + 222); x.textAlign = 'left'; }
   return c;
+}
+// theme audio as a MediaStream track (only when the MP3 is really there and sound is on), so the saved video carries the music
+let themeNode = null, themeDest = null;
+function themeTrack() {
+  if (!ui.sound || themeMissing || !theme.src || theme.readyState < 2) return null;
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (!themeNode) { themeNode = actx.createMediaElementSource(theme); themeDest = actx.createMediaStreamDestination(); themeNode.connect(actx.destination); themeNode.connect(themeDest); }
+    theme.currentTime = 0; playTheme(); return themeDest.stream.getAudioTracks()[0] || null; } catch (e) { return null; }
 }
 function pickType() {
   if (typeof MediaRecorder === 'undefined') return null;
@@ -526,7 +590,8 @@ async function makeVideo() {
   const q = await qrCanvas(shareURL(), 220); const line = lineText();
   $('#busy').classList.remove('hidden'); $('#busyTxt').textContent = '正在做你的小视频…（约 8 秒）';
   S.recording = true; const pw = cv.width, ph = cv.height; cv.width = W; cv.height = H;
-  const stream = out.captureStream(30); const mr = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 3.5e6 }); const chunks = [];
+  const stream = out.captureStream(30); const aud = themeTrack(); if (aud) stream.addTrack(aud);
+  const mr = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 3.5e6 }); const chunks = [];
   mr.ondataavailable = e => e.data.size && chunks.push(e.data);
   const doorCx = centerX('door', 1, W, H);
   await new Promise(res => {
@@ -555,8 +620,8 @@ async function makeVideo() {
 let lastPng = null, lastVid = null, keepMode = 'video';
 function showKeep(mode) {
   keepMode = mode; const v = $('#keepVid'), im = $('#keepImg');
-  if (mode === 'video' && lastVid) { v.src = URL.createObjectURL(lastVid); v.classList.remove('hidden'); im.classList.add('hidden'); $('#dlLink').href = v.src; $('#dlLink').download = lastVid.type === 'video/mp4' ? 'healoa-hawaii.mp4' : 'healoa-hawaii.webm'; $('#swapKeep').textContent = '看明信片'; }
-  else { im.src = URL.createObjectURL(lastPng); im.classList.remove('hidden'); v.classList.add('hidden'); $('#dlLink').href = im.src; $('#dlLink').download = 'healoa-hawaii-postcard.png'; $('#swapKeep').textContent = lastVid ? '看小视频' : '生成小视频'; }
+  if (mode === 'video' && lastVid) { v.src = URL.createObjectURL(lastVid); v.classList.remove('hidden'); im.classList.add('hidden'); $('#dlLink').href = v.src; $('#dlLink').download = fileName(lastVid); $('#swapKeep').textContent = '看明信片'; }
+  else { im.src = URL.createObjectURL(lastPng); im.classList.remove('hidden'); v.classList.add('hidden'); $('#dlLink').href = im.src; $('#dlLink').download = fileName(lastPng); $('#swapKeep').textContent = lastVid ? '看小视频' : '生成小视频'; }
   $('#keep').classList.remove('hidden');
 }
 async function keepsakeFlow(wantVideo) {
@@ -572,13 +637,24 @@ $('#makeCard').onclick = () => keepsakeFlow(false);
 $('#hubVideo').onclick = () => keepsakeFlow(true);
 $('#swapKeep').onclick = async () => { if (keepMode === 'png' && !lastVid) { $('#keep').classList.add('hidden'); lastVid = await makeVideo(); if (lastVid) earn('make_video'); showKeep(lastVid ? 'video' : 'png'); } else showKeep(keepMode === 'video' ? 'png' : 'video'); };
 $('#closeKeep').onclick = () => { $('#keep').classList.add('hidden'); openHub(); };
+const fileName = blob => blob.type === 'image/png' ? `healoa-hawaii-postcard-${dateStr()}.png` : `healoa-hawaii-${dateStr()}.${blob.type === 'video/mp4' ? 'mp4' : 'webm'}`;
+const asFile = blob => new File([blob], fileName(blob), { type: blob.type, lastModified: Date.now() });
+// a real file on disk: an <a download> of the Blob (the video is a real .mp4 where the browser can record mp4, otherwise .webm)
+function saveFile(blob) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fileName(blob); document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); return a.download; }
+window.__hawaii = { renderTop, makePostcard, saveFile, fileName, clampPos, visibleBox, get lastVid() { return lastVid; }, get lastPng() { return lastPng; } };
+// share = the system share sheet WITH the files (video first, postcard too when the target accepts two files); no share sheet → save the file
 $('#shareBtn').onclick = async () => {
-  const blob = keepMode === 'video' && lastVid ? lastVid : lastPng; if (!blob) return;
-  const name = blob.type === 'image/png' ? 'healoa-hawaii-postcard.png' : blob.type === 'video/mp4' ? 'healoa-hawaii.mp4' : 'healoa-hawaii.webm';
-  const file = new File([blob], name, { type: blob.type });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: '夏威夷 · 火山', text: '带你的狗也来这里 ' + shareURL() }); earn('share'); return; } catch (e) { if (e.name === 'AbortError') return; } }
-  $('#dlLink').click(); earn('share'); toast('已保存到本机');
+  const main = keepMode === 'video' && lastVid ? lastVid : lastPng; if (!main) return;
+  const sets = [[main, main === lastVid ? lastPng : lastVid].filter(Boolean), [main]].map(l => l.map(asFile));
+  const data = f => ({ files: f, title: '夏威夷 · 火山', text: '带你的狗也来这里 ' + shareURL() });
+  if (navigator.share && navigator.canShare) {
+    for (const files of sets) { if (!navigator.canShare({ files })) continue;
+      try { await navigator.share(data(files)); earn('share'); return; }
+      catch (e) { if (e.name === 'AbortError') return; try { await navigator.share({ files }); earn('share'); return; } catch (e2) { if (e2.name === 'AbortError') return; } } }
+  }
+  const n = saveFile(main); earn('share'); toast(`这台设备不能直接分享文件，已保存：${n}`, 3200);
 };
+$('#saveVid').onclick = async () => { if (!lastVid) { $('#keep').classList.add('hidden'); lastVid = await makeVideo(); if (lastVid) earn('make_video'); showKeep(lastVid ? 'video' : 'png'); } if (lastVid) toast('已保存视频：' + saveFile(lastVid)); };
 
 // ---------- 养成 (growth) hub ----------
 function careToday(kind, silent) {

@@ -88,3 +88,7 @@ details{margin-top:8px;font-size:11px;color:var(--dim)}summary{cursor:pointer}
 #hub.min .full{display:none}
 #hub.min .stagebar{margin-top:6px}
 .spots{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.spots::-webkit-scrollbar{display:none}.spots .btn{flex:none}
+/* what you see is what you get: in steps 2–3 the canvas is exactly the postcard's top layer (1080×1380), framed above the panel */
+#stage.framed{background:#140d0b}
+#stage.framed #gl{border-radius:4px;box-shadow:0 0 0 1px rgba(255,236,214,.4),0 12px 40px rgba(0,0,0,.45)}
+#frameOv{position:fixed;z-index:1;pointer-events:none;border-radius:4px}

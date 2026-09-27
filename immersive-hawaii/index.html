@@ -29,7 +29,7 @@
   </symbol>
 </svg>
 
-<div id="stage"><canvas id="gl" aria-label="夏威夷沉浸场景：拖动或倾斜手机观看"></canvas></div>
+<div id="stage"><canvas id="gl" aria-label="夏威夷沉浸场景：拖动或倾斜手机观看"></canvas><canvas id="frameOv" class="hidden" aria-hidden="true"></canvas></div>
 <div id="flash"></div>
 <canvas id="petals" aria-hidden="true"></canvas>
 
@@ -37,7 +37,7 @@
   <span class="tag">样张 SAMPLE · 夏威夷</span>
   <div class="row gap6">
     <button class="chip hidden" id="ptsChip" aria-label="我的积分">✿ <b id="ptsVal">0</b></button>
-    <button class="chip" id="soundBtn" aria-label="声音开关">🔇</button>
+    <button class="chip" id="soundBtn" aria-label="主题音乐开关（循环）" aria-pressed="false">🔇</button>
     <button class="chip" id="helpBtn" aria-label="怎么玩">?</button>
   </div>
 </header>
@@ -196,6 +196,7 @@
   <div class="row" style="justify-content:center">
     <button class="btn" id="shareBtn">分享 / 保存</button>
     <a class="btn ghost" id="dlLink" download>下载</a>
+    <button class="btn ghost" id="saveVid">存视频文件</button>
     <button class="btn ghost" id="swapKeep">看明信片</button>
     <button class="btn ghost" id="closeKeep">回到场景</button>
   </div>
@@ -207,6 +208,7 @@
 
 <script src="js/points.js"></script>
 <script src="js/checkin.js"></script>
+<script src="js/cutout.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
