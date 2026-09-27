@@ -1,7 +1,7 @@
 # HeaLoa Base · 顺着季节养（可点原型）
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- 版本：**预览 v2026-09-27-u** · 疗愈主线（Cindy 2026-09-26 锁定 v3）+ 合并方案（留一句 / 发给一个人 / 按平台分享，D-27-02）+ 多语言（只上线中文；en / ja 为草稿预览）
+- 版本：**预览 v2026-09-27-v** · 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）· 疗愈主线（Cindy 2026-09-26 锁定 v3）+ 合并方案（留一句 / 发给一个人 / 按平台分享，D-27-02）+ 多语言（只上线中文；en / ja 为草稿预览）
 - 当前产品定义只看 **[`PRODUCT_CURRENT.md`](PRODUCT_CURRENT.md)**；历史规则与 SUPERSEDED 标记见 **[`DECISIONS.md`](DECISIONS.md)**。
 - 这是可点原型，不是正式 App；纯静态页面（GitHub Pages，main 分支），无后端、无账号、无网络请求。
 
@@ -36,7 +36,7 @@
 ```bash
 npm i
 npx playwright install chromium   # 第一次
-npm test              # static-checks + healing-v3 + i18n + merged-plan（禁用词按语言、App-only、首页→结果 1 次点击、结果随输入变化、每个按钮有响应、分享无身体信息、真实计时、中文快照、语言回退 / 草稿、留一句 / 收件人 / 每个平台按钮 / 9:16 图）
+npm test              # static-checks + healing-v3 + i18n + merged-plan + rules（R01–R12 每条规则至少一个检查；禁用词按语言、App-only、首页→结果 1 次点击、结果随输入变化、每个按钮有响应、分享无身体信息、真实计时、中文快照、语言回退 / 草稿、留一句 / 收件人 / 每个平台按钮 / 9:16 图）
 npm run test:merged   # 只跑合并方案测试
 npm run shots         # 390×844 截图（默认输出 /workspace/hb-merge-shots，可用 HEALOA_SHOTS_DIR 改）
 npm run test:legacy   # 归档页旧测试（可选，较慢）
@@ -51,7 +51,7 @@ CI：`ci/github-actions-tests.yml` 是可直接使用的 GitHub Actions 工作�
 
 - **zh 上线**；**en 草稿**由 Cindy 用 Muse 校对；**ja 草稿**由日本工程师修改；**es 延后**（没有审核人，`es.js` 为空）。
 - 草稿只能 `?lang=en` / `?lang=ja` 打开，页面顶部有「Draft preview」/「下書き」小标记；公开语言切换只在 ≥2 种语言完整时出现（现在隐藏）。
-- 上线一种语言：母语审核全部文字 → `tests/wording.mjs` 该语言禁用词表齐全 → `meta.complete = true` 并去掉 `draft`。
+- 上线一种语言：母语审核全部文字 → `rules/healoa-rules.json` 该语言禁用词表齐全（`tests/wording.mjs` 由它生成） → `meta.complete = true` 并去掉 `draft`。
 - 每张卡片单独的链接预览图（OG image）需要短链接服务器（`/s/:shareId`），**还没做**。
 - 「关注我们」：`app/social.js` 填入 Cindy 提供的真实账号后才显示，绝不代填。
 

@@ -1,4 +1,4 @@
-/* HeaLoa · i18n loader + t(key) helper (v2026-09-27-u)
+/* HeaLoa · i18n loader + t(key) helper (v2026-09-27-v)
  * Locale files (app/i18n/zh.js, en.js, ja.js, es.js) register into window.HEALOA_LOCALES.
  * - zh is the default and the only complete (shipped) locale.
  * - en / ja are DRAFTS (meta.draft === true, complete: false): reachable ONLY with an explicit ?lang=en / ?lang=ja,

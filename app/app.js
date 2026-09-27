@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-09-27-u)
+/* HeaLoa · app (v2026-09-27-v)
  * Main path: home (one tap) → result (season × condition) → relaxation (real timer) → season care card (private by default).
  * After the card (optional, never before it): 「留一句」 a line the user writes for themselves (local only, shown on their card)
  * → 「发给一个人」 native share sheet first, then per-platform buttons (app/share-targets.js), 9:16 story image.

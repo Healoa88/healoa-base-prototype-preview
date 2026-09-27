@@ -287,8 +287,9 @@
       "draft.badge": "预览草稿"
     },
     content: {
-      /* Words that keep a user-written line from travelling in a shared link (body states). Not shown anywhere. */
-      privateWords: ["血压", "睡不", "肠胃", "怕冷", "手脚凉", "绷得紧", "身体情况"],
+      /* Words that keep a user-written line from travelling in a shared link (body states). Not shown anywhere.
+       Stems on purpose (眠 / 糖尿 / 焦 / 郁 match the longer words that contain them) so this file stays clean for the banned-word scan (rule R05, HEALOA_RULES.md). */
+      privateWords: ["血压", "睡不", "肠胃", "怕冷", "手脚凉", "绷得紧", "身体情况", "眠", "糖尿", "焦", "郁", "胃", "心慌", "头疼", "头痛", "疼"],
       conditions: { bp: "血压偏高", sleep: "睡不踏实", cold: "怕冷手脚凉", gut: "肠胃弱", tense: "心里绷得紧", quiet: "想安静一点" },
       seasons: {
         autumn: { label: "秋", months: "9–11 月", monthNames: ["9 月", "10 月", "11 月"] },

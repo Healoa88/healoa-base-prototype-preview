@@ -284,7 +284,7 @@
       "rules.shortAltitude": "、標高約2000m。出発前に専門家に相談を"
     },
     content: {
-      privateWords: ["血圧", "眠れ", "不眠", "胃腸", "冷え性", "手足が冷", "緊張", "体調"],
+      privateWords: ["血圧", "眠れ", "不眠", "胃腸", "冷え性", "手足が冷", "緊張", "体調", "糖尿", "不安", "痛"],
       conditions: { bp: "おだやかに落ち着きたい", sleep: "ぐっすり休みたい", cold: "ぬくもりがほしい", gut: "おなかにやさしく", tense: "こわばりをほどきたい", quiet: "静かに過ごしたい" },
       seasons: {
         autumn: { label: "秋", months: "9〜11月", monthNames: ["9月", "10月", "11月"] },

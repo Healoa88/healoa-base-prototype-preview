@@ -1,4 +1,4 @@
-/* HeaLoa · rule-based recommendation (v2026-09-27-u)
+/* HeaLoa · rule-based recommendation (v2026-09-27-v)
  * Deterministic: same (condition, season) → same result. No randomness, no paid ranking.
  * Places without a photo are never in the top 3.
  * All wording comes from the active locale via t(key) (app/i18n/<locale>.js); no customer text is hard-coded here.

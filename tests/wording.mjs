@@ -1,49 +1,32 @@
-// Single source for wording rules (v3 lock, Cindy 2026-09-26). Used by static + browser tests.
+// Wording rules (v3 lock, Cindy 2026-09-26; merged plan v2026-09-27-u; founder rules v2026-09-27-v).
 //
-// Banned customer-facing words, PER LOCALE (one config for all languages).
+// SOURCE OF TRUTH: rules/healoa-rules.json (human-readable: HEALOA_RULES.md). This module only
+// derives the per-locale lists from it, so every suite and any external reviewer read the same rules.
 //   match: "substring" — CJK text, any occurrence counts (zh, ja)
 //          "word"      — Latin text, whole word, case-insensitive (en, es)
-// zh = locked list (Cindy 2026-09-26) + 数字资产 / 网络效应 / 基础设施 (merged plan, v2026-09-27-u).
-// en / ja = merged-plan lists for the DRAFT locales (v2026-09-27-u); to be confirmed in the native review.
+// en / ja = lists for the DRAFT locales; to be confirmed in the native review.
 // es = EMPTY: Spanish is deferred until a reviewer exists.
 // TODO(native review): es list must be written by a native speaker together with the es translation.
 // 疗愈 / restorative / 癒し are allowed ONLY to describe a place, an atmosphere or a feeling (never a result).
 // A locale may not be marked `complete: true` in app/i18n/<code>.js until its list here is filled and reviewed.
-export const BANNED_BY_LOCALE = {
-  zh: {
-    match: "substring",
-    words: [
-      "治疗", "治愈", "疗效", "诊断", "降压", "降血压", "治失眠", "改善", "缓解", "调理", "药",
-      "患者", "医生", "高血压", "失眠", "累", "烦", "日记", "打卡", "积分", "邀请好友", "解锁", "排行", "情绪曲线",
-      "数字资产", "网络效应", "基础设施",
-    ],
-  },
-  en: {
-    match: "word",
-    words: [
-      "digital asset", "AGI", "infrastructure", "network effect", "future friend",
-      "heal", "heals", "cure", "treat", "treatment", "therapy", "therapeutic", "diagnose",
-      "patient", "doctor", "insomnia", "hypertension", "blood pressure", "improve", "relieve", "medicine",
-      "streak", "points", "reward", "unlock", "invite friends",
-    ],
-  },
-  ja: {
-    match: "substring",
-    words: ["治療", "治す", "効果", "診断", "患者", "医師", "不眠症", "高血圧", "改善", "薬", "ポイント", "招待特典", "デジタル資産"],
-  },
-  es: { match: "word", words: [ /* TODO(native review) — deferred until a reviewer exists */ ] },
-};
+import fs from "fs";
+export const RULES = JSON.parse(fs.readFileSync(new URL("../rules/healoa-rules.json", import.meta.url), "utf8"));
+const uniq = (a) => [...new Set(a)];
+export const BANNED_BY_LOCALE = Object.fromEntries(["zh", "en", "ja", "es"].map((l) => [l, {
+  match: RULES.matchModes[l],
+  words: uniq(RULES.rules.flatMap((r) => (r.banned && r.banned[l]) || [])),
+}]));
 // Where 疗愈 / restorative / 癒し may appear: only next to place / atmosphere / feeling words (checked by static tests).
-export const RESTORATIVE_WORDS = { zh: "疗愈", en: "restorative", ja: "癒し" };
+export const RESTORATIVE_WORDS = RULES.rules.find((r) => r.id === "R02").restorativeWords;
 export const LOCALES = Object.keys(BANNED_BY_LOCALE); // planned order: zh, en, ja, es
 // Back-compat: the zh list.
 export const BANNED_CUSTOMER_WORDS = BANNED_BY_LOCALE.zh.words;
 // Must not appear anywhere in the shipped repo (App-only rule). Case-sensitive, as written in the lock.
-export const BANNED_ANYWHERE = ["healoa.com", "光圈", "Keeper", "Host", "Choose Again", "/board"];
+export const BANNED_ANYWHERE = uniq(RULES.rules.flatMap((r) => r.bannedAnywhere || []));
 export const CONDITION_LABELS = ["血压偏高", "睡不踏实", "怕冷手脚凉", "肠胃弱", "心里绷得紧", "想安静一点"];
 export const CONDITION_IDS = ["bp", "sleep", "cold", "gut", "tense", "quiet"];
 export const DISCLAIMER = "这是顺应季节的养生参考，身体不适请以专业意见为准";
-export const VERSION = "v2026-09-27-u";
+export const VERSION = "v2026-09-27-v";
 
 export function scanText(text, words) {
   const hits = [];
