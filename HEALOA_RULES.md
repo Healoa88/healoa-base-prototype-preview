@@ -33,4 +33,18 @@
 ## 说明 / Notes
 
 - 「留一句」过滤词在 `app/i18n/<语言>.js` 的 `privateWords`（只用于判断，不显示）。为了让语言文件本身也通过禁用词扫描，这里用词根（如 眠 / 糖尿 / 焦 / 郁、insomn / anxi / diabet），能盖住包含它们的长词。
-- CI：`ci/github-actions-tests.yml` 跑完整 `npm test`。要让它真正拦住合并，需要把它放进 `.github/workflows/` 并在 main 上开启「必须通过检查」的分支保护（见 PR 说明）。
+- CI：`ci/github-actions-tests.yml` 是备用的 GitHub Actions 配置（暂未启用，因为没有 workflow 权限）。现在拦住合并的是下面的「合并闸门」。
+
+## 合并闸门 / Merge gate（`scripts/gate.sh`）
+
+每个 PR 合并前都必须先跑 `scripts/gate.sh <PR号>`——Code Bot 和 Grok 都一样，没有例外。
+Every PR must run `scripts/gate.sh <PR>` before merge — Code Bot and Grok alike.
+
+- 它做什么：取 PR 最新提交（head SHA），在临时 git worktree 里装依赖（有 lockfile 用 `npm ci`，否则 `npm install --no-save`），跑完整 `npm test`，然后在这个提交上写 commit status `healoa-rules-gate`：开始时 `pending`，结束时 `success`（通过数）或 `failure`（最先失败的规则 / 检查 ID）。不会动你当前的 checkout。
+- main 开了分支保护：必须 `healoa-rules-gate = success`，而且分支必须和 main 同步（strict）；管理员也一样；不能强推、不能删 main。
+- PR 落后于 main 时：先更新分支（`gh pr update-branch <PR>`），新的 head 没有状态，要重新跑闸门。
+- 唯一的合并方式 / the only way to merge:
+
+```
+scripts/gate.sh <PR> && gh pr merge <PR> --merge
+```
