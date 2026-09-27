@@ -34,3 +34,7 @@
 | `assets/places/onsen/02-hot-spring-falls.jpg` | 日本森林温泉 · onsen/ | Photo · Cindy Yang | 2026-09-24 via chat | EXIF-free as provided; committed in Grok P0 PR |
 
 Note: onsen photos are committed in Grok P0 PR; Arctic cabin photos not yet provided; cabin/ set is forest-cabin path pending Cindy ruling.
+
+## v2026-09-27-y
+- `wudang/02-terrace-sunrise-depth.png` is a depth map computed on our own machine from Cindy's photo `wudang/02-terrace-sunrise.jpg` with Depth Anything V2 Small (ONNX, offline; `tools/make_depth.py`). It is not a new photo and the photo was not uploaded anywhere. It drives the 2.5D 「走进这里看看」 view.
+- Photo roles and focal points: `PHOTO_AUDIT.md`.

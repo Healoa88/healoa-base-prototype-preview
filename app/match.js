@@ -111,6 +111,7 @@
     add("nature", (at.nature - 1) * 1);
     add("open_view", sc.indexOf("sea") >= 0 || sc.indexOf("mountain") >= 0 ? 1 : 0);
     add("lively", at.quiet === 0 ? 1 : -0.5);
+    add("cozy", at.cozy ? 1 : 0);
     ["sea", "mountain", "hotspring", "forest", "snow"].forEach(function (s) { add("scene_" + s, sc.indexOf(s) >= 0 ? 1 : 0); });
     return out;
   }

@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-09-27-x · v4 Phase 1)
+/* HeaLoa · app (v2026-09-27-y · v4 Phase 1 + Cindy feedback 2026-09-27: 9:16 share, copyright line, reminder, music, more options, 2.5D)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
  * (computed by app/match.js, not drawn by lot) → 「为什么是你」 (reasons, eat / do / avoid) → place page → one real
@@ -79,15 +79,18 @@
   }
 
   /* ---------- navigation (history state only; URL never carries the condition) ---------- */
-  var VIEWS = ["home", "shared", "quiz", "reveal", "result", "places", "place", "practice", "card", "records"];
+  var VIEWS = ["home", "shared", "quiz", "reveal", "result", "places", "place", "practice", "card", "records", "remind", "immersive"];
   function snapshot() { return { view: state.view, season: state.season, cond: state.cond, answers: state.answers, placeId: state.placeId, practiceId: state.practiceId, actionPlace: state.actionPlace }; }
   function show(view) {
     VIEWS.forEach(function (v) {
       var el = document.querySelector('[data-view="' + v + '"]');
       if (el) el.classList.toggle("hidden", v !== view);
     });
-    document.body.classList.toggle("practicing", view === "practice");
+    document.body.classList.toggle("practicing", view === "practice" || view === "immersive");
+    if (view !== "immersive" && state.view === "immersive") immStop();
+    if (view !== "practice" && view !== "immersive" && MUS.playing) musicStop();
     state.view = view;
+    setBackdrop();
     window.scrollTo(0, 0);
   }
   function render() {
@@ -102,6 +105,8 @@
     else if (state.view === "place") renderPlace();
     else if (state.view === "practice") renderPractice();
     else if (state.view === "card") renderCard();
+    else if (state.view === "remind") renderRemind();
+    else if (state.view === "immersive") renderImmersive();
   }
   function go(view, patch, replace) {
     if (state.view === "practice" && view !== "practice") timerStop(false);
@@ -160,6 +165,10 @@
     $("homeSeasonNow").textContent = state.season === naturalSeason ? t("home.seasonToday", { term: term, season: S.label }) :
       !D.SEASONS[naturalSeason] ? t("home.seasonPending", { term: term, now: D.SEASON_NAMES[naturalSeason], season: S.label }) : t("home.seasonAhead", { season: S.label });
     $("homeTermExplain").classList.toggle("hidden", !I18N.meta().explainTerms);
+    var hero = $("homeHeroImg"), hsrc = D.SEASON_PHOTO[state.season];
+    if (hero.getAttribute("src") !== hsrc) hero.setAttribute("src", hsrc);
+    hero.style.objectPosition = D.focal(hsrc);
+    $("homeAtmo").innerHTML = atmoHtml();
     var saved = lsGet(LS_MATCH), okSaved = saved && Array.isArray(saved.top) && saved.top.length && saved.answers;
     var re = $("homeRematch"), last = $("homeLast"), today3 = $("homeToday");
     if (okSaved && saved.termIndex !== termIndex) { re.textContent = t("home.rematch", { term: term }); re.classList.remove("hidden"); } else re.classList.add("hidden");
@@ -243,19 +252,30 @@
     go("reveal", { answers: state.answers, cond: m.primaryCond });
   }
 
+  /* ---------- photos: art direction (focal point per photo, never stretched), no overlay credit (R10) ---------- */
+  function img(src, alt, lazy) {
+    return '<img src="' + esc(src) + '" alt="' + esc(alt || "") + '" style="object-position:' + D.focal(src) + '"' + (lazy ? ' loading="lazy"' : "") + ">";
+  }
+  /* Season atmosphere: a few drifting leaves (autumn) or snowflakes (winter); decorative only, off with reduced motion. */
+  function atmoHtml() {
+    var n = 14, h = '<div class="atmo atmo-' + esc(state.season) + '" aria-hidden="true">';
+    for (var i = 0; i < n; i++) h += '<i style="left:' + ((i * 37) % 100) + "%;animation-delay:" + (-(i * 1.7) % 12).toFixed(1) + "s;animation-duration:" + (9 + (i * 5) % 7) + 's"></i>';
+    return h + "</div>";
+  }
+
   /* ---------- flip reveal of the top 3 (computed, not drawn by lot) ---------- */
   var flipped = {};
   function renderReveal() {
     var m = currentMatch(), S = D.SEASONS[state.season];
     $("revealTitle").textContent = t("reveal.title", { season: S.label, term: termName(m.termIndex) });
-    var h = "";
+    var h = atmoHtml();
     if (m.top.length === 0) h += '<p class="reveal-note">' + esc(t("reveal.none")) + "</p>";
     else if (m.top.length < 3) h += '<p class="reveal-note">' + esc(t("reveal.fewer", { n: m.top.length })) + "</p>";
     h += '<div class="flip-list">' + m.top.map(function (e, i) {
       var p = R.placeById(e.id), on = !!flipped[i];
-      return '<div class="flip-card' + (on ? " flipped" : "") + '" role="button" tabindex="0" data-action="flip" data-i="' + i + '" data-place="' + e.id + '" aria-pressed="' + (on ? "true" : "false") + '">' +
-        '<div class="flip-inner"><div class="flip-face flip-front" aria-hidden="' + (on ? "true" : "false") + '"><span class="flip-n">' + esc(t("reveal.front", { n: i + 1 })) + '</span><span class="flip-tap">' + esc(t("reveal.tap")) + "</span></div>" +
-        '<div class="flip-face flip-back" aria-hidden="' + (on ? "false" : "true") + '"><div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '"><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
+      return '<div class="flip-card' + (on ? " flipped" : "") + '" role="button" tabindex="0" data-action="flip" data-i="' + i + '" data-place="' + e.id + '" aria-pressed="' + (on ? "true" : "false") + '" style="--d:' + (i * 0.18) + 's">' +
+        '<div class="flip-inner"><div class="flip-face flip-front" aria-hidden="' + (on ? "true" : "false") + '"><span class="flip-glow"></span><span class="flip-n">' + esc(t("reveal.front", { n: i + 1 })) + '</span><span class="flip-tap">' + esc(t("reveal.tap")) + "</span></div>" +
+        '<div class="flip-face flip-back" aria-hidden="' + (on ? "false" : "true") + '"><div class="photo">' + img(p.photo, p.alt) + "</div>" +
         '<div class="flip-text"><p class="flip-match">' + esc(t("reveal.match", { season: S.label, kind: kindOf(p) })) + '</p><p class="flip-name">' + esc(p.name) + '</p><p class="flip-reason">' + esc(e.reasons[0]) + "</p></div></div></div></div>";
     }).join("") + "</div>";
     var all = m.top.length && m.top.every(function (_, i) { return flipped[i]; });
@@ -263,6 +283,7 @@
       '<button type="button" class="btn primary" data-action="openWhy">' + esc(t("reveal.why")) + "</button></div>" +
       '<button type="button" class="text-link" data-action="openQuiz">' + esc(t("reveal.redo")) + "</button>";
     $("revealBody").innerHTML = h;
+    $("vReveal").classList.toggle("all-open", !!all);
   }
 
   /* ---------- 为什么是你 (result) ---------- */
@@ -289,8 +310,8 @@
       var p = R.placeById(tp.id), act = D.PLACE_ACTIONS[tp.id];
       var eat = M.adviceFor(m.termIndex, "eat", m.answers).map(function (x) { return x.text; }), dos = M.adviceFor(m.termIndex, "do", m.answers).map(function (x) { return x.text; }), avoid = M.adviceFor(m.termIndex, "avoid", m.answers).map(function (x) { return x.text; });
       h += '<article class="place-card" data-place="' + tp.id + '">' +
-        '<div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '" loading="lazy"><span class="rank">' + esc(t("result.rank", { n: i + 1 })) + '</span><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
-        '<div class="place-main"><p class="place-name">' + esc(p.name) + "</p>" +
+        '<div class="photo tall">' + img(p.photo, p.alt, true) + '<span class="rank">' + esc(t("result.rank", { n: i + 1 })) + '</span><p class="photo-name">' + esc(p.name) + "</p></div>" +
+        '<div class="place-main">' +
         '<p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
         '<p class="why-label">' + esc(t("result.whyLabel")) + '</p><ul class="why">' + tp.reasons.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>" +
         '<ul class="eda">' +
@@ -327,7 +348,7 @@
     h += '<p class="note-line" id="resultNext">' + esc(t("result.nextTerm", nextTermInfo())) + "</p>";
     h += '<button type="button" class="text-link" data-action="openPlaces">' + esc(t("result.allPlaces")) + "</button>";
     h += '<button type="button" class="text-link" data-action="openQuiz">' + esc(t("result.redo")) + "</button>";
-    h += '<p class="src-note">' + esc(t("result.srcNote", { credit: D.CREDIT })) + "</p>";
+    h += '<p class="src-note">' + esc(t("result.srcNote")) + "</p>";
     $("resultBody").innerHTML = h;
     return c;
   }
@@ -337,29 +358,36 @@
     return '<p class="cindy-line">' + esc(t("place.cindyLine", { line: p.cindyLine })) + "</p>";
   }
 
-  /* ---------- place: feeling line, who it suits, what to avoid, one real relaxation here ---------- */
+  /* ---------- place: feeling line, who it suits, what to avoid, things to do here ---------- */
   function renderPlace() {
     var p = R.placeById(state.placeId);
     if (!p || !p.photo) { go("places", null, true); return; }
     var cond = state.cond || "quiet", S = D.SEASONS[state.season], m = currentMatch();
     var rs = R.reasons(p, cond, state.season), skip = null;
     m.excluded.forEach(function (x) { if (x.id === p.id) skip = x.reason; });
-    var h = '<div class="place-hero"><div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '"><span class="credit">' + esc(D.CREDIT) + "</span></div></div>";
-    h += '<h2 class="place-title">' + esc(p.name) + '</h2><p class="place-area">' + esc(p.area) + "</p>";
+    var h = '<div class="place-hero"><div class="photo">' + img(p.photo, p.alt) + '<div class="hero-text"><h2 class="place-title">' + esc(p.name) + '</h2><p class="place-area">' + esc(p.area) + "</p></div></div></div>";
     h += '<p class="place-benefit feel-line">' + esc(p.benefit) + "</p>" + cindyLineHtml(p);
+    if (D.IMMERSIVE[p.id]) h += '<button type="button" class="btn immersive-btn" data-action="openImmersive" data-place="' + p.id + '"><span class="imm-ico" aria-hidden="true"></span>' + esc(t("imm.open")) + "</button>";
+    /* 在这里可以做的事: the main action first, then more (existing practices only, each with a photo of this place). */
+    var acts = D.PLACE_ACTIVITIES[p.id] || [];
+    if (acts.length) {
+      h += '<div class="block action-block" id="blkAction"><h3>' + esc(t("place.actionTitle")) + '</h3><p class="muted small">' + esc(t("place.actionsLead", { n: acts.length })) + '</p><div class="act-list">' +
+        acts.map(function (a, i) {
+          return '<button type="button" class="act-card' + (i === 0 ? " main" : "") + '" data-action="openPractice" data-practice="' + a.practice + '" data-place="' + p.id + '" data-act="' + i + '">' +
+            '<span class="act-photo">' + img(a.photo, "", true) + '</span><span class="act-text"><b>' + esc(a.label) + '</b><span class="act-go">' + esc(t("place.actGo")) + "</span></span></button>";
+        }).join("") + "</div></div>";
+    }
     /* 适合谁: the existing approved per-state lines, only for states this place is not ruled out for this season. */
     var suits = D.CONDITIONS.filter(function (c) { return p.fit[c.id] && !R.skipReason(p, c.id, state.season); });
     if (suits.length) h += '<div class="block" id="blkSuits"><h3>' + esc(t("place.suitsTitle")) + '</h3><ul>' + suits.map(function (c) { return "<li><b>" + esc(c.label) + esc(t("punct.colon")) + "</b>" + esc(p.fit[c.id]) + "</li>"; }).join("") + "</ul></div>";
     var cautions = p.caution.slice();
     if (p.attrs.hotspring) cautions.unshift(t("place.hotspringCaution"));
     h += '<div class="safety" id="blkAvoid"><b>' + esc(t("place.avoidTitle")) + esc(t("punct.colon")) + "</b>" + (skip ? '<p class="skip-now">' + esc(t("place.skipLabel")) + esc(skip) + "</p>" : "") + "<ul>" + cautions.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
-    var act = D.PLACE_ACTIONS[p.id];
-    if (act) h += '<div class="block action-block" id="blkAction"><h3>' + esc(t("place.actionTitle")) + '</h3><p>' + esc(act.label) + '</p><button type="button" class="btn primary" data-action="openPractice" data-practice="' + act.practice + '" data-place="' + p.id + '">' + esc(t("result.relaxCta", { label: act.short })) + "</button></div>";
     h += '<div class="block"><h3>' + esc(t(skip ? "place.climateSkip" : "place.climateFit", { season: S.label })) + '</h3><ol class="reasons">' + rs.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ol></div>";
     h += '<div class="block"><h3>' + esc(t("place.eatTitle")) + "</h3><ul>" + p.food.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     h += '<div class="block"><h3>' + esc(t("place.todoTitle")) + "</h3><ul>" + p.todo.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     if (p.gallery && p.gallery.length) {
-      h += '<div class="gallery">' + p.gallery.map(function (g) { return '<div class="photo"><img src="' + esc(g) + '" alt="' + esc(p.name) + '" loading="lazy"><span class="credit">' + esc(D.CREDIT) + "</span></div>"; }).join("") + "</div>";
+      h += '<div class="gallery">' + p.gallery.map(function (g) { return '<div class="photo">' + img(g, p.name, true) + "</div>"; }).join("") + "</div>";
     }
     h += '<div class="home-card"><h3>' + esc(t("place.homeTitle")) + "</h3><ul>" + D.HOME_PLAN[cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     h += '<button type="button" class="text-link" data-action="openPlaces">' + esc(t("place.allPlaces")) + "</button>";
@@ -370,11 +398,11 @@
   /* ---------- all places: every place with a real photo is open from the first visit ---------- */
   function openPlaceList() { return D.PLACES.filter(function (p) { return !!p.photo; }); }
   function renderPlaces() {
-    $("placesBody").innerHTML = openPlaceList().map(function (p) {
-      return '<article class="place-card" data-place="' + p.id + '"><div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '" loading="lazy"><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
-        '<div class="place-main"><p class="place-name">' + esc(p.name) + '</p><p class="place-area">' + esc(p.area) + '</p><p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
+    $("placesBody").innerHTML = '<div class="places-grid">' + openPlaceList().map(function (p) {
+      return '<article class="place-card" data-place="' + p.id + '"><div class="photo tall">' + img(p.photo, p.alt, true) + '<p class="photo-name">' + esc(p.name) + "</p></div>" +
+        '<div class="place-main"><p class="place-area">' + esc(p.area) + '</p><p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
         '<button type="button" class="btn ghost small" data-action="openPlace" data-place="' + p.id + '">' + esc(t("places.open")) + "</button></div></article>";
-    }).join("");
+    }).join("") + "</div>";
   }
 
   /* ---------- 我的养护记录: a plain local list (date · solar term · place · what was done · optional own line) ---------- */
@@ -388,10 +416,15 @@
     if (rows.length > 300) rows = rows.slice(-300);
     return lsSet(LS_LOG, rows);
   }
+  function activityFor(place, practiceId) {
+    var list = (place && D.PLACE_ACTIVITIES[place]) || [];
+    for (var i = 0; i < list.length; i++) if (list[i].practice === practiceId) return list[i];
+    return null;
+  }
   function recordWhat(r) {
     if (r.kind === "card") return t("records.cardKept");
-    var a = r.place && D.PLACE_ACTIONS[r.place], pr = D.PRACTICES[r.practice];
-    return a && a.practice === r.practice ? a.label : pr ? pr.label : "";
+    var a = activityFor(r.place, r.practice), pr = D.PRACTICES[r.practice];
+    return a ? a.label : pr ? pr.label : "";
   }
   function renderRecords() {
     var rows = logRows(), h = "";
@@ -426,8 +459,8 @@
   /* The practice being shown. Done "in" a place (state.actionPlace), it keeps the same timings and shows that place's
    * photo, label and intro (D.PLACE_ACTIONS; plan v4 §5). */
   function practice() {
-    var base = D.PRACTICES[state.practiceId] || D.PRACTICES.breath46, a = state.actionPlace && D.PLACE_ACTIONS[state.actionPlace];
-    if (!a || a.practice !== base.id) return base;
+    var base = D.PRACTICES[state.practiceId] || D.PRACTICES.breath46, a = activityFor(state.actionPlace, base.id);
+    if (!a) return base;
     var p = {}, k;
     for (k in base) p[k] = base[k];
     p.label = a.label; p.intro = a.intro; p.photo = a.photo; p.place = a.place;
@@ -445,7 +478,7 @@
   function mmss(sec) { sec = Math.max(0, Math.ceil(sec)); return Math.floor(sec / 60) + ":" + ("0" + (sec % 60)).slice(-2); }
   function modeList() {
     /* Every practice is safe for every condition (no breath hold > D.MAX_HOLD_SEC), so the list is the same for all. */
-    var ids = ["breath46", "breathNight", "walk", "soak"];
+    var ids = ["breath46", "sitEasy", "breathNight", "walk", "soak"];
     if (state.practiceId && ids.indexOf(state.practiceId) < 0) ids.push(state.practiceId);
     return ids;
   }
@@ -477,6 +510,7 @@
     if (p.kind === "soak") safe = (state.cond && D.CARE[state.cond] ? D.CARE[state.cond][state.season].safety + " " : "") + t("practice.safeSoakTail");
     if (p.kind === "walk") safe = t("practice.safeWalk");
     $("practiceSafe").textContent = safe;
+    renderMusicBtns();
     $("walkFeet").classList.toggle("hidden", p.kind !== "walk");
     $("breathCircle").classList.toggle("hidden", p.kind === "walk");
     if (!T.running) {
@@ -570,6 +604,7 @@
     cancelAnimationFrame(T.raf); clearInterval(T.iv);
     T.iv = setInterval(tick, 250);
     if (p.kind === "walk" && T.beep) click();
+    if (MUS.on) musicStart();
     wakeOn(); updateControls(); loop();
   }
   function timerPause() {
@@ -646,6 +681,7 @@
       seasonLine: season === naturalSeason ? t("card.seasonToday", { season: S.label, term: term }) : t("card.seasonAhead", { season: S.label, months: S.months }),
       head: t("card.head", { who: state.cardShowCond ? condById(cond).label : t("card.whoAnon"), season: S.label }),
       place: place ? { name: place.name, photo: place.photo, reason: top.climateReasons[0] /* weather only: answer reasons name body states (R05) */ } : null,
+      photo: place ? place.photo : D.SEASON_PHOTO[season],
       items: show ? [
         t("card.itemEat", { tip: care.eat.tip, foods: care.eat.more.split(t("punct.listSep")).slice(0, 3).join(t("punct.listSep")) }),
         t("card.itemMove", { move: care.move[0] }),
@@ -660,10 +696,9 @@
     if (!condById(state.cond)) { go("home", null, true); return; }
     var m = cardModel();
     $("cardShowCond").checked = !!state.cardShowCond;
-    var h = "";
-    if (m.place) h += '<div class="photo"><img src="' + esc(m.place.photo) + '" alt="' + esc(m.place.name) + '"><span class="credit">' + esc(D.CREDIT) + "</span></div>";
-    h += '<div class="care-body"><p class="care-season">' + esc(m.seasonLine) + '</p><p class="care-head">' + esc(m.head) + "</p>";
-    if (m.place) h += "<p><b>" + esc(t("card.placeLabel")) + "</b>" + esc(m.place.name) + '<br><span class="muted small">' + esc(m.place.reason) + "</span></p>";
+    var h = '<div class="photo card-hero">' + img(m.photo, m.place ? m.place.name : "") + '<div class="hero-text"><p class="care-season">' + esc(m.seasonLine) + '</p><p class="care-head">' + esc(m.head) + "</p></div></div>";
+    h += '<div class="care-body">';
+    if (m.place) h += '<p class="care-place"><b>' + esc(t("card.placeLabel")) + "</b>" + esc(m.place.name) + '<br><span class="muted small">' + esc(m.place.reason) + "</span></p>";
     h += "<ol>" + m.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ol>";
     if (m.line) h += '<p class="care-line" id="cardLine">' + esc(t("line.onCard", { line: m.line })) + "</p>";
     else if (m.lineHidden) h += '<p class="muted small" id="cardLineHidden">' + esc(t("card.lineHidden")) + "</p>";
@@ -689,10 +724,18 @@
       im.src = src;
     });
   }
-  function coverDraw(ctx, im, x, y, w, h) {
-    if (!im) { ctx.fillStyle = "#d9d2c4"; ctx.fillRect(x, y, w, h); return; }
-    var r = Math.max(w / im.width, h / im.height), sw = w / r, sh = h / r;
-    ctx.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, x, y, w, h);
+  /* Cover-fit a photo into a box around its focal point (never stretched; zoom ≥ 1 for the slow push-in of the video). */
+  function coverDraw(ctx, im, x, y, w, h, src, zoom) {
+    if (!im) { ctx.fillStyle = "#3b4a44"; ctx.fillRect(x, y, w, h); return; }
+    var meta = (src && D.PHOTO_META[src]) || { fx: 50, fy: 50 };
+    var r = Math.max(w / im.width, h / im.height) * (zoom || 1), sw = w / r, sh = h / r;
+    var sx = Math.min(Math.max(im.width * meta.fx / 100 - sw / 2, 0), im.width - sw), sy = Math.min(Math.max(im.height * meta.fy / 100 - sh / 2, 0), im.height - sh);
+    ctx.drawImage(im, sx, sy, sw, sh, x, y, w, h);
+  }
+  function shade(ctx, W, y0, y1, a0, a1) {
+    var g = ctx.createLinearGradient(0, y0, 0, y1);
+    g.addColorStop(0, "rgba(12,16,14," + a0 + ")"); g.addColorStop(1, "rgba(12,16,14," + a1 + ")");
+    ctx.fillStyle = g; ctx.fillRect(0, y0, W, y1 - y0);
   }
   var FONT = I18N.meta().canvasFont || "sans-serif";
   /* Line breaking for canvas text: Latin words (and numbers, units, URLs pieces) stay whole and break at spaces;
@@ -731,31 +774,57 @@
     if (log) log.push(text);
     return y + lines.length * lh;
   }
+  /* A text block laid out bottom-up on a photo: [{text, px, weight, color, gap}] → measured, then drawn from y0. */
+  function blockHeight(ctx, rows, MW) {
+    return rows.reduce(function (a, r) { ctx.font = (r.weight || "") + " " + r.px + "px " + FONT; return a + (r.gap || 0) + wrapLines(ctx, r.text, MW).length * Math.round(r.px * (r.lh || 1.3)); }, 0);
+  }
+  function drawRows(ctx, rows, X, y, MW, log) {
+    rows.forEach(function (r) {
+      ctx.font = (r.weight || "") + " " + r.px + "px " + FONT; ctx.fillStyle = r.color || "#fff";
+      y += r.gap || 0;
+      if (r.bar) { ctx.fillRect(X, y + 4, 6, r.px * 1.15); ctx.fillStyle = r.color; }
+      y = wrap(ctx, r.text, X + (r.bar ? 24 : 0), y + r.px, MW - (r.bar ? 24 : 0), Math.round(r.px * (r.lh || 1.3)), log) - r.px;
+    });
+    return y;
+  }
+  function copyrightRow(ctx, W, H, log, alpha) {
+    ctx.font = "22px " + FONT; ctx.fillStyle = "rgba(255,255,255," + (alpha == null ? 0.78 : alpha) + ")"; ctx.textAlign = "center";
+    var lines = wrapLines(ctx, t("copyright"), W - 120);
+    lines.forEach(function (l, i) { ctx.fillText(l, W / 2, H - 34 - (lines.length - 1 - i) * 30); });
+    ctx.textAlign = "left";
+    if (log) log.push(t("copyright"));
+    return H - 34 - lines.length * 30;
+  }
+
+  /* 「存成图片」 of the private card: 9:16 (1080×1920), full-bleed photo, text on a soft dark gradient, copyright line at the bottom edge. */
   var lastPrivateText = [];
   async function privatePng() {
-    var m = cardModel(), W = 1080, H = 1560, c = document.createElement("canvas"), L = [];
+    var m = cardModel(), W = 1080, H = 1920, c = document.createElement("canvas"), L = [];
     lastPrivateText = L;
     c.width = W; c.height = H;
     var ctx = c.getContext("2d");
-    ctx.fillStyle = "#fffdf9"; ctx.fillRect(0, 0, W, H);
-    var im = m.place ? await loadImg(m.place.photo) : null;
-    coverDraw(ctx, im, 0, 0, W, 560);
-    ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fillRect(W - 300, 510, 280, 40);
-    ctx.fillStyle = "#fff"; ctx.font = "26px " + FONT; ctx.fillText(D.CREDIT, W - 285, 540); L.push(D.CREDIT);
-    var y = 640, X = 64, MW = W - 128;
-    ctx.fillStyle = "#2f5d50"; ctx.font = "bold 38px " + FONT; y = wrap(ctx, m.seasonLine, X, y, MW, 50, L) + 20;
-    ctx.fillStyle = "#26241f"; ctx.font = "bold 56px " + FONT; y = wrap(ctx, m.head, X, y, MW, 70, L); y += 20;
-    ctx.font = "40px " + FONT;
-    if (m.place) { y = wrap(ctx, t("card.placeLabel") + m.place.name, X, y, MW, 56, L); ctx.fillStyle = "#5f5a50"; ctx.font = "32px " + FONT; y = wrap(ctx, m.place.reason, X, y, MW, 46, L) + 20; }
-    ctx.fillStyle = "#26241f"; ctx.font = "40px " + FONT;
-    m.items.forEach(function (it, i) { y = wrap(ctx, (i + 1) + ". " + it, X, y, MW, 56, L) + 10; });
-    if (m.line) { ctx.fillStyle = "#9a5530"; ctx.font = "bold 40px " + FONT; y = wrap(ctx, t("line.onCard", { line: m.line }), X, y + 10, MW, 54, L) + 6; }
-    ctx.fillStyle = "#7a3b12"; ctx.font = "32px " + FONT; y = wrap(ctx, m.safety, X, y + 10, MW, 46, L);
-    ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, t("card.foot", { disclaimer: D.DISCLAIMER }), X, H - 60, MW, 40, L);
+    coverDraw(ctx, await loadImg(m.photo), 0, 0, W, H, m.photo);
+    shade(ctx, W, 0, 300, 0.45, 0);
+    ctx.fillStyle = "#fff"; ctx.font = "600 34px " + FONT; ctx.fillText(t("share.cardBrand"), 64, 90); L.push(t("share.cardBrand"));
+    var X = 64, MW = W - 128, bottom = copyrightRow(ctx, W, H, null) - 24;
+    var s = 1, rows;
+    for (var k = 0; k < 8; k++) {
+      rows = [{ text: m.seasonLine, px: Math.round(34 * s), weight: "bold", color: "#f4d9a8" }, { text: m.head, px: Math.round(58 * s), weight: "bold", color: "#fff", gap: 10 }];
+      if (m.place) rows.push({ text: t("card.placeLabel") + m.place.name, px: Math.round(38 * s), weight: "bold", color: "#fff", gap: 26 }, { text: m.place.reason, px: Math.round(30 * s), color: "rgba(255,255,255,.85)", gap: 4 });
+      m.items.forEach(function (it, i) { rows.push({ text: (i + 1) + ". " + it, px: Math.round(36 * s), color: "#fff", gap: i ? 8 : 24 }); });
+      if (m.line) rows.push({ text: t("line.onCard", { line: m.line }), px: Math.round(38 * s), weight: "bold", color: "#f4d9a8", gap: 22, bar: true });
+      rows.push({ text: m.safety, px: Math.round(28 * s), color: "#ffe2cc", gap: 22 }, { text: t("card.foot", { disclaimer: D.DISCLAIMER }), px: Math.round(24 * s), color: "rgba(255,255,255,.75)", gap: 14 });
+      if (blockHeight(ctx, rows, MW) <= bottom - 520) break;
+      s *= 0.92;
+    }
+    var bh = blockHeight(ctx, rows, MW), y0 = bottom - bh;
+    shade(ctx, W, Math.max(0, y0 - 360), y0, 0, 0.72); ctx.fillStyle = "rgba(12,16,14,.72)"; ctx.fillRect(0, y0, W, H - y0);
+    drawRows(ctx, rows, X, y0, MW, L);
+    copyrightRow(ctx, W, H, L);
     return c.toDataURL("image/png");
   }
 
-  /* ---------- share (secondary, after the card): image card + link (+ QR in zh only); no body/feeling data anywhere ---------- */
+  /* ---------- share (secondary, after the card): 9:16 image / short video + link (+ QR in zh only); no body/feeling data anywhere ---------- */
   function newShareId() {
     var a = new Uint8Array(6), chars = "abcdefghijkmnpqrstuvwxyz23456789", s = "";
     (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach(function (_, i) { a[i] = Math.floor(Math.random() * 256); });
@@ -778,7 +847,6 @@
         sub: t("share.cardSub"),
         line: line,
         photo: D.SEASON_PHOTO[state.season],
-        credit: D.CREDIT,
         foot: D.DISCLAIMER
       }
     };
@@ -792,68 +860,79 @@
     ctx.fillStyle = "#111";
     for (var r = 0; r < n; r++) for (var cc = 0; cc < n; cc++) if (q.isDark(r, cc)) ctx.fillRect(qx + cc * cell, qy + r * cell, Math.ceil(cell), Math.ceil(cell));
   }
-  function drawLine(ctx, line, X, y, MW, px, log) {
-    if (!line) return y;
-    ctx.fillStyle = "#9a5530"; ctx.fillRect(X, y - px, 6, px * 1.2);
-    ctx.font = "bold " + px + "px " + FONT;
-    return wrap(ctx, t("line.onCard", { line: line }), X + 26, y, MW - 26, Math.round(px * 1.35), log);
-  }
-  /* Share images: 4:5 card (1080×1350) and 9:16 story (1080×1920). Text is laid out top-down under the photo;
-   * if the text (with the user's line) would run into the QR / link block, the photo gets shorter and it is redrawn. */
-  function drawShareImage(share, spec) {
-    var W = spec.W, H = spec.H, card = share.card, X = spec.X, MW = W - 2 * X, c, ctx, log, ok = false;
-    for (var k = 0; k < spec.photoHeights.length && !ok; k++) {
-      var ph = spec.photoHeights[k];
-      c = document.createElement("canvas"); c.width = W; c.height = H; ctx = c.getContext("2d"); log = [];
-      ctx.fillStyle = "#f6f1e8"; ctx.fillRect(0, 0, W, H);
-      coverDraw(ctx, spec.img, 0, 0, W, ph);
-      if (spec.fade) { var g = ctx.createLinearGradient(0, ph - 240, 0, ph); g.addColorStop(0, "rgba(246,241,232,0)"); g.addColorStop(1, "rgba(246,241,232,1)"); ctx.fillStyle = g; ctx.fillRect(0, ph - 240, W, 240); }
-      var cy = spec.creditTop ? 150 : ph - 50;
-      ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fillRect(W - 300, cy, 280, 40);
-      ctx.fillStyle = "#fff"; ctx.font = "26px " + FONT; ctx.fillText(card.credit, W - 285, cy + 30); log.push(card.credit);
-      var y = ph + spec.gap;
-      ctx.fillStyle = "#2f5d50"; ctx.font = "bold " + spec.brandPx + "px " + FONT; ctx.fillText(card.brand, X, y); log.push(card.brand);
-      ctx.fillStyle = "#26241f"; ctx.font = "bold " + spec.headPx + "px " + FONT; y = wrap(ctx, card.head, X, y + spec.headPx * 1.5, MW, Math.round(spec.headPx * 1.24), log);
-      ctx.fillStyle = "#5f5a50"; ctx.font = spec.subPx + "px " + FONT; y = wrap(ctx, card.sub, X, y + 16, MW, Math.round(spec.subPx * 1.45), log);
-      if (card.line) y = drawLine(ctx, card.line, X, y + spec.linePx * 1.3, MW, spec.linePx, log);
-      ctx.font = "24px " + FONT;
-      var footLines = wrapLines(ctx, card.foot, MW).length, footTop = H - 40 - (footLines - 1) * 30;
-      var blockTop;
-      if (SHARE_CFG.qr) {
-        var size = spec.qrSize, qy = footTop - 60 - size;
-        blockTop = qy - 24;
-        ok = y + 10 <= blockTop || k === spec.photoHeights.length - 1;
-        if (!ok) continue;
-        drawQr(ctx, share.url, X, qy, size);
-        var tx = X + size + 40, tw = W - tx - 50;
-        ctx.fillStyle = "#26241f"; ctx.font = "bold 34px " + FONT; var ty = wrap(ctx, t("share.scanCta"), tx, qy + 50, tw, 44, log);
-        ctx.fillStyle = "#5f5a50"; ctx.font = "26px " + FONT; wrap(ctx, shownLink(share.url), tx, ty + 16, tw, 36, log);
-      } else {
-        ctx.font = "bold 36px " + FONT; var ctaLines = wrapLines(ctx, t("share.openCta"), MW).length;
-        ctx.font = "28px " + FONT; var linkLines = wrapLines(ctx, shownLink(share.url), MW).length;
-        blockTop = footTop - 50 - linkLines * 38 - ctaLines * 48;
-        ok = y + 30 <= blockTop || k === spec.photoHeights.length - 1;
-        if (!ok) continue;
-        ctx.fillStyle = "#26241f"; ctx.font = "bold 36px " + FONT; var y2 = wrap(ctx, t("share.openCta"), X, blockTop + 36, MW, 48, log);
-        ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, shownLink(share.url), X, y2 + 6, MW, 38, log);
-      }
-      ctx.fillStyle = "#5f5a50"; ctx.font = "24px " + FONT; wrap(ctx, card.foot, X, footTop, MW, 30, log);
+  /* The 9:16 story frame (1080×1920 units): full-bleed photo, brand on top, the text block over a soft gradient at the bottom,
+   * link (en / ja / es) or a small QR + link (zh), disclaimer, and the copyright line on the bottom edge.
+   * k = 0 … 1 animation progress (video: slow push-in, then the text fades in); the still image is k = 1. */
+  function drawStory(ctx, share, im, k, log) {
+    var W = 1080, H = 1920, card = share.card, X = 80, MW = W - 160, e = k >= 1 ? 1 : 0.5 - Math.cos(Math.PI * Math.min(1, k)) / 2;
+    coverDraw(ctx, im, 0, 0, W, H, card.photo, 1.12 - 0.12 * e);
+    shade(ctx, W, 0, 360, 0.5, 0);
+    var ta = k >= 1 ? 1 : Math.max(0, Math.min(1, (k - 0.35) / 0.45));
+    ctx.globalAlpha = ta;
+    ctx.fillStyle = "#fff"; ctx.font = "600 40px " + FONT; ctx.fillText(card.brand, X, 118); if (log) log.push(card.brand);
+    var bottom = copyrightRow(ctx, W, H, null, 0.78 * ta) - 20;
+    ctx.font = "24px " + FONT;
+    var footH = wrapLines(ctx, card.foot, MW).length * 32, ctaTop = bottom - footH - 26, qr = SHARE_CFG.qr, size = 200, ctaH;
+    if (qr) ctaH = size + 24;
+    else { ctx.font = "bold 36px " + FONT; ctaH = wrapLines(ctx, t("share.openCta"), MW).length * 48; ctx.font = "30px " + FONT; ctaH += wrapLines(ctx, shownLink(share.url), MW).length * 40 + 10; }
+    ctaTop -= ctaH;
+    var rows = [{ text: card.head, px: 76, weight: "bold", color: "#fff", lh: 1.22 }, { text: card.sub, px: 40, color: "rgba(255,255,255,.9)", gap: 22, lh: 1.4 }];
+    if (card.line) rows.push({ text: t("line.onCard", { line: card.line }), px: 46, weight: "bold", color: "#f4d9a8", gap: 30, bar: true });
+    var y0 = ctaTop - 50 - blockHeight(ctx, rows, MW);
+    ctx.globalAlpha = 1;
+    shade(ctx, W, Math.max(0, y0 - 420), y0 - 40, 0, 0.62 * ta); ctx.fillStyle = "rgba(12,16,14," + (0.62 * ta) + ")"; ctx.fillRect(0, y0 - 40, W, H - y0 + 40);
+    ctx.globalAlpha = ta;
+    drawRows(ctx, rows, X, y0, MW, log);
+    if (qr) {
+      drawQr(ctx, share.url, X + 12, ctaTop + 12, size);
+      var tx = X + size + 60, tw = W - tx - 70;
+      ctx.fillStyle = "#fff"; ctx.font = "bold 36px " + FONT; var ty = wrap(ctx, t("share.scanCta"), tx, ctaTop + 60, tw, 46, log);
+      ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = "26px " + FONT; wrap(ctx, shownLink(share.url), tx, ty + 12, tw, 36, log);
+    } else {
+      ctx.fillStyle = "#fff"; ctx.font = "bold 36px " + FONT; var y2 = wrap(ctx, t("share.openCta"), X, ctaTop + 36, MW, 48, log);
+      ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = "30px " + FONT; wrap(ctx, shownLink(share.url), X, y2 + 10, MW, 40, log);
     }
-    return { url: c.toDataURL("image/png"), log: log };
+    ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.font = "24px " + FONT; wrap(ctx, card.foot, X, bottom - footH + 24, MW, 32, log);
+    copyrightRow(ctx, W, H, log, 0.78 * ta);
+    ctx.globalAlpha = 1;
   }
-  async function sharePng(share) {
-    var img = await loadImg(share.card.photo);
-    var r = drawShareImage(share, { W: 1080, H: 1350, X: 64, img: img, photoHeights: [620, 540, 460, 380, 300], gap: 80, brandPx: 36, headPx: 60, subPx: 36, linePx: 42, qrSize: 230 });
-    lastShareCardText = r.log;
-    return r.url;
-  }
-  /* 9:16 story image (1080×1920) for every locale (Instagram Story, 抖音, 小红书 …). */
+  /* 9:16 story image (1080×1920) for every locale: the one share image (Instagram / TikTok Story, Messages, 朋友圈 …). */
   var lastStoryText = [];
   async function storyPng(share) {
-    var img = await loadImg(share.card.photo);
-    var r = drawShareImage(share, { W: 1080, H: 1920, X: 80, img: img, photoHeights: [1000, 900, 800, 700, 600], gap: 60, brandPx: 40, headPx: 72, subPx: 40, linePx: 48, qrSize: 240, fade: true, creditTop: true });
-    lastStoryText = r.log;
-    return r.url;
+    var im = await loadImg(share.card.photo), c = document.createElement("canvas"), log = [];
+    c.width = 1080; c.height = 1920;
+    drawStory(c.getContext("2d"), share, im, 1, log);
+    lastStoryText = log; lastShareCardText = log;
+    return c.toDataURL("image/png");
+  }
+  var sharePng = storyPng;
+  /* Short 9:16 video (≈6 s, 720×1280): the same frame with a slow push-in and the text fading in. MediaRecorder on a canvas;
+   * no audio track (nothing copyrighted). Returns null where the browser cannot record. */
+  function videoType() {
+    if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) return null;
+    var list = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+    for (var i = 0; i < list.length; i++) if (MediaRecorder.isTypeSupported(list[i])) return list[i];
+    return null;
+  }
+  function canRecord() { var c = document.createElement("canvas"); return !!(videoType() && c.captureStream); }
+  async function storyVideo(share, ms) {
+    var type = videoType(), c = document.createElement("canvas");
+    if (!type || !c.captureStream) return null;
+    var DUR = ms || 6000, im = await loadImg(share.card.photo), ctx = c.getContext("2d");
+    c.width = 720; c.height = 1280; ctx.scale(720 / 1080, 1280 / 1920);
+    var stream = c.captureStream(30), mr = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 3e6 }), chunks = [];
+    mr.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+    drawStory(ctx, share, im, 0, null);
+    await new Promise(function (res) {
+      var t0 = performance.now(); mr.start(250);
+      (function frame() {
+        var el = performance.now() - t0;
+        drawStory(ctx, share, im, Math.min(1, el / (DUR * 0.75)), null);
+        if (el < DUR) requestAnimationFrame(frame); else res();
+      })();
+    });
+    await new Promise(function (r) { mr.onstop = r; mr.stop(); });
+    return new Blob(chunks, { type: type.split(";")[0] });
   }
   function qrSvg(url) {
     var q = qrcode(0, "M"); q.addData(url); q.make();
@@ -875,17 +954,24 @@
     var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
     document.body.removeChild(ta); return ok;
   }
-  var modalFile = null;
+  var modalFile = null, modalUrl = null;
   function canShareFile(file) { try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { return false; } }
-  function openModal(dataUrl, name, guide) {
-    $("modalImg").src = dataUrl; $("modalDownload").href = dataUrl; $("modalDownload").setAttribute("download", name);
+  function openModal(dataUrl, name, guide, file) {
+    var isVideo = !!file && /^video\//.test(file.type);
+    if (modalUrl) { try { URL.revokeObjectURL(modalUrl); } catch (e) {} modalUrl = null; }
+    $("modalImg").classList.toggle("hidden", isVideo); $("modalVideo").classList.toggle("hidden", !isVideo);
+    if (isVideo) { $("modalVideo").src = dataUrl; modalUrl = dataUrl; } else { $("modalImg").src = dataUrl; $("modalVideo").removeAttribute("src"); }
+    $("modalDownload").href = dataUrl; $("modalDownload").setAttribute("download", name);
+    $("modalDownload").textContent = t(isVideo ? "modal.downloadVideo" : "modal.download");
+    $("modalLongPress").textContent = t(isVideo ? "modal.longPressVideo" : "modal.longPress");
     var g = $("modalGuide");
     if (guide) { g.textContent = guide; g.classList.remove("hidden"); } else { g.textContent = ""; g.classList.add("hidden"); }
-    modalFile = dataUrlToFile(dataUrl, name);
+    modalFile = file || dataUrlToFile(dataUrl, name);
+    $("modalShare").textContent = t(isVideo ? "modal.shareVideo" : "modal.share");
     $("modalShare").classList.toggle("hidden", !canShareFile(modalFile));
     $("imgModal").classList.remove("hidden");
   }
-  /* Per-platform share buttons for the active locale (app/share-targets.js). Web / sms targets are real links. */
+  /* Extra share buttons for the active locale (app/share-targets.js): each one genuinely works — copy / sms: / public web intents. */
   function fillTpl(tpl, share) {
     var enc = encodeURIComponent;
     return tpl.replace("{url}", enc(share.url)).replace("{text}", enc(share.text)).replace("{textUrl}", enc(share.text + " " + share.url));
@@ -904,14 +990,12 @@
       return '<button type="button" class="btn ghost target-btn" data-action="shareTarget" data-target="' + id + '">' + label + "</button>";
     }).join("");
   }
-  function sharedImage(kind) {
-    var share = buildShare();
-    if (kind === "story") return storyPng(share);
+  function sharedImage() {
     if (shareImgData) return Promise.resolve(shareImgData);
-    return sharePng(share).then(function (u) { shareImgData = u; return u; });
+    return storyPng(buildShare()).then(function (u) { shareImgData = u; return u; });
   }
   function resetShare() {
-    state.shareUrl = null; shareImgData = null;
+    state.shareUrl = null; shareImgData = null; shareVideo = null;
     if (state.view === "card" && !$("sharePanel").classList.contains("hidden")) refreshSharePanel();
   }
   function refreshSharePanel() {
@@ -920,12 +1004,197 @@
     var qrRow = $("shareQr");
     if (SHARE_CFG.qr) { qrRow.innerHTML = qrSvg(share.url); qrRow.classList.remove("hidden"); } else { qrRow.innerHTML = ""; qrRow.classList.add("hidden"); }
     renderShareTargets(share);
+    $("btnSaveVideo").classList.toggle("hidden", !canRecord());
     $("shareNote").classList.add("hidden");
-    return sharePng(share).then(function (url) { shareImgData = url; $("shareImg").src = url; });
+    return storyPng(share).then(function (url) { shareImgData = url; $("shareImg").src = url; });
+  }
+
+  /* ---------- background music (sound toggle, off by default; R19) ----------
+   * D.MUSIC.src = Cindy's own licensed track (null until she supplies it). Without it: a soft pad synthesised right here
+   * with WebAudio (sine tones on a slow C / A-minor drift + a quiet filtered-noise "breeze"). No recording, no copyright. */
+  var LS_MUSIC = "healoa.music.v1", LS_REMIND = "healoa.remind.v1";
+  var MUS = { on: lsGet(LS_MUSIC) === true, ctx: null, master: null, nodes: [], el: null, timer: 0 };
+  function musicSupported() { return !!(D.MUSIC.src || window.AudioContext || window.webkitAudioContext); }
+  function musicStart() {
+    if (MUS.playing) return;
+    if (D.MUSIC.src) {
+      if (!MUS.el) { MUS.el = new Audio(D.MUSIC.src); MUS.el.loop = true; MUS.el.volume = 0.5; }
+      MUS.el.play().catch(function () {}); MUS.playing = true; return;
+    }
+    try {
+      var ctx = MUS.ctx || (MUS.ctx = new (window.AudioContext || window.webkitAudioContext)());
+      if (ctx.resume) ctx.resume();
+      var now = ctx.currentTime, master = ctx.createGain(), lp = ctx.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 1100; lp.connect(master); master.connect(ctx.destination);
+      master.gain.setValueAtTime(0.0001, now); master.gain.exponentialRampToValueAtTime(0.14, now + 3);
+      var chords = [[130.81, 196.0, 261.63, 329.63, 392.0], [110.0, 164.81, 220.0, 261.63, 329.63]], nodes = [];
+      chords[0].forEach(function (f, i) {
+        var o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
+        o.type = i < 2 ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = (i - 2) * 3;
+        g.gain.value = i < 2 ? 0.22 : 0.08;
+        lfo.frequency.value = 0.05 + i * 0.013; lg.gain.value = i < 2 ? 0.08 : 0.05; lfo.connect(lg); lg.connect(g.gain);
+        o.connect(g); g.connect(lp); o.start(now); lfo.start(now); nodes.push(o, lfo);
+      });
+      var len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
+      for (var i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+      var nz = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+      nz.buffer = buf; nz.loop = true; bp.type = "bandpass"; bp.frequency.value = 500; bp.Q.value = 0.7; ng.gain.value = 0.25;
+      nz.connect(bp); bp.connect(ng); ng.connect(master); nz.start(now); nodes.push(nz);
+      var step = 0;
+      MUS.timer = setInterval(function () {
+        step++; var ch = chords[step % 2], tt = ctx.currentTime;
+        nodes.filter(function (n, k) { return k % 2 === 0 && n.frequency; }).slice(0, 5).forEach(function (o, k) { o.frequency.setTargetAtTime(ch[k], tt, 2.5); });
+      }, 16000);
+      MUS.master = master; MUS.nodes = nodes; MUS.playing = true;
+    } catch (e) { MUS.playing = false; }
+  }
+  function musicStop() {
+    if (!MUS.playing) return;
+    MUS.playing = false; clearInterval(MUS.timer);
+    if (MUS.el) { MUS.el.pause(); return; }
+    try {
+      var ctx = MUS.ctx, now = ctx.currentTime, nodes = MUS.nodes, m = MUS.master;
+      m.gain.cancelScheduledValues(now); m.gain.setValueAtTime(Math.max(m.gain.value, 0.0001), now); m.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      setTimeout(function () { nodes.forEach(function (n) { try { n.stop(); } catch (e) {} }); try { m.disconnect(); } catch (e) {} }, 1400);
+    } catch (e) {}
+  }
+  function renderMusicBtns() {
+    ["btnMusic", "btnImmSound"].forEach(function (id) {
+      var b = $(id); if (!b) return;
+      b.classList.toggle("hidden", !musicSupported());
+      b.classList.toggle("on", MUS.on);
+      b.setAttribute("aria-pressed", MUS.on ? "true" : "false");
+      b.textContent = t(MUS.on ? "music.on" : "music.off");
+    });
+    var n = $("musicNote"); if (n) { n.textContent = t(D.MUSIC.src ? "music.noteTrack" : "music.noteSynth"); n.classList.toggle("hidden", !MUS.on); }
+  }
+
+  /* ---------- gentle daily reminder (opt-in, off by default; R19) ----------
+   * Works everywhere: a calendar event that repeats every day (.ics, the phone's own calendar reminds you).
+   * Where the browser allows notifications, the app can also nudge while it is open. No counting, no streaks. */
+  var REMIND_TIMES = ["08:00", "12:30", "21:30"];
+  var REMIND_KEY = { "08:00": "remind.t0800", "12:30": "remind.t1230", "21:30": "remind.t2130" };
+  function remindState() { var r = lsGet(LS_REMIND); return r && typeof r.time === "string" ? r : { time: "21:30", practice: "breath46", notify: false }; }
+  function renderRemind() {
+    var r = remindState();
+    $("remindTimes").innerHTML = REMIND_TIMES.map(function (tm) {
+      return '<button type="button" class="chip' + (tm === r.time ? " on" : "") + '" data-action="remindTime" data-time="' + tm + '" aria-pressed="' + (tm === r.time ? "true" : "false") + '">' + esc(t(REMIND_KEY[tm])) + "</button>";
+    }).join("");
+    $("remindTimeInput").value = r.time;
+    $("remindPractices").innerHTML = ["breath46", "sitEasy"].map(function (id) {
+      return '<button type="button" class="chip' + (id === r.practice ? " on" : "") + '" data-action="remindPractice" data-practice="' + id + '" aria-pressed="' + (id === r.practice ? "true" : "false") + '">' + esc(D.PRACTICES[id].short) + "</button>";
+    }).join("");
+    $("btnRemindNotify").classList.toggle("hidden", !("Notification" in window));
+    $("remindOnNote").classList.toggle("hidden", !r.notify);
+    $("btnRemindOff").classList.toggle("hidden", !r.notify && !r.ics);
+    $("remindNote").classList.add("hidden");
+  }
+  function icsText(r) {
+    var p = r.time.split(":"), d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1), pad = function (n) { return ("0" + n).slice(-2); };
+    var start = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + "T" + pad(+p[0]) + pad(+p[1]) + "00";
+    var endMin = (+p[0]) * 60 + (+p[1]) + 3, end = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + "T" + pad(Math.floor(endMin / 60) % 24) + pad(endMin % 60) + "00";
+    var esc2 = function (s) { return String(s).replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n"); };
+    var url = location.origin + location.pathname + (I18N.lang !== I18N.DEFAULT ? "?lang=" + encodeURIComponent(I18N.lang) : "");
+    return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//HeaLoa//daily 3 min//" + I18N.lang, "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+      "UID:healoa-daily-" + r.practice + "-" + start + "@healoa-preview", "DTSTAMP:" + start + "Z", "DTSTART:" + start, "DTEND:" + end, "RRULE:FREQ=DAILY",
+      "SUMMARY:" + esc2(t("remind.icsTitle", { label: D.PRACTICES[r.practice].short })), "DESCRIPTION:" + esc2(t("remind.icsBody") + " " + url), "URL:" + url,
+      "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + esc2(t("remind.icsTitle", { label: D.PRACTICES[r.practice].short })), "TRIGGER:PT0M", "END:VALARM",
+      "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  }
+  var remindTimer = 0, lastIcs = "";
+  function scheduleNotify() {
+    clearTimeout(remindTimer);
+    var r = remindState();
+    if (!r.notify || !("Notification" in window) || Notification.permission !== "granted") return;
+    var p = r.time.split(":"), now = new Date(), at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), +p[0], +p[1]);
+    if (at <= now) at.setDate(at.getDate() + 1);
+    remindTimer = setTimeout(function () {
+      try { new Notification(t("remind.icsTitle", { label: D.PRACTICES[r.practice].short }), { body: t("remind.icsBody"), tag: "healoa-daily" }); } catch (e) {}
+      scheduleNotify();
+    }, Math.min(at - now, 2147000000));
+  }
+
+  /* ---------- immersive view (2.5D from Cindy's photo + a depth map made on this machine) ----------
+   * Drag, move the mouse or tilt the phone: near parts of the photo move more than far ones. WebGL; without it a plain
+   * photo with a gentle drift. Slot for a World Labs Marble world (D.IMMERSIVE[id].world3d) stays empty until Cindy decides. */
+  var IMM = { gl: null, raf: 0, tx: 0, ty: 0, x: 0, y: 0, t0: 0, place: null, gyro: false, drag: null };
+  function immStop() { cancelAnimationFrame(IMM.raf); IMM.raf = 0; window.removeEventListener("deviceorientation", immOrient); }
+  function immOrient(e) { if (e.gamma == null) return; IMM.gyro = true; IMM.tx = Math.max(-1, Math.min(1, e.gamma / 25)); IMM.ty = Math.max(-1, Math.min(1, ((e.beta || 45) - 45) / 25)); }
+  function renderImmersive() {
+    var p = R.placeById(state.placeId), cfg = p && D.IMMERSIVE[p.id];
+    if (!cfg) { go("places", null, true); return; }
+    $("immTitle").textContent = p.name;
+    $("immHint").textContent = t("imm.hint");
+    $("btnImmGyro").classList.toggle("hidden", !("DeviceOrientationEvent" in window));
+    renderMusicBtns();
+    immStart(cfg);
+  }
+  function immStart(cfg) {
+    immStop();
+    var cv = $("immCanvas"), wrapEl = $("immStage"), fallback = $("immFallback");
+    fallback.style.backgroundImage = "url('" + cfg.photo + "')"; fallback.style.backgroundPosition = D.focal(cfg.photo);
+    Promise.all([loadImg(cfg.photo), loadImg(cfg.depth)]).then(function (ims) {
+      var im = ims[0], dm = ims[1], gl = null;
+      try { gl = cv.getContext("webgl", { premultipliedAlpha: false, preserveDrawingBuffer: true }); } catch (e) {}
+      if (!gl || !im || !dm) { cv.classList.add("hidden"); fallback.classList.remove("hidden"); fallback.classList.add("drift"); return; }
+      cv.classList.remove("hidden"); fallback.classList.add("hidden");
+      var dpr = Math.min(2, window.devicePixelRatio || 1), W = wrapEl.clientWidth || 390, H = wrapEl.clientHeight || 700;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); gl.viewport(0, 0, cv.width, cv.height);
+      var vs = "attribute vec2 p;varying vec2 v;void main(){v=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}";
+      var fs = "precision mediump float;varying vec2 v;uniform sampler2D img,dep;uniform vec2 off,sc,org;void main(){vec2 uv=org+v*sc;float d=texture2D(dep,uv).r;vec2 q=uv+off*(d-.35);gl_FragColor=texture2D(img,clamp(q,0.001,.999));}";
+      function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
+      var pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+      var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      var loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      function tex(unit, image) {
+        var tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+      }
+      tex(0, im); tex(1, dm);
+      gl.uniform1i(gl.getUniformLocation(pr, "img"), 0); gl.uniform1i(gl.getUniformLocation(pr, "dep"), 1);
+      /* cover-fit around the focal point with a small margin so the shift never shows an edge */
+      var meta = D.PHOTO_META[cfg.photo] || { fx: 50, fy: 50 }, ia = im.width / im.height, ca = W / H, sx = 1, sy = 1;
+      if (ia > ca) sx = ca / ia; else sy = ia / ca;
+      sx *= 0.9; sy *= 0.9;
+      var ox = Math.min(Math.max(meta.fx / 100 - sx / 2, 0), 1 - sx), oy = Math.min(Math.max(meta.fy / 100 - sy / 2, 0), 1 - sy);
+      gl.uniform2f(gl.getUniformLocation(pr, "sc"), sx, sy); gl.uniform2f(gl.getUniformLocation(pr, "org"), ox, oy);
+      var uOff = gl.getUniformLocation(pr, "off");
+      IMM.gl = gl; IMM.t0 = performance.now();
+      (function frame(now) {
+        var idle = !IMM.gyro && !IMM.drag, k = (now - IMM.t0) / 1000;
+        if (idle) { IMM.tx = Math.sin(k * 0.35) * 0.6; IMM.ty = Math.sin(k * 0.23) * 0.3; }
+        IMM.x += (IMM.tx - IMM.x) * 0.08; IMM.y += (IMM.ty - IMM.y) * 0.08;
+        gl.uniform2f(uOff, -IMM.x * 0.045, -IMM.y * 0.03);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        if (state.view === "immersive") IMM.raf = requestAnimationFrame(frame);
+      })(performance.now());
+    });
+  }
+  (function () {
+    var st = $("immStage");
+    function pos(e) { var r = st.getBoundingClientRect(), p = e.touches ? e.touches[0] : e; return [((p.clientX - r.left) / r.width) * 2 - 1, ((p.clientY - r.top) / r.height) * 2 - 1]; }
+    st.addEventListener("pointerdown", function (e) { IMM.drag = pos(e); });
+    st.addEventListener("pointermove", function (e) { if (IMM.gyro) return; var q = pos(e); IMM.tx = q[0]; IMM.ty = q[1]; if (!IMM.drag && e.pointerType === "mouse") IMM.drag = null; });
+    window.addEventListener("pointerup", function () { IMM.drag = null; });
+    st.addEventListener("touchmove", function (e) { if (IMM.gyro) return; var q = pos(e); IMM.tx = q[0]; IMM.ty = q[1]; IMM.drag = q; }, { passive: true });
+    st.addEventListener("touchend", function () { IMM.drag = null; });
+  })();
+
+  /* ---------- desktop / landscape: the app sits in a phone-width frame over a landscape photo ---------- */
+  function setBackdrop() {
+    var p = (state.view === "place" || state.view === "immersive") && R.placeById(state.placeId);
+    var src = (p && (p.wide || p.photo)) || D.SEASON_WIDE[state.season] || D.SEASON_PHOTO[state.season];
+    /* absolute URL: a url() inside a custom property resolves against the stylesheet (app/), not the page */
+    var abs = src; try { abs = new URL(src, document.baseURI).href; } catch (e) {}
+    document.documentElement.style.setProperty("--backdrop", "url('" + abs + "')");
   }
 
   /* ---------- actions (every visible button maps here) ---------- */
-  var shareImgData = null;
+  var shareImgData = null, shareVideo = null;
+  function videoName(blob) { return t("share.videoName") + (/mp4/.test(blob.type) ? ".mp4" : ".webm"); }
+  function videoFile(blob) { return new File([blob], videoName(blob), { type: blob.type }); }
   var ACTIONS = {
     season: function (el) {
       state.season = el.getAttribute("data-season");
@@ -1043,7 +1312,7 @@
       var share = buildShare();
       var payload = { title: share.title, text: share.text, url: share.url };
       if (navigator.share) {
-        try { if (shareImgData) { var f = dataUrlToFile(shareImgData, "healoa.png"); if (canShareFile(f)) payload.files = [f]; } } catch (e) {}
+        try { if (shareImgData) { var f = dataUrlToFile(shareImgData, t("share.storyName")); if (canShareFile(f)) payload.files = [f]; } } catch (e) {}
         navigator.share(payload).then(function () { logEvent("shared"); note("shareNote", t("share.sent")); }, function () {});
       } else {
         copyText(share.text + " " + share.url).then(function (ok) {
@@ -1066,31 +1335,64 @@
         copyText(share.url).then(function (ok) { if (ok) logEvent("shared"); note("shareNote", t(ok ? "share.copied" : "share.copyFailed")); });
         return;
       }
-      if (tg.kind === "saveImage") {
-        var after = function (url) {
-          var name = t(tg.image === "story" ? "share.storyName" : "share.pngName");
-          var guide = t("share.guide." + id);
-          if (tg.copyLink) {
-            copyText(share.url).then(function (ok) {
-              openModal(url, name, guide + (ok ? " " + t("share.linkCopiedToo") : ""));
-            });
-          } else openModal(url, name, guide);
-          logEvent("shared");
-          note("shareNote", guide);
-        };
-        sharedImage(tg.image).then(after);
-      }
     },
     shareSaveImg: function () {
-      sharedImage("card").then(function (url) { openModal(url, t("share.pngName")); });
+      sharedImage().then(function (url) { logEvent("shared"); openModal(url, t("share.storyName"), t("share.storyGuide")); });
     },
-    shareSaveStory: function () {
-      sharedImage("story").then(function (url) { openModal(url, t("share.storyName"), t("share.storyGuide")); });
+    shareSaveStory: function () { ACTIONS.shareSaveImg(); },
+    /* 存视频: a ≈6 s 9:16 clip of the same card (slow push-in, text fades in). Shown only where the browser can record. */
+    shareSaveVideo: function (el) {
+      if (shareVideo) { openModal(URL.createObjectURL(shareVideo), videoName(shareVideo), t("share.videoGuide"), videoFile(shareVideo)); return; }
+      if (el) el.disabled = true;
+      note("shareNote", t("share.videoMaking"));
+      storyVideo(buildShare(), window.__videoMs).then(function (blob) {
+        if (el) el.disabled = false;
+        if (!blob || !blob.size) { note("shareNote", t("share.videoFailed")); return; }
+        shareVideo = blob; logEvent("shared");
+        $("shareNote").classList.add("hidden");
+        openModal(URL.createObjectURL(blob), videoName(blob), t("share.videoGuide"), videoFile(blob));
+      });
     },
     modalShare: function () {
       if (!modalFile || !navigator.share) return;
       var share = buildShare();
       navigator.share({ files: [modalFile], title: share.title, text: share.text + " " + share.url }).then(function () { logEvent("shared"); }, function () {});
+    },
+    toggleMusic: function () {
+      MUS.on = !MUS.on; lsSet(LS_MUSIC, MUS.on);
+      if (MUS.on) musicStart(); else musicStop();
+      renderMusicBtns();
+    },
+    openRemind: function () { go("remind"); },
+    remindTime: function (el) { var r = remindState(); r.time = el.getAttribute("data-time"); lsSet(LS_REMIND, r); renderRemind(); scheduleNotify(); },
+    remindTimeSet: function (el) { if (!/^\d{2}:\d{2}$/.test(el.value)) return; var r = remindState(); r.time = el.value; lsSet(LS_REMIND, r); renderRemind(); scheduleNotify(); },
+    remindPractice: function (el) { var r = remindState(); r.practice = D.PRACTICES[el.getAttribute("data-practice")] ? el.getAttribute("data-practice") : "breath46"; lsSet(LS_REMIND, r); renderRemind(); },
+    /* Add to calendar: a daily repeating event (.ics) — the phone's calendar does the reminding, even when the app is closed. */
+    remindIcs: function () {
+      var r = remindState(); lastIcs = icsText(r);
+      var a = document.createElement("a"), blob = new Blob([lastIcs], { type: "text/calendar;charset=utf-8" });
+      a.href = URL.createObjectURL(blob); a.download = "healoa-daily-3min.ics"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      r.ics = true; lsSet(LS_REMIND, r); renderRemind();
+      note("remindNote", t("remind.icsDone"));
+    },
+    remindNotify: function () {
+      if (!("Notification" in window)) return;
+      Notification.requestPermission().then(function (perm) {
+        var r = remindState(); r.notify = perm === "granted"; lsSet(LS_REMIND, r); renderRemind(); scheduleNotify();
+        note("remindNote", t(perm === "granted" ? "remind.notifyOn" : "remind.notifyDenied"));
+      }, function () {});
+    },
+    remindOff: function () {
+      try { localStorage.removeItem(LS_REMIND); } catch (e) {}
+      clearTimeout(remindTimer); renderRemind(); note("remindNote", t("remind.off"));
+    },
+    openImmersive: function (el) { go("immersive", { placeId: el.getAttribute("data-place") || state.placeId }); },
+    /* iOS asks for permission before the page may read the tilt; other phones just start sending it. */
+    immGyro: function () {
+      var DOE = window.DeviceOrientationEvent;
+      var on = function () { window.addEventListener("deviceorientation", immOrient); $("immHint").textContent = t("imm.hintGyro"); };
+      if (DOE && typeof DOE.requestPermission === "function") DOE.requestPermission().then(function (s) { if (s === "granted") on(); }, function () {});
+      else on();
     },
     /* 留一句 — the user's own line, local only, shown on their card. */
     openLine: function () {
@@ -1190,6 +1492,7 @@
   if (I18N.draft) { $("draftBadge").textContent = t("draft.badge"); $("draftBadge").classList.remove("hidden"); }
   renderLangSwitch();
   renderSocial("socialFoot");
+  scheduleNotify();
   show(initial); render();
   try { history.replaceState(snapshot(), "", location.pathname + location.search); } catch (e) {}
 
@@ -1202,6 +1505,8 @@
     lastWrap: function () { return lastWrap.slice(); },
     wrapLines: function (text, maxW, font) { var c = document.createElement("canvas").getContext("2d"); c.font = font || "40px " + FONT; return wrapLines(c, text, maxW); },
     storyPng: function () { return storyPng(buildShare()); },
+    storyVideo: function (ms) { return storyVideo(buildShare(), ms); }, canRecord: canRecord, icsText: function () { return icsText(remindState()); },
+    lastIcs: function () { return lastIcs; }, music: MUS, imm: IMM,
     shareConfig: SHARE_CFG, targetHref: function (id) { return targetHref(id, buildShare()); },
     incoming: incoming, lineTravels: lineTravels,
     cardModel: cardModel, currentMatch: currentMatch, records: logRows, quiz: function () { return quiz; },

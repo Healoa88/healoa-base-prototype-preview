@@ -202,11 +202,21 @@ try {
       rec.note = (await p.isVisible("#shareNote")) ? await p.textContent("#shareNote") : "";
       out.targets[id] = rec;
     }
-    // 9:16 story button
+    // 存图片: the one 9:16 image (v2026-09-27-y)
     await p.evaluate(() => document.getElementById("imgModal").classList.add("hidden"));
-    await p.click('[data-action="shareSaveStory"]');
+    await p.click("#btnSaveImg");
     await p.waitForFunction(() => !document.getElementById("imgModal").classList.contains("hidden"));
-    out.story = { dims: await imgDims(p, "#modalImg"), text: await p.evaluate(() => window.__healoa.lastStoryText()), name: await p.getAttribute("#modalDownload", "download") };
+    out.story = { dims: await imgDims(p, "#modalImg"), text: await p.evaluate(() => window.__healoa.lastStoryText()), name: await p.getAttribute("#modalDownload", "download"), shareBtn: await p.isVisible("#modalShare") };
+    if (out.story.shareBtn) { const n0 = await p.evaluate(() => window.__shared.length); await p.click("#modalShare"); out.story.sharedOk = (await p.evaluate(() => window.__shared.length)) === n0 + 1; }
+    await p.evaluate(() => document.getElementById("imgModal").classList.add("hidden"));
+    // 存视频: a real 9:16 clip where the browser can record (Chromium can)
+    out.videoBtn = await p.isVisible("#btnSaveVideo");
+    if (out.videoBtn) {
+      await p.evaluate(() => { window.__videoMs = 1200; });
+      await p.click("#btnSaveVideo");
+      await p.waitForFunction(() => !document.getElementById("imgModal").classList.contains("hidden"), null, { timeout: 15000 });
+      out.video = await p.evaluate(() => { const v = document.getElementById("modalVideo"); return { shown: !v.classList.contains("hidden"), src: (v.getAttribute("src") || "").slice(0, 5), name: document.getElementById("modalDownload").getAttribute("download") }; });
+    }
     out.wrap = await p.evaluate(() => window.__healoa.lastWrap());
     out.rendered = await text(p);
     out.lang2 = await p.evaluate(() => window.__healoa.lang);
@@ -216,31 +226,23 @@ try {
   const enc = encodeURIComponent;
   const zh = await platformRun("", "zh-CN");
   const zhT = zh.targets;
-  check("zh share panel: native share first, then 微信 / 小红书 / 微博 / 抖音 / 复制链接; QR shown (zh keeps QR)",
-    JSON.stringify(zh.panel.ids) === '["wechat","xiaohongshu","weibo","douyin","copy"]' && !zh.panel.qrHidden && zh.panel.qrSvg && zh.drawn.includes("扫一扫，给自己也配一次") && ["微信", "小红书", "微博", "抖音", "复制链接"].every((w) => zh.panel.text.includes(w)), zh.panel);
-  check("native share sheet: navigator.share with the PNG file + text + link (no body data)", zh.native.files.length === 1 && zh.native.files[0][1] === "image/png" && zh.native.files[0][2] > 10000 && zh.native.url === zh.share.url && !ALL_LABELS.some((l) => JSON.stringify(zh.native).includes(l)), zh.native);
-  check("微信: saves the 4:5 card image (1080×1350) + copies the link + WeChat how-to", JSON.stringify(zhT.wechat.modal && zhT.wechat.modal.dims) === "[1080,1350]" && zhT.wechat.modal.download && zhT.wechat.clip === zh.share.url && zhT.wechat.modal.guide.includes("微信") && zhT.wechat.modal.guide.includes("链接也复制好了"), zhT.wechat);
-  check("小红书: saves the card image + 小红书 how-to", JSON.stringify(zhT.xiaohongshu.modal && zhT.xiaohongshu.modal.dims) === "[1080,1350]" && zhT.xiaohongshu.modal.guide.includes("小红书"), zhT.xiaohongshu);
-  check("微博: web share intent opens in a new tab with the link + text", zhT.weibo.newTab && zhT.weibo.opened === `https://service.weibo.com/share/share.php?url=${enc(zh.share.url)}&title=${enc(zh.share.text)}` && zhT.weibo.note.includes("微博"), zhT.weibo);
-  check("抖音: saves the 9:16 image (1080×1920) + 抖音 how-to", JSON.stringify(zhT.douyin.modal && zhT.douyin.modal.dims) === "[1080,1920]" && zhT.douyin.modal.guide.includes("抖音"), zhT.douyin);
+  check("zh share panel (v2026-09-27-y): 发给一个人… (system share) + 存图片 + 存视频 + 复制链接 only; no 微信 / 小红书 / 微博 / 抖音 buttons; QR shown (zh keeps QR)",
+    JSON.stringify(zh.panel.ids) === '["copy"]' && !zh.panel.qrHidden && zh.panel.qrSvg && zh.drawn.includes("用手机相机扫一扫，给自己也配一次") && ["发给一个人…", "存图片", "存视频", "复制链接"].every((w) => zh.panel.text.includes(w)) && !["微信", "小红书", "微博", "抖音"].some((w) => zh.panel.text.includes(w)), zh.panel);
+  check("native share sheet: navigator.share with the 9:16 PNG file + text + link (no body data)", zh.native.files.length === 1 && zh.native.files[0][1] === "image/png" && zh.native.files[0][2] > 10000 && zh.native.url === zh.share.url && !ALL_LABELS.some((l) => JSON.stringify(zh.native).includes(l)), zh.native);
   check("复制链接 copies the share link", zhT.copy.clip === zh.share.url && zhT.copy.note === "链接已复制。", zhT.copy);
-  check("image dialog offers 「发送这张图」 (native file share) when the device supports it", zhT.xiaohongshu.modal.shareBtn && zhT.xiaohongshu.modal.sharedOk && zhT.xiaohongshu.modal.shared.files.length === 1);
-  check("zh 9:16 story image: 1080×1920 PNG (with QR in zh)", JSON.stringify(zh.story.dims) === "[1080,1920]" && zh.story.text.includes("扫一扫，给自己也配一次") && zh.story.name.endsWith(".png"));
+  check("存图片: 9:16 PNG 1080×1920 (with QR + copyright line in zh); the image dialog offers 「发送这张图」 (native file share)", JSON.stringify(zh.story.dims) === "[1080,1920]" && zh.story.text.includes("用手机相机扫一扫，给自己也配一次") && zh.story.text.includes("本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。") && zh.story.name.endsWith(".png") && zh.story.shareBtn && zh.story.sharedOk, zh.story);
+  check("存视频: a real 9:16 video opens in the dialog (download + share)", zh.videoBtn && zh.video && zh.video.shown && zh.video.src === "blob:" && /\.(webm|mp4)$/.test(zh.video.name), zh.video);
 
   const en = await platformRun("en", "en-US");
   const enT = en.targets;
   const enU = new URL(en.share.url);
-  check("en share panel: native share first, then Text/iMessage, Instagram Story, Facebook, WhatsApp, X, Copy link; NO QR (panel, card, story)",
-    JSON.stringify(en.panel.ids) === '["sms","instagram","facebook","whatsapp","x","copy"]' && en.panel.qrHidden && !en.panel.qrSvg && !en.drawn.some((t) => /scan/i.test(t)) && !en.story.text.some((t) => /scan/i.test(t)) && ["Text / iMessage", "Instagram Story", "Facebook", "WhatsApp", "X", "Copy link"].every((w) => en.panel.text.includes(w)), en.panel);
+  check("en share panel: “Share to Instagram, TikTok, Messages…” (system share) + Save image + Save video, then Text / iMessage + Copy link; NO QR (panel, story)",
+    JSON.stringify(en.panel.ids) === '["sms","copy"]' && en.panel.qrHidden && !en.panel.qrSvg && !en.drawn.some((t) => /scan/i.test(t)) && !en.story.text.some((t) => /scan/i.test(t)) && ["Share to Instagram, TikTok, Messages…", "Save image", "Save video", "Text / iMessage", "Copy link"].every((w) => en.panel.text.includes(w)), en.panel);
   check("en share lead: “Send it to someone you'd like to share this moment with.”", en.panel.text.includes("Send it to someone you'd like to share this moment with."));
   check("en link: random id + ?lang=en only (draft recipients see the same draft)", JSON.stringify([...enU.searchParams.keys()]) === '["s","lang"]' && enU.searchParams.get("lang") === "en", en.share.url);
   check("Text / iMessage: sms: link with the text + link in the body", enT.sms.href === `sms:?&body=${enc(en.share.text + " " + en.share.url)}` && enT.sms.note.includes("Messages"), enT.sms);
-  check("Instagram Story: exports the 9:16 PNG (1080×1920) + Story how-to", JSON.stringify(enT.instagram.modal && enT.instagram.modal.dims) === "[1080,1920]" && /Story/.test(enT.instagram.modal.guide) && enT.instagram.modal.name.endsWith(".png"), enT.instagram);
-  check("Facebook: sharer URL opens in a new tab", enT.facebook.newTab && enT.facebook.opened === `https://www.facebook.com/sharer/sharer.php?u=${enc(en.share.url)}`, enT.facebook);
-  check("WhatsApp: wa.me with text + link", enT.whatsapp.newTab && enT.whatsapp.opened === `https://wa.me/?text=${enc(en.share.text + " " + en.share.url)}`, enT.whatsapp);
-  check("X: intent with text + link", enT.x.newTab && enT.x.opened === `https://x.com/intent/post?text=${enc(en.share.text)}&url=${enc(en.share.url)}`, enT.x);
   check("en Copy link copies the link", enT.copy.clip === en.share.url && enT.copy.note === "Link copied.", enT.copy);
-  check("en 9:16 story image: 1080×1920", JSON.stringify(en.story.dims) === "[1080,1920]");
+  check("en Save image: 9:16 1080×1920 with the English copyright line", JSON.stringify(en.story.dims) === "[1080,1920]" && en.story.text.some((t) => /© Cindy Yang/.test(t)));
   // Latin word wrap on every canvas text drawn in the en run (share card, story); long links are the only char-split tokens.
   const badWrap = en.wrap.filter((w) => /[A-Za-z]{2,} [A-Za-z]/.test(w.text) && !/\/\?s=/.test(w.text)).filter((w) => w.lines.join(" ") !== w.text.replace(/\s+/g, " ").trim());
   const multi = en.wrap.filter((w) => w.lines.length > 1 && !/\/\?s=/.test(w.text)).length;
@@ -293,7 +295,7 @@ try {
       for (const pl of ["wudang", "pattaya", "onsen", "harbin"]) { await p.evaluate((pl) => window.__healoa.go("place", { placeId: pl }, true), pl); await scan(`place ${pl} ${id}/${season}`); }
       await p.evaluate(() => window.__healoa.go("card", {}, true)); await scan(`card ${id}/${season}`);
     }
-    for (const pr of ["breath46", "breathNight", "walk", "soak", "baduanjin1", "taiji1"]) { await p.evaluate((pr) => window.__healoa.go("practice", { cond: "sleep", practiceId: pr }, true), pr); await scan("practice " + pr); }
+    for (const pr of ["breath46", "breathNight", "walk", "soak", "baduanjin1", "taiji1", "sitEasy"]) { await p.evaluate((pr) => window.__healoa.go("practice", { cond: "sleep", practiceId: pr }, true), pr); await scan("practice " + pr); }
     await p.evaluate(() => window.__healoa.go("card", { cond: "sleep", season: "autumn" }, true));
     await p.click("#btnOpenLine");
     out.lineLead = await p.textContent(".line-lead");
@@ -310,16 +312,16 @@ try {
   const enS = await draftSweep("en", "en-US", EN_LABELS);
   check("en home (US draft): “Where should you be this season?”; “Start the 2-minute match”; draft badge; <html lang=en>", enS.home.headline === "Where should you be this season?" && enS.home.start === "Start the 2-minute match" && enS.home.badge === "Draft preview" && enS.home.lang === "en", enS.home);
   check("en quiz Q1 (plan v4 §3.2) keeps the body-state ids; the high-readings option uses the stand-in wording (pending Cindy + Muse), never “blood pressure”",
-    JSON.stringify(enS.home.labels) === JSON.stringify(["bp=My check-up readings run a little high", "sleep=I don't sleep through the night", "cold=My hands and feet run cold", "gut=My stomach is sensitive", "lowEnergy=Low on energy", "stiff=Stiff neck, shoulders or back", "fine=I feel pretty good"]) && !/blood pressure/i.test(enS.home.labels.join("|")), enS.home.labels);
+    JSON.stringify(enS.home.labels) === JSON.stringify(["bp=My check-up readings run a little high", "sleep=I don't sleep through the night", "cold=My hands and feet run cold", "gut=My stomach is sensitive", "lowEnergy=Low on energy", "stiff=Stiff neck, shoulders or back", "heavy=Feeling heavy, not in the mood to move", "eyes=Tired eyes from screens", "fine=I feel pretty good"]) && !/blood pressure/i.test(enS.home.labels.join("|")), enS.home.labels);
   check("en quiz: 8 US-phrased questions; Q8 = drive / a few nights / even Asia / staying home", enS.quiz.length === 8 && enS.quiz[1] === "Do you run hot or cold?" && JSON.stringify(enS.q8) === JSON.stringify(["drive=A weekend drive", "nights=A few nights away", "asia=A bigger trip — even Asia", "home=Staying home for now"]), { quiz: enS.quiz, q8: enS.q8 });
   check("en reveal + why: °F, “Your match: …”, US framing note (every place is a longer trip from the US)", /°F/.test(enS.reveal + enS.why) && !/℃/.test(enS.reveal + enS.why) && enS.reveal.includes("Your match:") && enS.why.includes("every place here is in Asia"), enS.reveal.slice(0, 200));
   check("en result lead: “Here are a few places and ways to live that may fit this season.”", enS.lead === "Here are a few places and ways to live that may fit this season.", enS.lead);
   check("en leave-a-line: “Leave a line. Make this moment yours.”; recipient: “They added something beside yours.”", enS.lineLead === "Leave a line. Make this moment yours." && enS.reply.includes("They added something beside yours."), { lineLead: enS.lineLead, reply: enS.reply });
-  check(`en draft: every screen scanned with the en banned-word list (home, 8 quiz screens, reveal, why, places, records, 12 results, 48 place pages, 12 cards, 6 practices, line, share, reply, about) → 0 hits`, enS.hits.length === 0, enS.hits.slice(0, 6));
+  check(`en draft: every screen scanned with the en banned-word list (home, 8 quiz screens, reveal, why, places, records, 12 results, 48 place pages, 12 cards, 7 practices, line, share, reply, about) → 0 hits`, enS.hits.length === 0, enS.hits.slice(0, 6));
   check("en draft: no untranslated Chinese on any screen; no horizontal overflow", enS.cjk.length === 0 && enS.overflow.length === 0, { cjk: enS.cjk.slice(0, 4), overflow: enS.overflow.slice(0, 4) });
   check("en share payload carries no body-state / feeling words", !ALL_LABELS.some((l) => enS.shareBlob.includes(l)) && !/sleep|stomach|tension/i.test(enS.shareBlob));
   const jaS = await draftSweep("ja", "ja-JP", JA_LABELS);
-  check("ja home: headline + 「下書き」 badge; quiz Q1 has the same 7 option ids as zh", jaS.home.headline === "この節気、あなたに合う場所はどこ？" && jaS.home.badge === "下書き" && jaS.home.lang === "ja" && JSON.stringify(jaS.home.labels.map((x) => x.split("=")[0])) === JSON.stringify(["bp", "sleep", "cold", "gut", "lowEnergy", "stiff", "fine"]) && jaS.quiz.length === 8, jaS.home);
+  check("ja home: headline + 「下書き」 badge; quiz Q1 has the same 9 option ids as zh", jaS.home.headline === "この節気、あなたに合う場所はどこ？" && jaS.home.badge === "下書き" && jaS.home.lang === "ja" && JSON.stringify(jaS.home.labels.map((x) => x.split("=")[0])) === JSON.stringify(["bp", "sleep", "cold", "gut", "lowEnergy", "stiff", "heavy", "eyes", "fine"]) && jaS.quiz.length === 8, jaS.home);
   check("ja draft: every screen scanned with the ja banned-word list → 0 hits; no horizontal overflow", jaS.hits.length === 0 && jaS.overflow.length === 0, { hits: jaS.hits.slice(0, 6), overflow: jaS.overflow.slice(0, 4) });
 
   check("no page errors / console errors during the merged-plan run", pageErrors.length === 0, pageErrors.slice(0, 5));
