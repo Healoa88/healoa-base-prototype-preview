@@ -1,19 +1,19 @@
 # HeaLoa Base · 顺着季节养（可点原型）
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- 版本：**预览 v2026-09-27-w** · 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）· 疗愈主线（Cindy 2026-09-26 锁定 v3）+ 合并方案（留一句 / 发给一个人 / 按平台分享，D-27-02）+ 多语言（只上线中文；en / ja 为草稿预览）
+- 版本：**预览 v2026-09-27-x**（v4 Phase 1：配对小测 → 翻牌 → 为什么是你 → 地方 → 放松 → 养护卡 / 我的养护记录，D-27-05）· 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）
 - 当前产品定义只看 **[`PRODUCT_CURRENT.md`](PRODUCT_CURRENT.md)**；历史规则与 SUPERSEDED 标记见 **[`DECISIONS.md`](DECISIONS.md)**。
 - 这是可点原型，不是正式 App；纯静态页面（GitHub Pages，main 分支），无后端、无账号、无网络请求。
 
 ## 主路径
 
-首页点一下自己的情况（血压偏高 / 睡不踏实 / 怕冷手脚凉 / 肠胃弱 / 心里绷得紧 / 想安静一点）→ 本季要留意、吃喝、怎么动、去哪里养（带真实气候数字和原因，以及「这个季节先不选」）→ 真实计时的放松练习 → 本季养护卡（默认只留给自己）→ 可选「留一句」（只存本机，写在自己卡上）→ 可选「发给一个人」（原生分享 + 按平台按钮 + 9:16 Story 图；分享卡和链接不含身体或感受信息）。收件人可看到那一句、「在旁边也写一句」（一次，无后端）或「给自己也做一张」。季节按日期自动（秋 / 冬），可切换。
+首页（这个节气，哪里最适合你？+ 一句话 + 「怎么用」三步）→ 2 分钟配对小测（8 题，一屏一题，可多选 / 跳过 / 上一题，答案只存本机）→ 翻牌看这个节气的 3 个地方 → 为什么是你（理由 + 吃 / 做 / 避开）→ 地点页（适合谁 / 要避开什么 / 在这里做一件事）→ 真实计时的放松 → 本季养护卡（默认只留给自己）/ 我的养护记录（本机）→ 可选「留一句」→ 可选「发给一个人」。所有地方第一次打开就全部开放。收件人可看到那一句、「在旁边也写一句」（一次，无后端）或「给自己也配一次」。季节按二十四节气自动（秋 / 冬），可切换。
 
 ## 文件
 
 | 路径 | 内容 |
 |---|---|
-| `index.html` | 页面结构（首页、结果、地点、练习、养护卡、分享链接打开页、可选小测） |
+| `index.html` | 页面结构（首页、配对小测、翻牌、为什么是你、所有地方、地点、练习、养护卡、我的养护记录、分享链接打开页） |
 | `app/i18n/zh.js` | **全部面向用户的文字**（界面、结果、地点、练习口令、养护卡、分享文案、页脚）——默认、目前唯一完整的语言 |
 | `app/i18n/en.js` | 英文**草稿**（Cindy 用 Muse 校对后上线），只能 `?lang=en` 打开，带「Draft preview」标记 |
 | `app/i18n/ja.js` | 日文**草稿**（需日本工程师修改），只能 `?lang=ja` 打开，带「下書き」标记 |
@@ -22,7 +22,9 @@
 | `app/share-targets.js` | 按语言的分享平台按钮（zh 微信 / 小红书 / 微博 / 抖音；en Text / Instagram Story / Facebook / WhatsApp / X；ja LINE / X；es WhatsApp / Facebook；都有复制链接），是否显示二维码（只 zh） |
 | `app/social.js` | 官方社交账号（按语言：platform / url / label）；**目前为空**，「关注我们」不显示 |
 | `app/data.js` | 与语言无关的结构：六个入口 id、气候数字、照片、属性、计时；文字从当前语言合并进来 |
-| `app/rules.js` | 确定性推荐规则（先不选 + 排序；无照片不进前三）；文字全部走 `t(key)` |
+| `app/rules.js` | 安全规则（先不选）+ 气候理由；文字全部走 `t(key)` |
+| `app/kb.js` | 配对知识库（v4）：答案 → 标签权重（气候 / 场景 / 距离）；中医层结构在，权重全部 null（= 0），状态 pending-cindy；没有已核对来源的句子不显示 |
+| `app/match.js` | 配对打分引擎（v4）：安全排除 → 气候 + 场景加分 → × 当前节气系数（→ 距离），前三每种主场景一个；`sourced()` 显示闸门 |
 | `app/app.js` | 交互、真实计时（时间差 + Wake Lock）、养护卡 PNG、留一句 / 收件人回写、分享（navigator.share 带 PNG，按平台按钮，4:5 图卡 + 9:16 Story 图，拉丁文字按词换行，二维码只 zh）；无硬编码中文 |
 | `app/app.css` | 移动优先、大字、高对比 |
 | `vendor/qrcode.js` | qrcode-generator（MIT）离线副本 |
@@ -36,11 +38,11 @@
 ```bash
 npm i
 npx playwright install chromium   # 第一次
-npm test              # static-checks + healing-v3 + i18n + merged-plan + season（节气 / 季节单元测试）+ rules（R01–R14 每条规则至少一个检查；禁用词按语言、App-only、首页→结果 1 次点击、结果随输入变化、每个按钮有响应、分享无身体信息、真实计时、中文快照、语言回退 / 草稿、留一句 / 收件人 / 每个平台按钮 / 9:16 图）
+npm test              # static-checks + match（打分引擎人设单元测试）+ healing-v3 + i18n + merged-plan + season（节气 / 季节单元测试）+ rules（R01–R17 每条规则至少一个检查；禁用词按语言、App-only、小测 → 翻牌 → 为什么是你、所有地方开放、无来源不显示、结果随输入变化、每个按钮有响应、分享无身体信息、真实计时、中文快照、语言回退 / 草稿、留一句 / 收件人 / 每个平台按钮 / 9:16 图）
 npm run test:merged   # 只跑合并方案测试
-npm run shots         # 390×844 截图（默认输出 /workspace/hb-merge-shots，可用 HEALOA_SHOTS_DIR 改）
+npm run shots         # 390×844 截图（默认输出 /workspace/hb-merge-shots，可用 HEALOA_SHOTS_DIR 改；v4 一组在 /workspace/v4-p1-shots）
 npm run test:legacy   # 归档页旧测试（可选，较慢）
-npm run golden:zh     # 把当前中文渲染与 tests/golden/zh-baseline.json（v2026-09-27-w 有意更新的快照）对比；--write 重新采集
+npm run golden:zh     # 把当前中文渲染与 tests/golden/zh-baseline.json（v2026-09-27-x 有意更新的快照）对比；--write 重新采集
 ```
 
 `tests/golden/zh-baseline.json` 含私有养护卡 PNG 的哈希，和机器字体有关；换机器跑如不一致，在当前提交上 `node tests/lib/capture-zh.mjs --write` 重新采集。

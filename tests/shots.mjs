@@ -1,12 +1,14 @@
 /**
  * Screenshots at 390×844 (mobile). Output: $HEALOA_SHOTS_DIR or /workspace/hb-merge-shots
  * zh main path + 留一句 + share panel + recipient view; en draft home / result / share panel; ja draft home;
- * 9:16 story PNGs (zh + en). Run: node tests/shots.mjs
+ * 9:16 story PNGs (zh + en); v4 Phase 1 set (quiz, flip reveal for two personas, all places, place, 我的养护记录, en quiz)
+ * into $HEALOA_V4_SHOTS_DIR or /workspace/v4-p1-shots. Run: node tests/shots.mjs
  */
 import { chromium } from "playwright";
 import fs from "fs";
 import path from "path";
 import { startServer } from "./lib/server.mjs";
+import { toResult, runQuiz } from "./lib/flow.mjs";
 
 const OUT = process.env.HEALOA_SHOTS_DIR || "/workspace/hb-merge-shots";
 fs.mkdirSync(OUT, { recursive: true });
@@ -44,7 +46,7 @@ const D = "?date=2026-09-26";
 let p = await page0(base + D);
 await snap(p, "01-zh-home");
 await snap(p, "01b-zh-home-full", true);
-await p.click('#homeConds [data-cond="sleep"]');
+await toResult(p, "sleep");
 await p.waitForLoadState("networkidle");
 await snap(p, "02-zh-result-first-screen");
 await snap(p, "02b-zh-result-full", true);
@@ -80,7 +82,7 @@ await snap(r, "06c-reply-view-sender");
 const e = await page0(base + D + "&lang=en", "en-US");
 await snap(e, "07-en-home");
 await snap(e, "07b-en-home-full", true);
-await e.click('#homeConds [data-cond="sleep"]');
+await toResult(e, "sleep");
 await e.waitForLoadState("networkidle");
 await snap(e, "08-en-result-first-screen");
 await e.click('#resultBody [data-action="openCard"]');
@@ -101,7 +103,54 @@ await snap(er, "09d-en-recipient-view");
 // ---------- ja draft ----------
 const j = await page0(base + D + "&lang=ja", "ja-JP");
 await snap(j, "11-ja-home");
-savePng(await (async () => { await j.click('#homeConds [data-cond="sleep"]'); await j.click('#resultBody [data-action="openCard"]'); return j.evaluate(() => window.__healoa.storyPng()); })(), "10c-ja-story-9x16");
+savePng(await (async () => { await toResult(j, "sleep"); await j.click('#resultBody [data-action="openCard"]'); return j.evaluate(() => window.__healoa.storyPng()); })(), "10c-ja-story-9x16");
+
+
+// ---------- v4 Phase 1 set (390×844) ----------
+{
+  const V4 = process.env.HEALOA_V4_SHOTS_DIR || "/workspace/v4-p1-shots";
+  fs.mkdirSync(V4, { recursive: true });
+  const shot = async (pg, name, full) => { const f = path.join(V4, name + ".png"); await pg.waitForTimeout(250); await pg.screenshot({ path: f, fullPage: !!full }); saved.push(f); };
+  const flipAndShoot = async (pg, name) => {
+    await pg.click('#revealBody [data-action="flipAll"]'); await pg.waitForTimeout(900);
+    await pg.evaluate(() => window.scrollTo(0, 0)); await shot(pg, name); await shot(pg, name + "-full", true);
+  };
+  const z = await page0(base + "?date=2026-10-10");
+  await shot(z, "01-zh-home");
+  await z.click("#btnStart2"); await z.click('#quizBody [data-opt="cold"]'); await z.click('#quizBody [data-opt="stiff"]');
+  await shot(z, "02-zh-quiz-q1-multi");
+  await z.click('#quizBody [data-action="quizNext"]'); await shot(z, "03-zh-quiz-q2-single");
+  await z.click('#quizBody [data-opt="cold"]'); for (let i = 0; i < 4; i++) await z.click('#quizBody [data-action="quizSkip"]');
+  await z.click('#quizBody [data-opt="sea"]'); await shot(z, "04-zh-quiz-q7-scene");
+  await z.click('#quizBody [data-action="quizNext"]'); await z.click('#quizBody [data-opt="far"]');
+  await z.waitForSelector("#vReveal:not(.hidden)");
+  await shot(z, "05-zh-reveal-A-face-down");
+  await z.click("#revealBody .flip-card >> nth=0"); await z.waitForTimeout(900); await shot(z, "05b-zh-reveal-A-one-flipped");
+  await flipAndShoot(z, "06-zh-reveal-A-cold-beach");
+  await z.click('#revealBody [data-action="openWhy"]'); await shot(z, "07-zh-why-A"); await shot(z, "07b-zh-why-A-full", true);
+  const z2 = await page0(base + "?date=2026-10-10");
+  await runQuiz(z2, { q2: ["hot"], q6: ["quiet"], q7: ["mountain"], q8: ["near"] });
+  await flipAndShoot(z2, "08-zh-reveal-B-hot-quiet-mountain");
+  await z2.evaluate(() => window.__healoa.go("places"));
+  await shot(z2, "09-zh-all-places"); await shot(z2, "09b-zh-all-places-full", true);
+  await z2.click('#placesBody [data-action="openPlace"][data-place="onsen"]');
+  await shot(z2, "10-zh-place-detail"); await shot(z2, "10b-zh-place-detail-full", true);
+  await z2.click('#placeBody [data-action="openPractice"][data-place]');
+  await z2.evaluate(() => { localStorage.setItem("healoa.log.v1", JSON.stringify([
+    { d: "2026-10-08", term: 18, place: "wudang", practice: "walk", note: "", at: 1 },
+    { d: "2026-10-09", term: 18, place: null, practice: "breath46", note: "", at: 2 },
+    { d: "2026-10-10", term: 18, place: "onsen", practice: "soak", note: "泡完脚，睡得早一点。", at: 3 }])); window.__healoa.go("records"); });
+  await shot(z2, "11-zh-my-care-log"); await shot(z2, "11b-zh-my-care-log-full", true);
+  const en = await page0(base + "?date=2026-10-10&lang=en", "en-US");
+  await shot(en, "12-en-home"); await shot(en, "12b-en-home-full", true);
+  await en.click("#btnStart2"); await en.click('#quizBody [data-opt="bp"]'); await en.click('#quizBody [data-opt="cold"]');
+  await shot(en, "13-en-quiz-q1");
+  await en.click('#quizBody [data-action="quizNext"]'); await shot(en, "13b-en-quiz-q2");
+  for (let i = 0; i < 6; i++) await en.click('#quizBody [data-action="quizSkip"]');
+  await shot(en, "13c-en-quiz-q8");
+  await en.click('#quizBody [data-opt="nights"]'); await en.waitForSelector("#vReveal:not(.hidden)");
+  await flipAndShoot(en, "14-en-reveal");
+}
 
 console.log(JSON.stringify({ out: OUT, saved, consoleErrors: errors }, null, 2));
 await browser.close();

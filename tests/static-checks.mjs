@@ -20,7 +20,7 @@ const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
 // 1. Banned-word scan of customer-facing sources — locale-aware (rules per locale in tests/wording.mjs).
 //    Each locale file is scanned with its own list; code + markup (zh inline fallback) with the zh list.
 const LOCALE_FILES = Object.fromEntries(LOCALES.map((l) => [l, `app/i18n/${l}.js`]));
-const CUSTOMER_FILES = ["index.html", "app/data.js", "app/rules.js", "app/app.js", "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "scene-seed-legacy.html" /* archived, reachable only via old #seed= links */];
+const CUSTOMER_FILES = ["index.html", "app/data.js", "app/rules.js", "app/kb.js", "app/match.js", "app/app.js", "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "scene-seed-legacy.html" /* archived, reachable only via old #seed= links */];
 const scan = {};
 for (const f of CUSTOMER_FILES) scan[f] = scanLocale(read(f), "zh");
 for (const [l, f] of Object.entries(LOCALE_FILES)) scan[f] = scanLocale(read(f), l);
@@ -44,20 +44,20 @@ check("banned-words (locale-aware): " + Object.values(LOCALE_FILES).join(", ") +
 // 2. App-only words anywhere in tracked files (tests/, rules/ and HEALOA_RULES.md hold the list itself, so they are excluded).
 let tracked = [];
 try { tracked = execSync("git ls-files", { cwd: ROOT, encoding: "utf8" }).split("\n").filter(Boolean); } catch { tracked = CUSTOMER_FILES; }
-const untrackedNew = ["index.html", "app/data.js", "app/rules.js", "app/app.js", "app/app.css", "app/social.js", ...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "README.md", "PRODUCT_CURRENT.md", "DECISIONS.md", "vendor/qrcode.js"].filter((f) => fs.existsSync(path.join(ROOT, f)));
+const untrackedNew = ["index.html", "app/data.js", "app/rules.js", "app/app.js", "app/app.css", "app/kb.js", "app/match.js", "app/social.js", ...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "README.md", "PRODUCT_CURRENT.md", "DECISIONS.md", "vendor/qrcode.js"].filter((f) => fs.existsSync(path.join(ROOT, f)));
 const files = [...new Set([...tracked, ...untrackedNew])].filter((f) => !f.startsWith("tests/") && !f.startsWith("rules/") && f !== "HEALOA_RULES.md" /* the rule files hold the list itself */ && /\.(html|js|mjs|md|css|json|yml|yaml|txt)$/.test(f) && fs.existsSync(path.join(ROOT, f)));
 const anyHits = [];
 for (const f of files) for (const h of scanText(read(f), BANNED_ANYWHERE)) anyHits.push({ file: f, ...h });
 check("app-only: no healoa.com / 光圈 / Keeper / Host / Choose Again / /board in " + files.length + " files", anyHits.length === 0, anyHits.length ? anyHits.slice(0, 10) : null);
 
 // 3. Load locales + i18n + data + rules in a sandbox (same order as index.html).
-const LOAD_ORDER = [...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "app/data.js", "app/rules.js"];
+const LOAD_ORDER = [...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "app/data.js", "app/rules.js", "app/kb.js", "app/match.js"];
 const ctx = {}; ctx.globalThis = ctx; vm.createContext(ctx);
 for (const f of LOAD_ORDER) vm.runInContext(read(f), ctx, { filename: f });
 const D = ctx.HEALOA_DATA, R = ctx.HEALOA_RULES, I = ctx.HEALOA_I18N, ZH = ctx.HEALOA_LOCALES.zh;
 
 check("version label " + VERSION, D.VERSION === VERSION && read("index.html").includes(VERSION));
-check("home: ≤6 one-tap conditions with the locked labels", D.CONDITIONS.length <= 6 && JSON.stringify(D.CONDITIONS.map((c) => c.label)) === JSON.stringify(CONDITION_LABELS));
+check("body states (quiz Q1 + safety rules): ≤6 with the locked labels", D.CONDITIONS.length <= 6 && JSON.stringify(D.CONDITIONS.map((c) => c.label)) === JSON.stringify(CONDITION_LABELS));
 check("disclaimer text is exact in data + index", D.DISCLAIMER === DISCLAIMER && read("index.html").includes(DISCLAIMER));
 check("keeps place name 山居慢住", D.PLACES.some((p) => p.name.includes("山居慢住")));
 
@@ -128,7 +128,7 @@ check("i18n: en + ja are DRAFTS (meta.draft true, complete false) → not comple
 function shape(o, pth = "") {
   if (Array.isArray(o)) return pth.endsWith("privateWords") ? "A" : "A" + o.length;
   // conditionBreaks = optional per-locale line-break hints for the home buttons (ja only; checked below), not content
-  if (o && typeof o === "object") return Object.keys(o).filter((k) => k !== "conditionBreaks").sort().reduce((r, k) => { r[k] = shape(o[k], pth + "." + k); return r; }, {});
+  if (o && typeof o === "object") return Object.keys(o).filter((k) => k !== "conditionBreaks" && k !== "marketOpts" /* q8 options follow each market (plan v4 §2.2) */).sort().reduce((r, k) => { r[k] = shape(o[k], pth + "." + k); return r; }, {});
   return typeof o;
 }
 check("i18n: ja conditionBreaks (button line-break hints) cover the 6 conditions and, without the 「|」 marks, equal the ja labels exactly",
@@ -188,13 +188,13 @@ check("cindyLine stays empty in every locale (zh / en / ja)", [ZH, EN, JA].every
   check("every share target has a label (share.t.*) and a how-to line (share.guide.*) in zh / en / ja", labelMiss.length === 0, labelMiss);
 }
 const noCjk = {};
-for (const f of ["app/app.js", "app/rules.js", "app/data.js", "app/i18n/i18n.js"]) {
+for (const f of ["app/app.js", "app/rules.js", "app/kb.js", "app/match.js", "app/data.js", "app/i18n/i18n.js"]) {
   const lines = stripJsComments(read(f)).split("\n").map((t, i) => ({ line: i + 1, t })).filter((x) => CJK_RE.test(x.t));
   if (lines.length) noCjk[f] = lines.slice(0, 5).map((x) => x.line + ": " + x.t.trim().slice(0, 80));
 }
 check("no hard-coded CJK strings in app/app.js, app/rules.js (and data.js, i18n.js) outside comments", Object.keys(noCjk).length === 0, Object.keys(noCjk).length ? noCjk : null);
 const usedKeys = new Set();
-for (const f of ["app/app.js", "app/rules.js", "app/data.js"]) for (const m of read(f).matchAll(/\bt\("([a-zA-Z0-9_.]+)"/g)) usedKeys.add(m[1]);
+for (const f of ["app/app.js", "app/rules.js", "app/match.js", "app/data.js"]) for (const m of read(f).matchAll(/\bt\("([a-zA-Z0-9_.]+)"/g)) usedKeys.add(m[1]);
 for (const m of html.matchAll(/data-i18n(?:-html)?="([^"]+)"/g)) usedKeys.add(m[1]);
 for (const m of html.matchAll(/data-i18n-attr="([^"]+)"/g)) for (const pair of m[1].split(";")) usedKeys.add(pair.split(":")[1]);
 for (const m of read("app/app.js").matchAll(/"((?:practice|result|card|share|rules|home|place)\.[a-zA-Z]+)"/g)) usedKeys.add(m[1]);

@@ -1,17 +1,21 @@
-/* HeaLoa · app (v2026-09-27-w)
- * Main path: home (one tap) → result (season × condition) → relaxation (real timer) → season care card (private by default).
- * After the card (optional, never before it): 「留一句」 a line the user writes for themselves (local only, shown on their card)
- * → 「发给一个人」 native share sheet first, then per-platform buttons (app/share-targets.js), 9:16 story image.
- * Recipient view: may show that line, 「在旁边也写一句」 once (local + URL only, no backend), 「给自己也做一张」.
- * Customer-facing text: only through t(key, vars) from app/i18n/<locale>.js (default zh). No hard-coded copy here (checked by tests).
- * Privacy: the chosen condition never goes into the URL, the share card, the share link or any payload.
+/* HeaLoa · app (v2026-09-27-x · v4 Phase 1)
+ * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
+ * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
+ * (computed by app/match.js, not drawn by lot) → 「为什么是你」 (reasons, eat / do / avoid) → place page → one real
+ * relaxation "here" (real timer) → season care card (private by default) + 「我的养护记录」 (local only).
+ * All places with a photo are open from the first visit (「看看所有地方」); there is nothing to open up or earn.
+ * Returning: 「{term}到了，重新配一次？」 and 「今天的 3 分钟」 on the next open only (no push), 「我的养护记录」.
+ * After the card (optional, never before it): 「留一句」 → 「发给一个人」 (native share sheet first, per-platform buttons).
+ * Customer-facing text: only through t(key, vars) from app/i18n/<locale>.js (default zh). No hard-coded copy here.
+ * Privacy: quiz answers and the body state never go into the URL, the share card, the share link or any payload (R05).
  * Every button uses data-action and is handled by ACTIONS (checked by tests).
  */
 (function () {
   "use strict";
-  var D = window.HEALOA_DATA, R = window.HEALOA_RULES, I18N = window.HEALOA_I18N, t = I18N.t;
+  var D = window.HEALOA_DATA, R = window.HEALOA_RULES, M = window.HEALOA_MATCH, I18N = window.HEALOA_I18N, t = I18N.t;
   var $ = function (id) { return document.getElementById(id); };
   var LS_CARD = "healoa.card.v1", LS_EVENTS = "healoa.events.v1", LS_LINE = "healoa.line.v1", LS_REPLIED = "healoa.replied.v1";
+  var LS_MATCH = "healoa.match.v1", LS_LOG = "healoa.log.v1"; /* last quiz answers + top places; 我的养护记录 — this phone only */
   var LINE_MAX = 60;
   var SHARE_CFG = (window.HEALOA_SHARE && window.HEALOA_SHARE.byLocale[I18N.lang]) || { qr: false, targets: ["copy"] };
   var SHARE_TARGETS = (window.HEALOA_SHARE && window.HEALOA_SHARE.targets) || {};
@@ -21,7 +25,8 @@
   function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 
-  /* Validation events only: shared / opened / got_own_card / practice_completed / card_kept. Never carries body or feeling data. */
+  /* Validation events only: shared / opened / got_own_card / practice_completed / card_kept / quiz_done / flip_seen / rematch /
+   * place_action_done. Never carries body or feeling data or quiz answers. */
   function logEvent(name) {
     var ev = lsGet(LS_EVENTS) || [];
     ev.push({ e: name, t: Date.now() });
@@ -38,9 +43,10 @@
   })();
   var naturalSeason = R.seasonFor(today); /* real season by solar term: spring / summer / autumn / winter */
   var term = R.solarTermFor(today);
+  var termIndex = R.termIndexFor(today);
   var contentSeason = R.contentSeasonFor(naturalSeason); /* autumn / winter (the only content so far) */
 
-  var state = { view: "home", season: contentSeason, cond: null, placeId: null, practiceId: null, cardShowCond: false, shareUrl: null, from: null, line: "" };
+  var state = { view: "home", season: contentSeason, cond: null, answers: null, placeId: null, practiceId: null, actionPlace: null, cardShowCond: false, shareUrl: null, from: null, line: "" };
   (function () { var l = lsGet(LS_LINE); if (l && typeof l.text === "string") state.line = cleanLine(l.text); })();
 
   /* ---------- the user's own line (留一句) ---------- */
@@ -73,8 +79,8 @@
   }
 
   /* ---------- navigation (history state only; URL never carries the condition) ---------- */
-  var VIEWS = ["home", "shared", "quiz", "result", "place", "practice", "card"];
-  function snapshot() { return { view: state.view, season: state.season, cond: state.cond, placeId: state.placeId, practiceId: state.practiceId }; }
+  var VIEWS = ["home", "shared", "quiz", "reveal", "result", "places", "place", "practice", "card", "records"];
+  function snapshot() { return { view: state.view, season: state.season, cond: state.cond, answers: state.answers, placeId: state.placeId, practiceId: state.practiceId, actionPlace: state.actionPlace }; }
   function show(view) {
     VIEWS.forEach(function (v) {
       var el = document.querySelector('[data-view="' + v + '"]');
@@ -89,14 +95,21 @@
     if (state.view === "home") renderHome();
     else if (state.view === "shared") renderShared();
     else if (state.view === "quiz") renderQuiz();
+    else if (state.view === "reveal") renderReveal();
     else if (state.view === "result") renderResult();
+    else if (state.view === "places") renderPlaces();
+    else if (state.view === "records") renderRecords();
     else if (state.view === "place") renderPlace();
     else if (state.view === "practice") renderPractice();
     else if (state.view === "card") renderCard();
   }
   function go(view, patch, replace) {
     if (state.view === "practice" && view !== "practice") timerStop(false);
-    if (patch) for (var k in patch) state[k] = patch[k];
+    if (patch) {
+      /* An entry that names one body state (saved card, test hooks) without quiz answers → answers derived from it. */
+      if (patch.cond && !("answers" in patch)) state.answers = null;
+      for (var k in patch) state[k] = patch[k];
+    }
     show(view);
     render();
     var url = location.pathname + cleanSearch();
@@ -112,24 +125,29 @@
     var s = ev.state;
     if (state.view === "practice") timerStop(false);
     if (!s || !s.view) { show("home"); render(); return; }
-    state.season = s.season || state.season; state.cond = s.cond; state.placeId = s.placeId; state.practiceId = s.practiceId;
+    state.season = s.season || state.season; state.cond = s.cond; state.answers = s.answers || null; state.placeId = s.placeId; state.practiceId = s.practiceId; state.actionPlace = s.actionPlace || null;
     show(s.view); render();
   });
 
+  /* ---------- matching (app/match.js) ---------- */
+  /* The season's solar term used for the multiplier: today's term, or the first term of a season looked at ahead. */
+  function termFor(season) { return season === naturalSeason ? termIndex : D.SEASON_START_TERM[season]; }
+  function termName(i) { return D.SOLAR_TERMS[i].name; }
+  function currentAnswers() { return state.answers || M.answersForCond(state.cond || "quiet"); }
+  function currentMatch() {
+    var m = M.match(currentAnswers(), { season: state.season, termIndex: termFor(state.season), year: today.getFullYear() });
+    if (state.answers || !condById(state.cond)) state.cond = m.primaryCond;
+    return m;
+  }
+  function nextTermInfo() {
+    var i = (termIndex + 1) % 24, y = today.getFullYear() + (termIndex === 23 ? 1 : 0);
+    var T = (D.SOLAR_TERM_DATES && D.SOLAR_TERM_DATES[y]) || D.SOLAR_TERMS.map(function (x) { return [x.m, x.d]; });
+    return { next: termName(i), date: t("date.md", { month: D.MONTHS[T[i][0] - 1], d: T[i][1] }) };
+  }
+  function kindOf(p) { return p.kind || p.name; }
+  function placeNames(ids) { return ids.map(function (id) { var p = R.placeById(id); return p ? p.name : ""; }).filter(Boolean).join(t("punct.listSep")); }
+
   /* ---------- home ---------- */
-  /* A locale without spaces (ja) can list where a button label may break (content.conditionBreaks, "|" = break point).
-   * Rendered as <wbr> with CSS keep-all, so a label never leaves its last kana alone on a second line. Others: plain text. */
-  var COND_BREAKS = (I18N.content && I18N.content().conditionBreaks) || {};
-  function condLabelHtml(c) {
-    var b = COND_BREAKS[c.id];
-    if (!b || b.replace(/\|/g, "") !== c.label) return esc(c.label);
-    return b.split("|").map(esc).join("<wbr>");
-  }
-  function condButtons(container) {
-    container.innerHTML = D.CONDITIONS.map(function (c) {
-      return '<button type="button" class="cond-btn" data-action="pickCond" data-cond="' + c.id + '">' + condLabelHtml(c) + "</button>";
-    }).join("");
-  }
   function renderSeasonButtons() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-action="season"]'), function (b) {
       var on = b.getAttribute("data-season") === state.season;
@@ -141,11 +159,16 @@
     var S = D.SEASONS[state.season];
     $("homeSeasonNow").textContent = state.season === naturalSeason ? t("home.seasonToday", { term: term, season: S.label }) :
       !D.SEASONS[naturalSeason] ? t("home.seasonPending", { term: term, now: D.SEASON_NAMES[naturalSeason], season: S.label }) : t("home.seasonAhead", { season: S.label });
-    condButtons($("homeConds"));
-    var saved = lsGet(LS_CARD);
-    var hint = $("returnHint");
-    if (saved && condById(saved.cond) && D.SEASONS[saved.season]) {
-      hint.textContent = t("home.returnHint", { season: D.SEASONS[saved.season].label });
+    $("homeTermExplain").classList.toggle("hidden", !I18N.meta().explainTerms);
+    var saved = lsGet(LS_MATCH), okSaved = saved && Array.isArray(saved.top) && saved.top.length && saved.answers;
+    var re = $("homeRematch"), last = $("homeLast"), today3 = $("homeToday");
+    if (okSaved && saved.termIndex !== termIndex) { re.textContent = t("home.rematch", { term: term }); re.classList.remove("hidden"); } else re.classList.add("hidden");
+    if (okSaved && saved.termIndex === termIndex) { last.textContent = t("home.lastMatch", { places: placeNames(saved.top) }); last.classList.remove("hidden"); } else last.classList.add("hidden");
+    today3.classList.toggle("hidden", !okSaved);
+    $("homeNext").textContent = t("home.nextTerm", nextTermInfo());
+    var card = lsGet(LS_CARD), hint = $("returnHint");
+    if (card && condById(card.cond) && D.SEASONS[card.season]) {
+      hint.textContent = t("home.returnHint", { season: D.SEASONS[card.season].label });
       hint.classList.remove("hidden");
     } else hint.classList.add("hidden");
   }
@@ -153,7 +176,6 @@
   var incoming = { id: null, line: "", reply: "", writing: false, mine: "" };
   function repliedIds() { var r = lsGet(LS_REPLIED); return Array.isArray(r) ? r : []; }
   function renderShared() {
-    condButtons($("sharedConds"));
     var box = $("sharedLine"), h = "";
     if (!incoming.line) { box.innerHTML = ""; box.classList.add("hidden"); return; }
     if (incoming.reply) {
@@ -190,72 +212,103 @@
     return location.origin + location.pathname + "?s=" + incoming.id + "&l=" + b64e(incoming.line) + "&r=" + b64e(incoming.mine) + langQuery();
   }
 
-  /* ---------- quiz (optional) ---------- */
-  var quiz = { i: 0, yes: {} };
+  /* ---------- 2-minute matching quiz: one question per screen ---------- */
+  var quiz = { i: 0, picks: {} };
   function renderQuiz() {
-    var body = $("quizBody");
-    if (quiz.i < D.QUIZ.length) {
-      var q = D.QUIZ[quiz.i];
-      body.innerHTML = '<p class="quiz-prog">' + esc(t("quiz.progress", { n: quiz.i + 1, total: D.QUIZ.length })) + "</p>" +
-        '<p class="quiz-q">' + esc(q.q) + "</p>" +
-        '<div class="btn-row"><button type="button" class="btn primary" data-action="quizAnswer" data-yes="1">' + esc(t("quiz.yes")) + "</button>" +
-        '<button type="button" class="btn ghost" data-action="quizAnswer" data-yes="0">' + esc(t("quiz.no")) + "</button></div>" +
-        '<button type="button" class="text-link" data-action="goHome">' + esc(t("quiz.skip")) + "</button>";
-      return;
-    }
-    var picks = D.QUIZ.filter(function (x) { return quiz.yes[x.cond]; }).map(function (x) { return x.cond; });
-    if (!picks.length) picks = ["quiet"];
-    body.innerHTML = '<p class="quiz-q">' + esc(t("quiz.suggest")) + '</p><div class="stack">' + picks.map(function (id) {
-      return '<button type="button" class="btn primary" data-action="pickCond" data-cond="' + id + '">' + esc(condById(id).label) + "</button>";
-    }).join("") + '</div><p class="muted small">' + esc(t("quiz.note")) + "</p>" +
-      '<button type="button" class="text-link" data-action="goHome">' + esc(t("quiz.home")) + "</button>";
+    var q = D.QUIZ[quiz.i], n = quiz.i + 1, total = D.QUIZ.length, picked = quiz.picks[q.id] || [];
+    var h = '<div class="quiz-bar" role="progressbar" aria-valuemin="1" aria-valuemax="' + total + '" aria-valuenow="' + n + '" aria-label="' + esc(t("quiz.progressAria")) + '"><span style="width:' + Math.round(n / total * 100) + '%"></span></div>' +
+      '<p class="quiz-prog">' + esc(t("quiz.progress", { n: n, total: total })) + "</p>" +
+      '<p class="quiz-q" id="quizQ">' + esc(q.q) + "</p>" +
+      '<p class="quiz-hint">' + esc(q.multi ? t("quiz.multi") : t("quiz.single")) + "</p>" +
+      '<div class="quiz-opts" role="group" aria-labelledby="quizQ">' + q.options.map(function (o) {
+        var on = picked.indexOf(o.id) >= 0;
+        return '<button type="button" class="quiz-opt' + (on ? " on" : "") + '" data-action="quizPick" data-opt="' + esc(o.id) + '" aria-pressed="' + (on ? "true" : "false") + '">' + esc(o.label) + "</button>";
+      }).join("") + "</div>";
+    if (q.multi) h += '<div class="stack"><button type="button" class="btn primary" data-action="quizNext" id="quizNext">' + esc(t(n === total ? "quiz.finish" : "quiz.next")) + "</button></div>";
+    h += '<div class="stack"><button type="button" class="btn ghost" data-action="quizSkip">' + esc(t("quiz.skip")) + "</button></div>";
+    h += '<button type="button" class="text-link" data-action="quizPrev">' + esc(t(quiz.i === 0 ? "quiz.exit" : "quiz.prev")) + "</button>";
+    $("quizBody").innerHTML = h;
+  }
+  function quizAdvance() {
+    if (quiz.i < D.QUIZ.length - 1) { quiz.i++; renderQuiz(); window.scrollTo(0, 0); return; }
+    finishQuiz();
+  }
+  function finishQuiz() {
+    state.answers = M.clean(quiz.picks);
+    state.season = contentSeason;
+    var m = currentMatch();
+    lsSet(LS_MATCH, { answers: state.answers, season: state.season, termIndex: termIndex, top: m.top.map(function (x) { return x.id; }), savedAt: Date.now() });
+    logEvent("quiz_done");
+    flipped = {};
+    go("reveal", { answers: state.answers, cond: m.primaryCond });
   }
 
-  /* ---------- result ---------- */
+  /* ---------- flip reveal of the top 3 (computed, not drawn by lot) ---------- */
+  var flipped = {};
+  function renderReveal() {
+    var m = currentMatch(), S = D.SEASONS[state.season];
+    $("revealTitle").textContent = t("reveal.title", { season: S.label, term: termName(m.termIndex) });
+    var h = "";
+    if (m.top.length === 0) h += '<p class="reveal-note">' + esc(t("reveal.none")) + "</p>";
+    else if (m.top.length < 3) h += '<p class="reveal-note">' + esc(t("reveal.fewer", { n: m.top.length })) + "</p>";
+    h += '<div class="flip-list">' + m.top.map(function (e, i) {
+      var p = R.placeById(e.id), on = !!flipped[i];
+      return '<div class="flip-card' + (on ? " flipped" : "") + '" role="button" tabindex="0" data-action="flip" data-i="' + i + '" data-place="' + e.id + '" aria-pressed="' + (on ? "true" : "false") + '">' +
+        '<div class="flip-inner"><div class="flip-face flip-front" aria-hidden="' + (on ? "true" : "false") + '"><span class="flip-n">' + esc(t("reveal.front", { n: i + 1 })) + '</span><span class="flip-tap">' + esc(t("reveal.tap")) + "</span></div>" +
+        '<div class="flip-face flip-back" aria-hidden="' + (on ? "false" : "true") + '"><div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '"><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
+        '<div class="flip-text"><p class="flip-match">' + esc(t("reveal.match", { season: S.label, kind: kindOf(p) })) + '</p><p class="flip-name">' + esc(p.name) + '</p><p class="flip-reason">' + esc(e.reasons[0]) + "</p></div></div></div></div>";
+    }).join("") + "</div>";
+    var all = m.top.length && m.top.every(function (_, i) { return flipped[i]; });
+    h += '<div class="stack">' + (m.top.length && !all ? '<button type="button" class="btn ghost" data-action="flipAll">' + esc(t("reveal.flipAll")) + "</button>" : "") +
+      '<button type="button" class="btn primary" data-action="openWhy">' + esc(t("reveal.why")) + "</button></div>" +
+      '<button type="button" class="text-link" data-action="openQuiz">' + esc(t("reveal.redo")) + "</button>";
+    $("revealBody").innerHTML = h;
+  }
+
+  /* ---------- 为什么是你 (result) ---------- */
   function renderResult() {
-    var c = condById(state.cond), S = D.SEASONS[state.season];
-    if (!c) { go("home", null, true); return; }
-    var rec = R.recommend(state.cond, state.season);
+    var S = D.SEASONS[state.season];
+    if (!S) { go("home", null, true); return; }
+    var m = currentMatch(), c = condById(state.cond);
     var care = D.CARE[state.cond][state.season];
-    var prac = D.PRACTICES[D.PRACTICE_DEFAULT[state.cond]];
-    $("resultTitle").textContent = t("result.title", { season: S.label, cond: c.label });
-    $("resultConds").innerHTML = D.CONDITIONS.map(function (x) {
-      return '<button type="button" class="chip' + (x.id === state.cond ? " on" : "") + '" data-action="pickCond" data-cond="' + x.id + '">' + esc(x.label) + "</button>";
-    }).join("");
+    var prac = D.PRACTICES[m.practiceId] || D.PRACTICES.breath46;
+    $("resultTitle").textContent = t("result.title", { season: S.label });
     var lead = t("result.lead");
-    var h = lead ? '<p class="result-lead">' + esc(lead) + "</p>" : "";
-    var seasonLine = state.season === naturalSeason ? t("result.seasonToday", { term: term, season: S.label }) : t("result.seasonAhead", { season: S.label, months: S.months });
-    h += '<div class="block" id="blkNote"><h3>' + esc(t("result.noteTitle")) + '</h3><p class="muted small">' + esc(seasonLine) + "</p><ul>" +
-      care.note.map(function (n) { return '<li><span class="tag">' + esc(n.tag) + "</span>" + esc(n.text) + "</li>"; }).join("") + "</ul></div>";
+    var h = '<p class="muted small" id="resultTermLine">' + esc(t("result.termLine", { term: termName(m.termIndex) })) + "</p>";
+    h += lead ? '<p class="result-lead">' + esc(lead) + "</p>" : "";
+    if (D.HOME_REGION === "us") h += '<p class="note-line" id="usNote">' + esc(t("result.usNote")) + "</p>";
+    if (m.asia && D.ASIA_LINE) h += '<p class="cindy-line" id="asiaLine">' + esc(D.ASIA_LINE) + "</p>";
+    var homeCard = '<div class="home-card" id="blkHome"><h3>' + esc(t("result.homeTitle")) + "</h3>" + (m.atHome ? '<p class="small">' + esc(t("result.atHomeFirst")) + "</p>" : "") + "<ul>" +
+      D.HOME_PLAN[state.cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") +
+      '</ul><div class="btn-row"><button type="button" class="btn ghost" data-action="openPractice" data-practice="soak">' + esc(t("result.soakBtn")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="' + prac.id + '">' + esc(prac.short) + "</button></div></div>";
+    if (m.atHome) h += homeCard;
 
     h += '<h3 class="sec-title">' + esc(t("result.placesTitle")) + '</h3><p class="sec-sub">' + esc(t("result.placesSub", { season: S.label })) + "</p>";
-    rec.top.forEach(function (tp, i) {
-      var p = R.placeById(tp.id);
+    m.top.forEach(function (tp, i) {
+      var p = R.placeById(tp.id), act = D.PLACE_ACTIONS[tp.id];
+      var eat = M.adviceFor(m.termIndex, "eat", m.answers).map(function (x) { return x.text; }), dos = M.adviceFor(m.termIndex, "do", m.answers).map(function (x) { return x.text; }), avoid = M.adviceFor(m.termIndex, "avoid", m.answers).map(function (x) { return x.text; });
       h += '<article class="place-card" data-place="' + tp.id + '">' +
         '<div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '" loading="lazy"><span class="rank">' + esc(t("result.rank", { n: i + 1 })) + '</span><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
         '<div class="place-main"><p class="place-name">' + esc(p.name) + "</p>" +
         '<p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
-        '<p class="reason1">' + esc(tp.reasons[0]) + "</p>" +
-        '<button type="button" class="btn ghost small" data-action="openPlace" data-place="' + tp.id + '">' + esc(t("result.openPlace")) + "</button></div></article>";
+        '<p class="why-label">' + esc(t("result.whyLabel")) + '</p><ul class="why">' + tp.reasons.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>" +
+        '<ul class="eda">' +
+        "<li><b>" + esc(t("result.eatLabel")) + "</b>" + esc(eat.concat(p.food.slice(0, 1)).join(t("punct.listSep"))) + "</li>" +
+        "<li><b>" + esc(t("result.doLabel")) + "</b>" + esc(dos.concat(p.todo.slice(0, 1)).join(t("punct.listSep"))) + "</li>" +
+        "<li><b>" + esc(t("result.avoidLabel")) + "</b>" + esc(avoid.concat(p.caution.slice(0, 1)).join(" ")) + "</li></ul>" +
+        '<div class="btn-row"><button type="button" class="btn ghost small" data-action="openPlace" data-place="' + tp.id + '">' + esc(t("result.enter")) + "</button>" +
+        (act ? '<button type="button" class="btn ghost small" data-action="openPractice" data-practice="' + act.practice + '" data-place="' + tp.id + '">' + esc(act.short) + "</button>" : "") + "</div></div></article>";
     });
-    h += '<div class="home-card" id="blkHome"><h3>' + esc(t("result.homeTitle")) + "</h3><ul>" +
-      D.HOME_PLAN[state.cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") +
-      '</ul><div class="btn-row"><button type="button" class="btn ghost" data-action="openPractice" data-practice="soak">' + esc(t("result.soakBtn")) + "</button>" +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="' + prac.id + '">' + esc(prac.short) + "</button></div></div>";
-
-    if (rec.skip.length) {
-      h += '<div class="block" id="blkSkip"><h3>' + esc(t("result.skipTitle")) + '</h3><ul class="skip-list">' + rec.skip.map(function (s) {
+    if (m.excluded.length) {
+      h += '<div class="block" id="blkSkip"><h3>' + esc(t("result.skipTitle")) + '</h3><ul class="skip-list">' + m.excluded.map(function (s) {
         return '<li><span class="skip-name">' + esc(s.name) + "</span>" + esc(t("punct.colon")) + esc(s.reason) + "</li>";
       }).join("") + "</ul></div>";
     }
-    if (rec.more.length) {
-      h += '<div class="block" id="blkMore"><h3>' + esc(t("result.moreTitle")) + '</h3><p class="muted small">' + esc(t("result.moreSub")) + '</p><ul class="more-list">' + rec.more.map(function (m) {
-        var p = R.placeById(m.id);
-        return "<li><b>" + esc(p.name) + "</b>" + esc(t("punct.colon")) + esc(m.line) + "</li>";
-      }).join("") + "</ul></div>";
-    }
     h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">' + esc(t("result.relaxCta", { label: prac.label })) + "</button></div>";
-
+    var seasonLine = state.season === naturalSeason ? t("result.seasonToday", { term: term, season: S.label }) : t("result.seasonAhead", { season: S.label, months: S.months });
+    h += '<div class="block" id="blkNote"><h3>' + esc(t("result.noteTitle")) + '</h3><p class="muted small">' + esc(seasonLine) + "</p><ul>" +
+      care.note.map(function (n) { return '<li><span class="tag">' + esc(n.tag) + "</span>" + esc(n.text) + "</li>"; }).join("") + "</ul></div>";
     h += '<div class="block" id="blkEat"><h3>' + esc(t("result.eatTitle")) + "</h3><ul>" +
       "<li><b>" + esc(t("result.eatMore")) + "</b>" + esc(care.eat.more) + "</li>" +
       "<li><b>" + esc(t("result.eatLess")) + "</b>" + esc(care.eat.less) + "</li>" +
@@ -269,9 +322,14 @@
       '<button type="button" class="btn ghost" data-action="openPractice" data-practice="taiji1">' + esc(t("result.moveTaiji")) + "</button>" +
       '<button type="button" class="btn ghost" data-action="openPractice" data-practice="breath46">' + esc(t("result.moveBreath")) + "</button></div></div>";
     h += '<div class="safety" id="blkSafety"><b>' + esc(t("result.caution")) + "</b>" + esc(care.safety) + "</div>";
+    if (!m.atHome) h += homeCard;
     h += '<div class="stack"><button type="button" class="btn primary" data-action="openCard">' + esc(t("result.cardCta")) + "</button></div>";
+    h += '<p class="note-line" id="resultNext">' + esc(t("result.nextTerm", nextTermInfo())) + "</p>";
+    h += '<button type="button" class="text-link" data-action="openPlaces">' + esc(t("result.allPlaces")) + "</button>";
+    h += '<button type="button" class="text-link" data-action="openQuiz">' + esc(t("result.redo")) + "</button>";
     h += '<p class="src-note">' + esc(t("result.srcNote", { credit: D.CREDIT })) + "</p>";
     $("resultBody").innerHTML = h;
+    return c;
   }
   function cindyLineHtml(p) {
     /* Cindy's own signed line. Empty until she provides it → renders nothing. Never generated. */
@@ -279,35 +337,102 @@
     return '<p class="cindy-line">' + esc(t("place.cindyLine", { line: p.cindyLine })) + "</p>";
   }
 
-  /* ---------- place ---------- */
+  /* ---------- place: feeling line, who it suits, what to avoid, one real relaxation here ---------- */
   function renderPlace() {
     var p = R.placeById(state.placeId);
-    if (!p || !p.photo) { go("result", null, true); return; }
-    var cond = state.cond || "quiet", S = D.SEASONS[state.season];
-    var rs = R.reasons(p, cond, state.season), skip = R.skipReason(p, cond, state.season);
+    if (!p || !p.photo) { go("places", null, true); return; }
+    var cond = state.cond || "quiet", S = D.SEASONS[state.season], m = currentMatch();
+    var rs = R.reasons(p, cond, state.season), skip = null;
+    m.excluded.forEach(function (x) { if (x.id === p.id) skip = x.reason; });
     var h = '<div class="place-hero"><div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '"><span class="credit">' + esc(D.CREDIT) + "</span></div></div>";
     h += '<h2 class="place-title">' + esc(p.name) + '</h2><p class="place-area">' + esc(p.area) + "</p>";
-    h += '<p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p);
-    if (skip) h += '<div class="safety"><b>' + esc(t("place.skipLabel")) + "</b>" + esc(skip) + "</div>";
+    h += '<p class="place-benefit feel-line">' + esc(p.benefit) + "</p>" + cindyLineHtml(p);
+    /* 适合谁: the existing approved per-state lines, only for states this place is not ruled out for this season. */
+    var suits = D.CONDITIONS.filter(function (c) { return p.fit[c.id] && !R.skipReason(p, c.id, state.season); });
+    if (suits.length) h += '<div class="block" id="blkSuits"><h3>' + esc(t("place.suitsTitle")) + '</h3><ul>' + suits.map(function (c) { return "<li><b>" + esc(c.label) + esc(t("punct.colon")) + "</b>" + esc(p.fit[c.id]) + "</li>"; }).join("") + "</ul></div>";
+    var cautions = p.caution.slice();
+    if (p.attrs.hotspring) cautions.unshift(t("place.hotspringCaution"));
+    h += '<div class="safety" id="blkAvoid"><b>' + esc(t("place.avoidTitle")) + esc(t("punct.colon")) + "</b>" + (skip ? '<p class="skip-now">' + esc(t("place.skipLabel")) + esc(skip) + "</p>" : "") + "<ul>" + cautions.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
+    var act = D.PLACE_ACTIONS[p.id];
+    if (act) h += '<div class="block action-block" id="blkAction"><h3>' + esc(t("place.actionTitle")) + '</h3><p>' + esc(act.label) + '</p><button type="button" class="btn primary" data-action="openPractice" data-practice="' + act.practice + '" data-place="' + p.id + '">' + esc(t("result.relaxCta", { label: act.short })) + "</button></div>";
     h += '<div class="block"><h3>' + esc(t(skip ? "place.climateSkip" : "place.climateFit", { season: S.label })) + '</h3><ol class="reasons">' + rs.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ol></div>";
     h += '<div class="block"><h3>' + esc(t("place.eatTitle")) + "</h3><ul>" + p.food.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     h += '<div class="block"><h3>' + esc(t("place.todoTitle")) + "</h3><ul>" + p.todo.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
-    var cautions = p.caution.slice();
-    if (p.attrs.hotspring) cautions.unshift(t("place.hotspringCaution"));
-    h += '<div class="safety"><b>' + esc(t("result.caution")) + "</b><ul>" + cautions.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     if (p.gallery && p.gallery.length) {
       h += '<div class="gallery">' + p.gallery.map(function (g) { return '<div class="photo"><img src="' + esc(g) + '" alt="' + esc(p.name) + '" loading="lazy"><span class="credit">' + esc(D.CREDIT) + "</span></div>"; }).join("") + "</div>";
     }
     h += '<div class="home-card"><h3>' + esc(t("place.homeTitle")) + "</h3><ul>" + D.HOME_PLAN[cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
-    var prac = D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
-    h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">' + esc(t("result.relaxCta", { label: prac.short })) + "</button></div>";
+    h += '<button type="button" class="text-link" data-action="openPlaces">' + esc(t("place.allPlaces")) + "</button>";
     h += '<p class="src-note">' + esc(t("place.srcNote")) + "</p>";
     $("placeBody").innerHTML = h;
   }
 
+  /* ---------- all places: every place with a real photo is open from the first visit ---------- */
+  function openPlaceList() { return D.PLACES.filter(function (p) { return !!p.photo; }); }
+  function renderPlaces() {
+    $("placesBody").innerHTML = openPlaceList().map(function (p) {
+      return '<article class="place-card" data-place="' + p.id + '"><div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '" loading="lazy"><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
+        '<div class="place-main"><p class="place-name">' + esc(p.name) + '</p><p class="place-area">' + esc(p.area) + '</p><p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
+        '<button type="button" class="btn ghost small" data-action="openPlace" data-place="' + p.id + '">' + esc(t("places.open")) + "</button></div></article>";
+    }).join("");
+  }
+
+  /* ---------- 我的养护记录: a plain local list (date · solar term · place · what was done · optional own line) ---------- */
+  var recEdit = -1;
+  function logRows() { var r = lsGet(LS_LOG); return Array.isArray(r) ? r : []; }
+  function addRecord(row) {
+    var rows = logRows();
+    row.d = today.getFullYear() + "-" + ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
+    row.term = termIndex; row.note = ""; row.at = Date.now();
+    rows.push(row);
+    if (rows.length > 300) rows = rows.slice(-300);
+    return lsSet(LS_LOG, rows);
+  }
+  function recordWhat(r) {
+    if (r.kind === "card") return t("records.cardKept");
+    var a = r.place && D.PLACE_ACTIONS[r.place], pr = D.PRACTICES[r.practice];
+    return a && a.practice === r.practice ? a.label : pr ? pr.label : "";
+  }
+  function renderRecords() {
+    var rows = logRows(), h = "";
+    if (!rows.length) h += '<p class="muted" id="recordsEmpty">' + esc(t("records.empty")) + "</p>";
+    else {
+      h += '<ul class="rec-list">' + rows.map(function (r, i) { return { r: r, i: i }; }).reverse().map(function (x) {
+        var r = x.r, p = r.place && R.placeById(r.place), dd = String(r.d || "").split("-");
+        var date = dd.length === 3 ? t("date.md", { month: D.MONTHS[+dd[1] - 1], d: +dd[2] }) : "";
+        var li = '<li class="rec-row" data-i="' + x.i + '"><p class="rec-when">' + esc(t("records.row", { date: date, term: D.SOLAR_TERMS[r.term] ? termName(r.term) : "" })) + "</p>" +
+          '<p class="rec-what"><b>' + esc(p ? p.name : t("records.atHome")) + "</b>" + esc(t("punct.colon")) + esc(recordWhat(r)) + "</p>";
+        if (r.note) li += '<p class="rec-note">' + esc(t("line.onCard", { line: r.note })) + "</p>";
+        if (recEdit === x.i) {
+          li += '<textarea id="recNoteInput" class="line-input" maxlength="' + LINE_MAX + '" rows="2" placeholder="' + esc(t("records.notePlaceholder")) + '" aria-label="' + esc(t("records.addNote")) + '"></textarea>' +
+            '<div class="btn-row"><button type="button" class="btn primary" data-action="recNoteSave" data-i="' + x.i + '">' + esc(t("records.saveNote")) + "</button>" +
+            '<button type="button" class="btn ghost" data-action="recNoteCancel">' + esc(t("line.cancel")) + "</button></div>";
+        } else {
+          li += '<div class="btn-row"><button type="button" class="btn ghost small" data-action="recNoteOpen" data-i="' + x.i + '">' + esc(t(r.note ? "records.editNote" : "records.addNote")) + "</button>" +
+            '<button type="button" class="btn ghost small" data-action="recDelete" data-i="' + x.i + '">' + esc(t("records.delete")) + "</button></div>";
+        }
+        return li + "</li>";
+      }).join("") + "</ul>";
+      h += '<button type="button" class="text-link" data-action="recClearAll">' + esc(t("records.clearAll")) + "</button>";
+    }
+    h += '<p class="note-line">' + esc(t("records.nextTerm", nextTermInfo())) + "</p>";
+    h += '<p class="saved-note hidden" id="recNote" role="status"></p>';
+    $("recordsBody").innerHTML = h;
+    if (recEdit >= 0 && $("recNoteInput")) { $("recNoteInput").value = (logRows()[recEdit] || {}).note || ""; }
+  }
+
   /* ---------- practice: real timer (time-delta), wake lock ---------- */
   var T = { running: false, paused: false, startAt: 0, pauseAt: 0, pausedTotal: 0, duration: 180, raf: 0, iv: 0, lastBeat: -1, done: false, cadence: 75, beep: false, wake: null, audio: null };
-  function practice() { return D.PRACTICES[state.practiceId] || D.PRACTICES.breath46; }
+  /* The practice being shown. Done "in" a place (state.actionPlace), it keeps the same timings and shows that place's
+   * photo, label and intro (D.PLACE_ACTIONS; plan v4 §5). */
+  function practice() {
+    var base = D.PRACTICES[state.practiceId] || D.PRACTICES.breath46, a = state.actionPlace && D.PLACE_ACTIONS[state.actionPlace];
+    if (!a || a.practice !== base.id) return base;
+    var p = {}, k;
+    for (k in base) p[k] = base[k];
+    p.label = a.label; p.intro = a.intro; p.photo = a.photo; p.place = a.place;
+    return p;
+  }
   function durationOf(p) {
     if (p.kind === "guided") return p.steps.reduce(function (a, s) { return a + s.sec; }, 0);
     return T.duration;
@@ -464,6 +589,10 @@
       $("practiceClock").textContent = "0:00";
       $("practiceCue").textContent = t("practice.done");
       $("doneTitle").textContent = t("practice.doneTitle", { time: mmss(durationOf(p)) });
+      /* 我的养护记录: one plain local row (no body state, no answers). */
+      var logged = addRecord({ kind: "practice", place: p.place || null, practice: p.id });
+      if (p.place) logEvent("place_action_done");
+      $("doneLogged").classList.toggle("hidden", !logged);
       $("donePanel").classList.remove("hidden");
     } else {
       T.done = false;
@@ -506,8 +635,9 @@
   /* ---------- care card ---------- */
   function cardModel() {
     var cond = state.cond, season = state.season, S = D.SEASONS[season];
-    var rec = R.recommend(cond, season), top = rec.top[0], place = top ? R.placeById(top.id) : null;
-    var care = D.CARE[cond][season], prac = D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
+    var m = currentMatch(), top = m.top[0], place = top ? R.placeById(top.id) : null;
+    cond = state.cond;
+    var care = D.CARE[cond][season], prac = D.PRACTICES[m.practiceId] || D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
     /* 「写出我的情况」 off (default): the card and its image carry NO condition-specific text — generic season items and a
      * generic safety line (same for every condition), and a 留一句 that names a body state stays off (rule R05). */
     var show = !!state.cardShowCond, G = D.CARE_GENERIC[season];
@@ -515,7 +645,7 @@
     return {
       seasonLine: season === naturalSeason ? t("card.seasonToday", { season: S.label, term: term }) : t("card.seasonAhead", { season: S.label, months: S.months }),
       head: t("card.head", { who: state.cardShowCond ? condById(cond).label : t("card.whoAnon"), season: S.label }),
-      place: place ? { name: place.name, photo: place.photo, reason: top.reasons[0] } : null,
+      place: place ? { name: place.name, photo: place.photo, reason: top.climateReasons[0] /* weather only: answer reasons name body states (R05) */ } : null,
       items: show ? [
         t("card.itemEat", { tip: care.eat.tip, foods: care.eat.more.split(t("punct.listSep")).slice(0, 3).join(t("punct.listSep")) }),
         t("card.itemMove", { move: care.move[0] }),
@@ -800,20 +930,76 @@
     season: function (el) {
       state.season = el.getAttribute("data-season");
       state.shareUrl = null; shareImgData = null;
-      if (state.view === "result") go("result", null, true); else render();
-    },
-    pickCond: function (el) {
-      var id = el.getAttribute("data-cond");
-      if (!condById(id)) return;
-      if (state.view === "shared") logEvent("got_own_card");
-      go("result", { cond: id }, state.view === "result");
+      if (state.view === "result" || state.view === "reveal") go(state.view, null, true); else render();
     },
     back: function () { if (history.state && history.length > 1 && state.view !== "home") history.back(); else go("home", null, true); },
     goHome: function () { go("home"); },
-    openQuiz: function () { quiz = { i: 0, yes: {} }; go("quiz"); },
-    quizAnswer: function (el) { var q = D.QUIZ[quiz.i]; if (el.getAttribute("data-yes") === "1") quiz.yes[q.cond] = true; quiz.i++; renderQuiz(); },
+    openQuiz: function () {
+      /* Start again; the last answers (this phone only) are pre-selected so a new solar term takes seconds. */
+      var saved = lsGet(LS_MATCH), prev = state.answers || (saved && saved.answers) || {}, picks = {};
+      Object.keys(prev).forEach(function (k) { if (Array.isArray(prev[k])) picks[k] = prev[k].slice(); });
+      quiz = { i: 0, picks: picks };
+      go("quiz");
+    },
+    quizPick: function (el) {
+      var q = D.QUIZ[quiz.i], id = el.getAttribute("data-opt"), cur = (quiz.picks[q.id] || []).slice();
+      if (!q.multi) { quiz.picks[q.id] = [id]; quizAdvance(); return; }
+      var at = cur.indexOf(id);
+      if (at >= 0) cur.splice(at, 1);
+      else if (q.exclusive.indexOf(id) >= 0) cur = [id];
+      else { cur = cur.filter(function (x) { return q.exclusive.indexOf(x) < 0; }); cur.push(id); }
+      quiz.picks[q.id] = cur;
+      renderQuiz();
+    },
+    quizNext: function () { quizAdvance(); },
+    quizSkip: function () { quiz.picks[D.QUIZ[quiz.i].id] = []; quizAdvance(); },
+    quizPrev: function () { if (quiz.i === 0) { go("home"); return; } quiz.i--; renderQuiz(); window.scrollTo(0, 0); },
+    flip: function (el) {
+      var i = +el.getAttribute("data-i");
+      if (!Object.keys(flipped).length) logEvent("flip_seen");
+      flipped[i] = !flipped[i];
+      renderReveal();
+    },
+    flipAll: function () { if (!Object.keys(flipped).length) logEvent("flip_seen"); for (var i = 0; i < 3; i++) flipped[i] = true; renderReveal(); },
+    openWhy: function () { go("result"); },
+    openPlaces: function () { go("places"); },
+    openRecords: function () { recEdit = -1; go("records"); },
+    rematch: function () { logEvent("rematch"); ACTIONS.openQuiz(); },
+    openLastMatch: function () {
+      var saved = lsGet(LS_MATCH);
+      if (!saved || !saved.answers) return;
+      flipped = { 0: true, 1: true, 2: true };
+      go("reveal", { answers: M.clean(saved.answers), season: D.SEASONS[saved.season] ? saved.season : state.season });
+    },
+    /* 今天的 3 分钟: slow breathing (吸 4 呼 6, 3 minutes), shown with the photo of the last first match when that place's action is breathing. */
+    openToday: function () {
+      var saved = lsGet(LS_MATCH), top = saved && saved.top && saved.top[0], a = top && D.PLACE_ACTIONS[top];
+      if (saved && saved.answers) state.answers = M.clean(saved.answers);
+      T.done = false; T.durationFor = null;
+      go("practice", { practiceId: "breath46", actionPlace: a && a.practice === "breath46" ? top : null });
+    },
+    startFromShared: function () { logEvent("got_own_card"); ACTIONS.openQuiz(); },
+    recNoteOpen: function (el) { recEdit = +el.getAttribute("data-i"); renderRecords(); try { $("recNoteInput").focus(); } catch (e) {} },
+    recNoteCancel: function () { recEdit = -1; renderRecords(); },
+    recNoteSave: function (el) {
+      var i = +el.getAttribute("data-i"), rows = logRows();
+      if (!rows[i]) return;
+      rows[i].note = cleanLine($("recNoteInput").value);
+      lsSet(LS_LOG, rows); recEdit = -1; renderRecords();
+    },
+    recDelete: function (el) {
+      var i = +el.getAttribute("data-i"), rows = logRows();
+      rows.splice(i, 1); lsSet(LS_LOG, rows); recEdit = -1; renderRecords();
+    },
+    recClearAll: function () {
+      try { localStorage.removeItem(LS_LOG); } catch (e) {}
+      recEdit = -1; renderRecords(); note("recNote", t("records.cleared"));
+    },
     openPlace: function (el) { go("place", { placeId: el.getAttribute("data-place") }); },
-    openPractice: function (el) { T.done = false; go("practice", { practiceId: el.getAttribute("data-practice") || D.PRACTICE_DEFAULT[state.cond || "quiet"] }); },
+    openPractice: function (el) {
+      T.done = false;
+      go("practice", { practiceId: el.getAttribute("data-practice") || D.PRACTICE_DEFAULT[state.cond || "quiet"], actionPlace: el.getAttribute("data-place") || null });
+    },
     practiceMode: function (el) { if (T.running) return; T.done = false; state.practiceId = el.getAttribute("data-practice"); try { history.replaceState(snapshot(), "", location.pathname + cleanSearch()); } catch (e) {} renderPractice(); },
     practiceOpt: function (el) {
       if (T.running) return;
@@ -836,7 +1022,7 @@
     toggleCardCond: function (el) { state.cardShowCond = !!el.checked; renderCard(); },
     keepCard: function () {
       var ok = lsSet(LS_CARD, { cond: state.cond, season: state.season, showCond: !!state.cardShowCond, savedAt: Date.now() });
-      if (ok) logEvent("card_kept");
+      if (ok) { logEvent("card_kept"); var m = currentMatch(); addRecord({ kind: "card", place: m.top[0] ? m.top[0].id : null }); }
       note("savedNote", t(ok ? "card.kept" : "card.keepFailed"));
     },
     savePng: function () {
@@ -957,12 +1143,7 @@
     replyCopy: function () {
       copyText(replyUrl()).then(function (ok) { if (ok) logEvent("shared"); note("replyNote", t(ok ? "share.copied" : "share.copyFailed")); });
     },
-    makeOwn: function () {
-      var g = $("sharedConds");
-      g.classList.add("pulse");
-      try { g.scrollIntoView({ block: "center" }); g.focus({ preventScroll: true }); } catch (e) {}
-      note("replyNote", t("recv.makeOwnHint"));
-    },
+    makeOwn: function () { ACTIONS.startFromShared(); },
     closeModal: function () { $("imgModal").classList.add("hidden"); },
     setLang: function (el) {
       var code = el.getAttribute("data-lang");
@@ -986,6 +1167,13 @@
   document.addEventListener("change", function (ev) {
     var el = ev.target;
     if (el && el.tagName === "INPUT" && el.getAttribute("data-action") && ACTIONS[el.getAttribute("data-action")]) ACTIONS[el.getAttribute("data-action")](el, ev);
+  });
+  /* role="button" elements (flip cards) also answer Enter / Space */
+  document.addEventListener("keydown", function (ev) {
+    var el = ev.target;
+    if (!el || el.getAttribute("role") !== "button" || !el.getAttribute("data-action") || (ev.key !== "Enter" && ev.key !== " ")) return;
+    var fn = ACTIONS[el.getAttribute("data-action")];
+    if (fn) { ev.preventDefault(); fn(el, ev); }
   });
   $("imgModal").addEventListener("click", function (ev) { if (ev.target === $("imgModal")) ACTIONS.closeModal(); });
 
@@ -1016,7 +1204,7 @@
     storyPng: function () { return storyPng(buildShare()); },
     shareConfig: SHARE_CFG, targetHref: function (id) { return targetHref(id, buildShare()); },
     incoming: incoming, lineTravels: lineTravels,
-    cardModel: cardModel,
+    cardModel: cardModel, currentMatch: currentMatch, records: logRows, quiz: function () { return quiz; },
     privatePng: function () { return privatePng(); },
     lastPrivateText: function () { return lastPrivateText.slice(); }
   };

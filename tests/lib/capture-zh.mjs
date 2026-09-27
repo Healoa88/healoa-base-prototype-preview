@@ -5,7 +5,9 @@
  * History: captured from v2026-09-27-s before the i18n refactor; re-captured ON PURPOSE for v2026-09-27-u
  * (zh copy polish for first-time 55+ users, 留一句 / 发给一个人 / per-platform share); re-captured ON PURPOSE for v2026-09-27-w
  * (audit fixes: private card without condition text when 「写出我的情况」 is off, 睡前慢呼吸 吸4呼6 replaces 4-7-8,
- * plain wording instead of 网格 / 待人工核对 / 样品 / 照片待补, exact solar-term dates).
+ * plain wording instead of 网格 / 待人工核对 / 样品 / 照片待补, exact solar-term dates); re-captured ON PURPOSE for v2026-09-27-x
+ * (v4 Phase 1, D-27-05: new home + 怎么用, 8-question matching quiz one per screen, flip reveal, 为什么是你 page,
+ * all places open, per-place 适合谁 / 要避开什么 / 在这里做一件事, 我的养护记录; the 6 one-tap home buttons are gone).
  * Regenerate the golden only on purpose: node tests/lib/capture-zh.mjs --write
  */
 import { chromium } from "playwright";
@@ -91,16 +93,40 @@ export async function captureZh({ query = "" } = {}) {
     out.sharedReply = await bodyText(p);
     await p.close();
 
-    // quiz
+    // quiz: all 8 screens (skipped one by one), then a fixed answer set → reveal (face-down + all flipped) → 为什么是你
     p = await fresh(base + Q("2026-09-26"));
     await p.click('[data-action="openQuiz"]');
     out.quiz = [await bodyText(p)];
-    for (let i = 0; i < 5; i++) { await p.click(`[data-action="quizAnswer"][data-yes="${i % 2}"]`); out.quiz.push(await p.textContent("#quizBody")); }
+    for (let i = 0; i < 7; i++) { await p.click('#quizBody [data-action="quizSkip"]'); out.quiz.push(await p.textContent("#quizBody")); }
+    await p.click('#quizBody [data-action="quizSkip"]');
+    out.quizNone = await bodyText(p);
     await p.close();
     p = await fresh(base + Q("2026-09-26"));
     await p.click('[data-action="openQuiz"]');
-    for (let i = 0; i < 5; i++) await p.click('[data-action="quizAnswer"][data-yes="0"]');
-    out.quizNone = await p.textContent("#quizBody");
+    for (const o of ["cold"]) await p.click(`#quizBody [data-opt="${o}"]`);
+    await p.click('#quizBody [data-action="quizNext"]');
+    await p.click('#quizBody [data-opt="cold"]');
+    for (let i = 0; i < 4; i++) await p.click('#quizBody [data-action="quizSkip"]');
+    await p.click('#quizBody [data-opt="sea"]'); await p.click('#quizBody [data-action="quizNext"]');
+    await p.click('#quizBody [data-opt="far"]');
+    out.reveal = { closed: await p.textContent("#revealBody") };
+    await p.click('#revealBody [data-action="flipAll"]');
+    out.reveal.open = await p.textContent("#revealBody");
+    await p.click('#revealBody [data-action="openWhy"]');
+    out.reveal.why = await bodyText(p);
+    await p.close();
+
+    // all places (no locks) + 我的养护记录 (empty, then one seeded row)
+    p = await fresh(base + Q("2026-09-26"));
+    await p.click('#vHome [data-action="openPlaces"]');
+    out.places = await bodyText(p);
+    await p.goto(base + Q("2026-09-26"));
+    await p.click('#vHome [data-action="openRecords"]');
+    out.records = { empty: await bodyText(p) };
+    await p.evaluate(() => localStorage.setItem("healoa.log.v1", JSON.stringify([{ d: "2026-09-26", term: 17, place: "wudang", practice: "walk", note: "", at: 1 }])));
+    await p.goto(base + Q("2026-09-26"));
+    await p.click('#vHome [data-action="openRecords"]');
+    out.records.one = await bodyText(p);
     await p.close();
 
     // results + places (12 combos, both natural and "提前看" seasons), place pages for every photo place

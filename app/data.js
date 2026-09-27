@@ -1,4 +1,4 @@
-/* HeaLoa · content structure (v2026-09-27-w)
+/* HeaLoa · content structure (v2026-09-27-x)
  * Language-neutral data only: ids, climate numbers, photos, attributes, timings.
  * Every customer-facing string comes from the active locale (app/i18n/<locale>.js, default zh)
  * via window.HEALOA_I18N.content() and is merged here, so HEALOA_DATA keeps the same shape as before.
@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-09-27-w";
+  var VERSION = "v2026-09-27-x";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -57,7 +57,9 @@
 
   var CREDIT = "Photo · Cindy Yang";
 
-  /* Places. `photo: null` = no photo in the repo yet → never in the top 3.
+  /* Places. `photo: null` = no photo in the repo yet → not shown anywhere (v4: no "coming soon" list either).
+   * v4 matching fields: scenes (main scene first; used for scene answers + top-3 diversity), region (distance answer),
+   * effort (0 flat paths … 2 many stone steps; used for the energy answer), action (the real relaxation done "here").
    * Text (name, area, alt, benefit, cindyLine, food, todo, caution, fit) comes from content.places[id].
    * `cindyLine` = Cindy's own signed one-line feeling, per locale; "" until she provides it; empty renders nothing. */
   var PLACE_BASE = [
@@ -65,33 +67,37 @@
       id: "wudang", climate: "wudang",
       photo: "assets/places/wudang/homestay/01-courtyard-house.jpg",
       gallery: ["assets/places/wudang/01-cloud-sea-sun.jpg", "assets/places/wudang/homestay/02-window-tea-terrace.jpg"],
-      attrs: { quiet: 2, nature: 2, hotspring: false }
+      attrs: { quiet: 2, nature: 2, hotspring: false },
+      scenes: ["mountain", "forest"], region: "cn", effort: 2, action: "walk"
     },
     {
       id: "pattaya", climate: "pattaya",
       photo: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
       gallery: ["assets/places/thai/pool/01-infinity-coast.jpg"],
-      attrs: { quiet: 0, nature: 2, hotspring: false }
+      attrs: { quiet: 0, nature: 2, hotspring: false },
+      scenes: ["sea"], region: "th", effort: 0, action: "breath46"
     },
     {
       id: "onsen", climate: "kusatsu",
       photo: "assets/places/onsen/01-hot-spring-field-town.jpg",
       gallery: ["assets/places/onsen/02-hot-spring-falls.jpg"],
-      attrs: { quiet: 1, nature: 2, hotspring: true }
+      attrs: { quiet: 1, nature: 2, hotspring: true },
+      scenes: ["hotspring", "forest", "mountain"], region: "jp", effort: 1, action: "soak"
     },
     {
       id: "harbin", climate: "harbin",
       photo: "assets/places/harbin/03-day-milk-tea-village.jpg",
       gallery: ["assets/places/harbin/01-night-snow-roofs.jpg"],
-      attrs: { quiet: 1, nature: 1, hotspring: false }
+      attrs: { quiet: 1, nature: 1, hotspring: false },
+      scenes: ["snow"], region: "cn", effort: 1, action: "breath46"
     },
-    /* No photo in the repo yet → only shown under the "photos coming" list, never in the top 3. */
+    /* No photo in the repo yet → not shown anywhere (kept for climate data only). */
     { id: "xishuangbanna", climate: "xishuangbanna", photo: null, attrs: { quiet: 1, nature: 2, hotspring: false } },
     { id: "tengchong", climate: "tengchong", photo: null, attrs: { quiet: 1, nature: 2, hotspring: true } },
     { id: "kunming", climate: "kunming", photo: null, attrs: { quiet: 1, nature: 1, hotspring: false }, highAltitude: true },
     { id: "phuket", climate: "phuket", photo: null, attrs: { quiet: 0, nature: 2, hotspring: false } }
   ];
-  var PLACE_TEXT = ["name", "area", "alt", "benefit", "cindyLine", "food", "todo", "caution"];
+  var PLACE_TEXT = ["name", "area", "alt", "benefit", "cindyLine", "food", "todo", "caution", "kind"];
   var PLACES = PLACE_BASE.map(function (b) {
     var tx = C.places[b.id] || {}, p = {}, k;
     for (k in b) p[k] = b[k];
@@ -158,8 +164,34 @@
   /* At home, when travel is not possible: content.homePlan. */
   var HOME_PLAN = C.homePlan;
 
-  /* Optional 1-minute quiz (never blocks; home buttons work without it). Order here; questions in content.quiz. */
-  var QUIZ = ["cold", "sleep", "gut", "tense", "bp"].map(function (cond) { return { cond: cond, q: C.quiz[cond] }; });
+  /* v4 matching quiz: 8 questions, one per screen (plan v4 §3). Option ids feed app/match.js via app/kb.js.
+   * multi = pick all that fit; exclusive = an option that clears the others ("都还好" …).
+   * Q8 options follow the market of the locale (meta.homeRegion): cn / jp → far · near · home; us → drive · nights · asia · home.
+   * Question + option texts: content.quiz (q8 options in content.quiz.q8.marketOpts). Answers stay on the phone (R05). */
+  var HOME_REGION = root.HEALOA_I18N.meta().homeRegion || "cn";
+  var Q8 = HOME_REGION === "us" ? ["drive", "nights", "asia", "home"] : ["far", "near", "home"];
+  var QUIZ_BASE = [
+    { id: "q1", multi: true, options: ["bp", "sleep", "cold", "gut", "lowEnergy", "stiff", "fine"], exclusive: ["fine"] },
+    { id: "q2", multi: false, options: ["cold", "hot", "same", "unsure"] },
+    { id: "q3", multi: false, options: ["dry", "damp", "neither"] },
+    { id: "q4", multi: false, options: ["plenty", "soso", "low"] },
+    { id: "q5", multi: true, options: ["late", "sitting", "meals", "iced", "regular"], exclusive: ["regular"] },
+    { id: "q6", multi: true, options: ["tense", "quiet", "air", "fun", "calm"], exclusive: ["calm"] },
+    { id: "q7", multi: true, options: ["sea", "mountain", "hotspring", "forest", "snow", "any"], exclusive: ["any"] },
+    { id: "q8", multi: false, options: Q8 }
+  ];
+  var QUIZ = QUIZ_BASE.map(function (b) {
+    var tx = C.quiz[b.id], opts = b.id === "q8" ? tx.marketOpts : tx.opts;
+    return { id: b.id, multi: b.multi, exclusive: b.exclusive || [], q: tx.q, hint: tx.hint,
+      options: b.options.map(function (id) { return { id: id, label: opts[id] }; }) };
+  });
+
+  /* The one real relaxation done "in" each place (plan v4 §5): an existing practice, shown with the place photo. */
+  var PLACE_ACTIONS = {};
+  PLACE_BASE.forEach(function (b) {
+    var tx = C.placeActions && C.placeActions[b.id];
+    if (b.photo && b.action && tx) PLACE_ACTIONS[b.id] = { place: b.id, practice: b.action, label: tx.label, short: tx.short, intro: tx.intro, photo: b.photo };
+  });
 
   /* Season mood photos for the share card (no link to any condition). */
   var SEASON_PHOTO = {
@@ -175,6 +207,7 @@
     PRACTICE_DEFAULT: PRACTICE_DEFAULT, CREDIT: CREDIT, DISCLAIMER: DISCLAIMER,
     HOME_PLAN: HOME_PLAN, QUIZ: QUIZ, SEASON_PHOTO: SEASON_PHOTO,
     SOLAR_TERM_DATES: SOLAR_TERM_DATES, SEASON_START_TERM: SEASON_START_TERM, SEASON_NAMES: SEASON_NAMES,
-    CARE_GENERIC: C.careGeneric, MAX_HOLD_SEC: MAX_HOLD_SEC
+    CARE_GENERIC: C.careGeneric, MAX_HOLD_SEC: MAX_HOLD_SEC,
+    PLACE_ACTIONS: PLACE_ACTIONS, HOME_REGION: HOME_REGION, MONTHS: C.monthShort, ASIA_LINE: C.asiaLine || ""
   };
 })(typeof window !== "undefined" ? window : globalThis);

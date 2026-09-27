@@ -9,6 +9,7 @@ import fs from "fs";
 import path from "path";
 import vm from "vm";
 import { startServer, ROOT } from "./lib/server.mjs";
+import { toResult } from "./lib/flow.mjs";
 
 const results = [];
 function check(name, ok, detail) {
@@ -17,7 +18,7 @@ function check(name, ok, detail) {
 }
 const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
 const ctx = {}; ctx.globalThis = ctx; vm.createContext(ctx);
-for (const f of ["app/i18n/zh.js", "app/i18n/en.js", "app/i18n/ja.js", "app/i18n/es.js", "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "app/data.js", "app/rules.js"]) vm.runInContext(read(f), ctx, { filename: f });
+for (const f of ["app/i18n/zh.js", "app/i18n/en.js", "app/i18n/ja.js", "app/i18n/es.js", "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "app/data.js", "app/rules.js", "app/kb.js", "app/match.js"]) vm.runInContext(read(f), ctx, { filename: f });
 const D = ctx.HEALOA_DATA, R = ctx.HEALOA_RULES;
 const day = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 const at = (s) => ({ date: s, season: R.seasonFor(day(s)), term: R.solarTermFor(day(s)) });
@@ -85,13 +86,13 @@ try {
   for (const d of ["2026-11-06", "2026-11-07", "2026-11-10", "2027-01-10", "2027-04-10", "2026-07-20", "2026-09-27"]) {
     const { c, p } = await home(d);
     const now = await p.textContent("#homeSeasonNow");
-    await p.click('#homeConds [data-cond="cold"]');
+    await toResult(p, "cold");
     probes[d] = { now, title: await p.textContent("#resultTitle"), note: await p.textContent("#blkNote .muted") };
     await c.close();
   }
   check("2026-11-06 home: 霜降前后 · 秋天; result 秋 ·", probes["2026-11-06"].now === "今天是霜降前后 · 秋天" && probes["2026-11-06"].title.startsWith("秋 ·"), probes["2026-11-06"]);
-  check("2026-11-07 / 11-10 (after 立冬) home: 今天是立冬前后 · 冬天; result 冬 · 怕冷手脚凉 (no more 「立冬前后 · 秋天」)",
-    ["2026-11-07", "2026-11-10"].every((d) => probes[d].now === "今天是立冬前后 · 冬天" && probes[d].title === "冬 · 怕冷手脚凉" && probes[d].note.includes("立冬前后 · 冬天")), [probes["2026-11-07"], probes["2026-11-10"]]);
+  check("2026-11-07 / 11-10 (after 立冬) home: 今天是立冬前后 · 冬天; result 冬 · 为什么是这几个地方 (no more 「立冬前后 · 秋天」)",
+    ["2026-11-07", "2026-11-10"].every((d) => probes[d].now === "今天是立冬前后 · 冬天" && probes[d].title === "冬 · 为什么是这几个地方" && probes[d].note.includes("立冬前后 · 冬天")), [probes["2026-11-07"], probes["2026-11-10"]]);
   check("2027-01-10 home: 小寒前后 · 冬天", probes["2027-01-10"].now === "今天是小寒前后 · 冬天", probes["2027-01-10"]);
   check("2027-04-10 (spring): says 清明前后 · 春天 and that spring content is being prepared; autumn shown only as 「先看看秋天」",
     /^今天是清明前后 · 春天。春天的内容还在准备，先看看秋天$/.test(probes["2027-04-10"].now) && probes["2027-04-10"].note.startsWith("先看看秋天") && !/前后 · 秋天/.test(JSON.stringify(probes["2027-04-10"])), probes["2027-04-10"]);
