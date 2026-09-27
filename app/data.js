@@ -1,4 +1,4 @@
-/* HeaLoa · content structure (v2026-09-27-t)
+/* HeaLoa · content structure (v2026-09-27-u)
  * Language-neutral data only: ids, climate numbers, photos, attributes, timings.
  * Every customer-facing string comes from the active locale (app/i18n/<locale>.js, default zh)
  * via window.HEALOA_I18N.content() and is merged here, so HEALOA_DATA keeps the same shape as before.
@@ -10,9 +10,14 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-09-27-t";
+  var VERSION = "v2026-09-27-u";
 
-  var CONDITIONS = ["bp", "sleep", "cold", "gut", "tense", "quiet"].map(function (id) { return { id: id, label: C.conditions[id] }; });
+  /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
+   * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
+  var COND_IDS = ["bp", "sleep", "cold", "gut", "tense", "quiet"];
+  var order = (root.HEALOA_I18N.meta().condOrder || []).slice();
+  if (order.length !== COND_IDS.length || COND_IDS.some(function (id) { return order.indexOf(id) < 0; })) order = COND_IDS;
+  var CONDITIONS = order.map(function (id) { return { id: id, label: C.conditions[id] }; });
 
   var SEASONS = {};
   ["autumn", "winter"].forEach(function (id) {

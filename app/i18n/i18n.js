@@ -1,8 +1,11 @@
-/* HeaLoa · i18n loader + t(key) helper (v2026-09-27-t)
+/* HeaLoa · i18n loader + t(key) helper (v2026-09-27-u)
  * Locale files (app/i18n/zh.js, en.js, ja.js, es.js) register into window.HEALOA_LOCALES.
- * - zh is the default and, for now, the only complete locale. en / ja / es are empty stubs.
- * - Choice order: ?lang=<code> (remembered in localStorage when that locale is complete) → remembered choice → zh.
- *   An unknown or incomplete ?lang falls back to zh.
+ * - zh is the default and the only complete (shipped) locale.
+ * - en / ja are DRAFTS (meta.draft === true, complete: false): reachable ONLY with an explicit ?lang=en / ?lang=ja,
+ *   never remembered, never listed in the public switcher; the page shows a small "draft" badge.
+ * - es is an empty stub (deferred until a reviewer exists).
+ * - Choice order: ?lang=<code> (complete → remembered; draft → this visit only) → remembered complete choice → zh.
+ *   An unknown or unavailable ?lang falls back to zh.
  * - t(key, vars): active locale → zh → the key itself. {name} placeholders are filled from vars.
  * - content(): active locale content deep-merged over zh content (arrays replace).
  * Must load after the locale files and before app/data.js.
@@ -18,6 +21,10 @@
     var l = LOCALES[code];
     return !!(l && l.meta && l.meta.complete === true && l.strings && l.content);
   }
+  function isDraft(code) {
+    var l = LOCALES[code];
+    return !!(l && l.meta && l.meta.draft === true && l.meta.complete !== true && l.strings && l.content);
+  }
   function completeLocales() {
     var extra = Object.keys(LOCALES).filter(function (c) { return ORDER.indexOf(c) < 0; }).sort();
     return ORDER.concat(extra).filter(isComplete);
@@ -32,6 +39,7 @@
     if (q !== null && q !== "") {
       var code = normCode(q);
       if (isComplete(code)) { lsSet(code); return code; }
+      if (isDraft(code)) return code; /* draft preview: explicit ?lang only, not remembered */
       return DEFAULT; /* explicit but unavailable → zh */
     }
     var saved = normCode(lsGet());
@@ -91,6 +99,7 @@
   root.HEALOA_I18N = {
     DEFAULT: DEFAULT, ORDER: ORDER, LS_KEY: LS_LANG,
     lang: lang, t: t, meta: meta, content: function () { return mergedContent; },
+    draft: isDraft(lang), isDraft: isDraft,
     isComplete: isComplete, completeLocales: completeLocales, applyDom: applyDom, setLang: setLang
   };
 })(typeof window !== "undefined" ? window : globalThis);
