@@ -36,7 +36,6 @@
 <header class="top">
   <span class="tag">样张 SAMPLE · 夏威夷</span>
   <div class="row gap6">
-    <button class="chip hidden" id="ptsChip" aria-label="我的积分">✿ <b id="ptsVal">0</b></button>
     <button class="chip" id="soundBtn" aria-label="主题音乐开关（循环）" aria-pressed="false">🔇</button>
     <button class="chip" id="helpBtn" aria-label="怎么玩">?</button>
   </div>
@@ -57,6 +56,7 @@
     <button class="btn big" id="startBtn">开始 · 大约 1 分钟</button>
     <button class="link" id="skipBtn">直接去夏威夷 →</button>
     <p class="fine">照片只在你的手机里处理，不会上传。</p>
+    <p class="copyright">本页所有照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
   </div>
 </section>
 
@@ -126,7 +126,7 @@
       <button class="btn ghost" id="sampleBtn">用示例狗狗（占位图）</button>
     </div>
     <div class="meter hidden" id="meter"><b></b></div>
-    <p class="priv">🔒 <span>照片只在你的手机里处理，不会上传。<span class="privlong"><br>首次抠图会从 CDN 下载约 40MB 的模型文件（只下载模型，不上传照片）。</span></span></p>
+    <p class="priv"><span>照片只在你的手机里处理，不会上传。<span class="privlong"><br>首次抠图会从 CDN 下载约 40MB 的模型文件（只下载模型，不上传照片）。</span></span></p>
     <div id="placeCtl" class="hidden">
       <div class="acc" id="accRow"></div>
       <div class="row" style="margin-top:8px">
@@ -155,14 +155,14 @@
     <p class="hubline full" id="hubLine"></p>
     <div class="stagebar" id="stageBar"></div>
     <p class="mini full" id="stageTxt"></p>
-    <div class="row" style="margin-top:10px">
-      <button class="btn sm" id="waterBtn">💧 浇水</button>
-      <button class="btn ghost sm" id="sitBtn">🪑 陪它坐一会</button>
-      <button class="btn ghost sm" id="hubVideo">🎬 小视频</button>
+    <div class="menu2">
+      <button class="btn" id="waterBtn">💧 浇水</button>
+      <button class="btn ghost" id="hubVideo">🎬 小视频</button>
     </div>
     <div class="row spots" id="spots"></div>
     <details class="full"><summary>演示工具（仅样张）</summary>
       <div class="row" style="margin-top:6px">
+        <button class="btn ghost sm" id="sitBtn">🪑 陪它坐一会</button>
         <button class="btn ghost sm" id="simDay">模拟：明天再来</button>
         <button class="btn ghost sm" id="editBtn">换位置 / 换一句</button>
         <button class="btn ghost sm" id="forget">删除我留下的</button>
@@ -170,23 +170,8 @@
       <p>“成长”和“时间变化”是演示用的画面效果（调色、放大小树、画上的花和芒果），不是照片里真实发生的变化。</p>
     </details>
   </div>
+  <p class="copyright">本页所有照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
 </footer>
-
-<!-- POINTS SHEET -->
-<section id="ptsSheet" class="overlay hidden" role="dialog" aria-label="积分">
-  <div class="card sheet">
-    <div class="row"><p class="k" style="margin:0">我的积分（演示版）</p><button class="link" id="ptsClose" style="margin-left:auto">关闭</button></div>
-    <p class="bal">✿ <b id="ptsBig">0</b></p>
-    <p class="mini">演示版积分只存在你的手机里，暂时不能兑换，没有现金价值。</p>
-    <p class="k" style="margin-top:12px">能解锁的小装扮</p>
-    <div id="unlockList"></div>
-    <p class="k" style="margin-top:12px">邀请朋友</p>
-    <p class="mini">朋友通过你的链接来放入 TA 的小伙伴时，你会得到奖励（正式版开启）。现在没有服务器，这一步还不能记到你名下。</p>
-    <div class="row" style="margin-top:6px"><button class="btn ghost sm" id="shareLinkBtn">分享我的链接</button><span class="mini" id="myRef"></span></div>
-    <p class="k" style="margin-top:12px">最近</p>
-    <ul class="hist" id="histList"></ul>
-  </div>
-</section>
 
 <!-- KEEPSAKE -->
 <section id="keep" class="overlay hidden" role="dialog" aria-label="你的小视频和明信片">
@@ -201,6 +186,7 @@
     <button class="btn ghost" id="closeKeep">回到场景</button>
   </div>
   <p class="mini" style="text-align:center">视频和明信片都在你的手机里生成。上面的二维码只是这个样张页面的链接。</p>
+  <p class="copyright">本页所有照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
 </section>
 
 <div id="busy" class="overlay hidden"><div class="card" style="text-align:center"><svg class="honu sm bob" viewBox="0 0 120 100"><use href="#honu"/></svg><p id="busyTxt">正在做你的小视频…</p><div class="meter"><b id="busyBar"></b></div></div></div>

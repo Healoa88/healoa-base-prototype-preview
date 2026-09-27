@@ -23,8 +23,11 @@ ok(P.earn("referral_welcome").ok && !P.earn("referral_welcome").ok, "referral_we
 ok(P.history().length === 4, "history length");
 // ---- unit: check-in mapping
 const C = load("immersive-hawaii/js/checkin.js");
-ok(C.recommend({ energy: "tired", mood: "annoyed", want: "breathe" }).place === "onsen", "累+烦 → 温泉 (即将开放)");
-ok(C.recommend({ energy: "tired", mood: "annoyed" }).open === false, "non-Hawaii rec is not open + nudge");
+// Cindy 2026-09-27: only places that exist are recommended — no "coming soon" place, no 即将开放 wording anywhere
+const everyRec = ["tired", "ok", "energetic"].flatMap(e => ["annoyed", "calm", "happy"].flatMap(m => ["quiet", "breathe", "lively"].map(w => C.recommend({ energy: e, mood: m, want: w }))));
+ok(everyRec.every(r => r.place === "hawaii" && r.open === true && !r.nudge) && Object.keys(C.PLACES).join() === "hawaii", "every answer → a place that exists (夏威夷); no closed places");
+{ const src = ["immersive-hawaii/index.html", "immersive-hawaii/js/app.js", "immersive-hawaii/js/checkin.js"].map(f => fs.readFileSync(path.join(ROOT, f), "utf8")).join("\n");
+  ok(!/即将开放|敬请期待|🔒|积分|解锁|邀请|奖励|ptsChip|Photo · Cindy Yang/.test(src), "no points counter, no lock icons, no 即将开放 / 积分 / 解锁 / 邀请 wording, no per-photo credit in the sample source"); }
 ok(C.recommend({ want: "breathe" }).place === "hawaii", "透口气 → 夏威夷");
 ok(C.recommend({ text: "想要一个新开始" }).place === "hawaii", "新开始 keyword → 夏威夷");
 ok(C.recommend({ energy: "energetic" }).mood.timeOfDay === "sunrise", "有精神 → sunrise mood");
@@ -98,5 +101,16 @@ try {
   ok(saved && saved.line === "测试一句" && !!saved.cut, "place saved to localStorage");
   await pg.reload(); await pg.waitForFunction(() => window.__ready); ok(/还在这里/.test(await pg.textContent("#landH")), "revisit copy 你上次留下的，还在这里");
   ok(errs.length === 0, "no page errors " + errs.join(" | "));
+  // copyright line visible on the landing page (replaces the per-photo credit)
+  ok(/Cindy Yang 实地拍摄，受版权保护/.test(await pg.textContent("#landing .copyright")), "copyright line on the landing page");
+  // responsive: desktop = centred phone-width frame (never stretched); phone landscape = scene left + menu column right
+  for (const [vw, vh, kind] of [[1280, 800, "desktop"], [844, 390, "landscape"]]) {
+    const pd = await (await b.newContext({ viewport: { width: vw, height: vh } })).newPage(); await pd.goto(BASE + "?x=" + kind); await pd.waitForFunction(() => window.__ready, null, { timeout: 30000 });
+    const g = await pd.evaluate(() => { const s = document.querySelector("#stage").getBoundingClientRect(), c = document.querySelector("#gl"), bt = document.querySelector(".bottom").getBoundingClientRect(); return { sw: s.width, sh: s.height, sl: s.left, cw: c.width / (devicePixelRatio || 1), ch: c.height / (devicePixelRatio || 1), bl: bt.left, bw: bt.width, vw: innerWidth }; });
+    const okG = kind === "desktop" ? g.sw <= 470 && Math.abs(g.sl + g.sw / 2 - g.vw / 2) < 2 && Math.abs(g.cw - g.sw) < 2 && Math.abs(g.ch - g.sh) < 2
+      : g.sw < g.vw && g.bl >= g.sw - 1 && g.bw >= 280 && Math.abs(g.cw - g.sw) < 2;
+    ok(okG, `${kind} ${vw}×${vh}: ${kind === "desktop" ? "centred phone-width frame, canvas = frame size" : "scene on the left, menu column on the right, canvas = scene size"} — ` + JSON.stringify(g));
+    await pd.context().close();
+  }
 } finally { await b.close(); server.close(); }
 console.log(`\n${pass}/${pass + fail} PASS`); process.exit(fail ? 1 : 0);

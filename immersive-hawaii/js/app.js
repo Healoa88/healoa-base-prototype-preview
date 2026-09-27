@@ -4,7 +4,8 @@
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const REC_KEY = 'healoa.immersive.hawaii.v2', ME_KEY = 'healoa.immersive.hawaii.me', UI_KEY = 'healoa.immersive.hawaii.ui';
-const CREDIT = 'Photo · Cindy Yang';
+// Cindy 2026-09-27: no per-photo credit; one copyright line (page footer + bottom edge of every export).
+const COPYRIGHT = '本页所有照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const qs = new URLSearchParams(location.search);
 const toast = (m, ms = 2400) => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms); };
@@ -30,15 +31,16 @@ const SCENES = {
   mango: { img: 'assets/hawaii-17-mango.jpg', dep: 'assets/hawaii-17-mango-depth.png', asp: 900 / 1600,  cx: .5,  zh: '芒果树下', warm: .6, cut: { x: .6, y: .7, h: .12 } },
 };
 const STAGES = [
-  { zh: '嫩芽', k: 1.0, g: 0.0 }, { zh: '小树', k: 1.07, g: .3, unlock: '露台沙发' }, { zh: '开花', k: 1.12, g: .45, unlock: '小花冠' },
-  { zh: '结果', k: 1.16, g: .55, unlock: '芒果树' }, { zh: '小树林', k: 1.2, g: .65, unlock: '远处的小树林' },
+  { zh: '嫩芽', k: 1.0, g: 0.0 }, { zh: '小树', k: 1.07, g: .3, adds: '露台沙发' }, { zh: '开花', k: 1.12, g: .45, adds: '小花冠' },
+  { zh: '结果', k: 1.16, g: .55, adds: '芒果树' }, { zh: '小树林', k: 1.2, g: .65, adds: '远处的小树林' },
 ];
 const ACCS = [
   { id: 'lei', zh: '🌺 花环', need: () => true },
-  { id: 'shades', zh: '🕶️ 小墨镜', need: () => P.balance() >= 60 || me.welcomed, why: '60 积分解锁（朋友邀请可直接获得）' },
-  { id: 'crown', zh: '🌼 小花冠', need: () => stage() >= 2, why: '小树开花后解锁' },
-  { id: 'mango', zh: '🥭 芒果', need: () => !!(rec && rec.mango), why: '在芒果树下摘一颗' },
-  { id: 'goldlei', zh: '✨ 金色花环', need: () => P.balance() >= 150, why: '150 积分解锁' },
+  // no points, no locks (Cindy 2026-09-27): every accessory is simply there; the mango appears once you have picked one
+  { id: 'shades', zh: '🕶️ 小墨镜', need: () => true },
+  { id: 'crown', zh: '🌼 小花冠', need: () => true },
+  { id: 'mango', zh: '🥭 芒果', need: () => !!(rec && rec.mango) },
+  { id: 'goldlei', zh: '✨ 金色花环', need: () => true },
 ];
 const stage = () => Math.min(4, (rec && rec.careDays ? rec.careDays.length : 0));
 
@@ -188,25 +190,30 @@ function cutGain(id) { const pos = S.pos[id]; if (!S.cut || !pos || !S.cut.mean)
 // ---- what you see is what you get: while placing (step 2) and writing the line (step 3) the canvas IS the postcard's top layer
 const CARD = { W: 1080, SH: 1380 };
 const framedPanel = () => (S.panel === 'p2' || S.panel === 'p3') && S.scene !== 'door';
+// Responsive (Cindy 2026-09-27): #stage is the full screen on a phone, a centred phone-width frame on desktop, and the left
+// part of the screen in phone landscape (the menu becomes a column on the right). All sizes come from the #stage box.
+const SIDE = matchMedia('(orientation: landscape) and (max-height: 540px)');
+const stageBox = () => $('#stage').getBoundingClientRect();
 function frameRect() {
-  const top = 50, bottom = innerHeight - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panelH')) || 0) - 60;
-  const aw = innerWidth - 16, ah = Math.max(120, bottom - top), a = CARD.W / CARD.SH; let fh = Math.min(ah, aw / a), fw = fh * a;
-  return { left: Math.round((innerWidth - fw) / 2), top: Math.round(top + (ah - fh) / 2), width: Math.round(fw), height: Math.round(fh) };
+  const R = stageBox(), side = SIDE.matches;
+  const top = 50, bottom = R.height - (side ? 0 : (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panelH')) || 0)) - (side ? 16 : 60);
+  const aw = R.width - 16, ah = Math.max(120, bottom - top), a = CARD.W / CARD.SH; let fh = Math.min(ah, aw / a), fw = fh * a;
+  return { left: Math.round((R.width - fw) / 2), top: Math.round(top + (ah - fh) / 2), width: Math.round(fw), height: Math.round(fh), vx: R.left, vy: R.top };
 }
 function resize() {
   if (S.recording) return; const dpr = Math.min(devicePixelRatio || 1, 2); S.framed = framedPanel(); const st = cv.style, fr = $('#frameOv'), stage_ = $('#stage');
   stage_.classList.toggle('framed', S.framed);
   if (S.framed) { const r = frameRect(); Object.assign(st, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', right: 'auto', bottom: 'auto' });
     cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
-    Object.assign(fr.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); fr.width = cv.width; fr.height = cv.height; fr.classList.remove('hidden'); drawFrameOverlay(); }
-  else { ['left', 'top', 'width', 'height', 'right', 'bottom'].forEach(k => st[k] = ''); cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); fr.classList.add('hidden'); }
+    Object.assign(fr.style, { left: (r.left + r.vx) + 'px', top: (r.top + r.vy) + 'px', width: r.width + 'px', height: r.height + 'px' }); fr.width = cv.width; fr.height = cv.height; fr.classList.remove('hidden'); drawFrameOverlay(); }
+  else { ['left', 'top', 'width', 'height', 'right', 'bottom'].forEach(k => st[k] = ''); const R = stageBox(); cv.width = Math.round(R.width * dpr); cv.height = Math.round(R.height * dpr); fr.classList.add('hidden'); }
 }
 // the postcard's text layer, drawn at any size (scale = width / 1080). Used by the postcard AND by the live frame preview.
 function drawTopOverlay(x, W, SH) { const k = W / CARD.W;
   const g = x.createLinearGradient(0, SH - 480 * k, 0, SH); g.addColorStop(0, 'rgba(23,16,13,0)'); g.addColorStop(1, 'rgba(23,16,13,.94)'); x.fillStyle = g; x.fillRect(0, SH - 480 * k, W, 480 * k);
   x.fillStyle = '#fff7ee'; x.font = `600 ${58 * k}px ` + F; const lines = wrap(x, lineText(), W - 160 * k).slice(0, 3); let y = SH - 50 * k - (lines.length - 1) * 76 * k; lines.forEach(l => { x.fillText(l, 80 * k, y); y += 76 * k; }); }
 function drawFrameOverlay() { const fr = $('#frameOv'); if (!fr || fr.classList.contains('hidden')) return; const x = fr.getContext('2d'); x.clearRect(0, 0, fr.width, fr.height); drawTopOverlay(x, fr.width, fr.height); }
-function relayout() { requestAnimationFrame(() => { const el = S.panel && $('#' + S.panel); document.documentElement.style.setProperty('--panelH', (el ? el.offsetHeight : 0) + 'px'); resize(); if (S.framed) clampPos(); }); }
+function relayout() { requestAnimationFrame(() => { const el = S.panel && $('#' + S.panel); const cp = $('.bottom > .copyright'); document.documentElement.style.setProperty('--panelH', (el ? el.offsetHeight + (cp && !SIDE.matches ? cp.offsetHeight + 6 : 0) : 0) + 'px'); resize(); if (S.framed) clampPos(); }); }
 // visible part of the photo (image uv) for the current canvas at zoom 1 — the placement area
 function visibleBox() { const sc = SCENES[S.scene], sa = cv.width / cv.height, cx = centerX(S.scene, 1, cv.width, cv.height);
   return sa < sc.asp ? { x0: cx - .5 * sa / sc.asp, x1: cx + .5 * sa / sc.asp, y0: 0, y1: 1 } : { x0: 0, x1: 1, y0: .5 - .5 * sc.asp / sa, y1: .5 + .5 * sc.asp / sa }; }
@@ -344,24 +351,10 @@ function tickPetals() {
   if (petals.length) requestAnimationFrame(tickPetals); else px.clearRect(0, 0, pc.width, pc.height);
 }
 
-// ---------- points UI ----------
-function earn(ev, meta) { const r = P.earn(ev, meta); if (r.ok) { syncPts(true); toast(`+${r.points} 积分 · ${P.rules[ev].zh}`); } return r; }
-function syncPts(bump) { $('#ptsVal').textContent = P.balance(); if (bump) { const c = $('#ptsChip'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); } }
+// ---------- no points UI (Cindy 2026-09-27: the points counter is gone; nothing is counted or shown) ----------
+function earn() { return { ok: false }; }
+function syncPts() {}
 function shareURL() { const u = new URL(location.href); u.search = ''; u.hash = ''; u.searchParams.set('ref', me.ref); if (S.cut) u.searchParams.set('c', '1'); return u.toString(); }
-function openPts() {
-  $('#ptsBig').textContent = P.balance();
-  $('#unlockList').innerHTML = ACCS.filter(a => a.why).map(a => `<div class="unl"><span>${a.zh}</span><span class="mini">${a.need() ? '已解锁' : a.why}</span></div>`).join('')
-    + STAGES.slice(1).map((s, i) => `<div class="unl"><span>🌱 ${s.zh}：${s.unlock}</span><span class="mini">${stage() >= i + 1 ? '已解锁' : `照顾小树 ${i + 1} 天`}</span></div>`).join('');
-  $('#histList').innerHTML = P.history().slice(-8).reverse().map(h => `<li><span>${P.rules[h.event]?.zh || h.event}</span><span>+${h.points} · ${h.day}</span></li>`).join('') || '<li>还没有记录</li>';
-  $('#myRef').textContent = '我的邀请码 ' + me.ref;
-  $('#ptsSheet').classList.remove('hidden');
-}
-$('#ptsChip').onclick = openPts; $('#ptsClose').onclick = () => $('#ptsSheet').classList.add('hidden');
-$('#shareLinkBtn').onclick = async () => {
-  const url = shareURL();
-  if (navigator.share) { try { await navigator.share({ title: '夏威夷 · 火山', text: '带你的狗也来这里', url }); earn('share'); return; } catch (e) { if (e.name === 'AbortError') return; } }
-  try { await navigator.clipboard.writeText(url); toast('链接已复制'); earn('share'); } catch (e) { prompt('复制这个链接', url); }
-};
 
 // ---------- panels, hints, guide ----------
 const PANELS = ['#pDoor', '#p1', '#p2', '#p3', '#hub'];
@@ -401,9 +394,7 @@ function finishCheckin() {
   S.baseMorning = r.mood.timeOfDay === 'sunrise' ? .55 : 0; S.drift = r.mood.drift; S.morning = Math.max(S.morning, S.baseMorning);
   $('#recWhy').textContent = r.why;
   const hawaiiLine = r.mood.timeOfDay === 'sunrise' ? '为你调成了清晨的光。' : '为你留着黄昏的光。';
-  $('#recCard').innerHTML = r.open
-    ? `<p class="k">为你选的地方</p><h2>${r.placeInfo.zh}</h2><p class="sub">${hawaiiLine}推开门就到。</p><div class="row" style="margin-top:12px"><button class="btn" id="goHawaii">去这里</button></div>`
-    : `<p class="k">为你选的地方</p><h2>${r.placeInfo.zh}<span class="soon">即将开放</span></h2><p class="sub">${r.nudge}</p><div class="row" style="margin-top:12px"><button class="btn" id="goHawaii">先去夏威夷看看</button></div>`;
+  $('#recCard').innerHTML = `<p class="k">为你选的地方</p><h2>${r.placeInfo.zh}</h2><p class="sub">${hawaiiLine}推开门就到。</p><div class="row" style="margin-top:12px"><button class="btn big" id="goHawaii">去这里</button></div>`;
   screen('rec'); $('#recWhy').parentElement.querySelector('.honu').classList.add('cheer');
   $('#goHawaii').onclick = goDoor;
 }
@@ -427,9 +418,7 @@ $('#doorBtn').onclick = async () => {
     $('#flash').style.opacity = Math.max(0, (u - .6) / .4); if (u < 1) requestAnimationFrame(step); else res(); }; requestAnimationFrame(step); });
   await loadScene('lava'); S.zoomAnim = null; S.scene = 'lava'; S.enterT = performance.now();
   setTimeout(() => { $('#flash').style.opacity = 0; }, 120);
-  if (P.canEarn('first_visit')) earn('first_visit');
-  $('#ptsChip').classList.remove('hidden');
-  if (isArrival) { show('p2'); setHint('把你的小伙伴放进来，领见面礼'); } else show('p1');
+  if (isArrival) { show('p2'); setHint('把你的小伙伴也放进来吧'); } else show('p1');
 };
 $('#to2').onclick = () => show('p2');
 
@@ -492,7 +481,7 @@ function compose() {
   gl.activeTexture(gl.TEXTURE2); if (cutTex) gl.deleteTexture(cutTex); cutTex = mkTex(c);
 }
 function renderAccRow() {
-  $('#accRow').innerHTML = ACCS.map(a => { const ok = a.need(); return `<button data-a="${a.id}" class="${S.acc[a.id] ? 'on' : ''}" ${ok ? '' : 'disabled'} title="${ok ? '' : (a.why || '')}">${a.zh}${ok ? '' : ' 🔒'}</button>`; }).join('');
+  $('#accRow').innerHTML = ACCS.filter(a => a.need()).map(a => `<button data-a="${a.id}" class="${S.acc[a.id] ? 'on' : ''}" aria-pressed="${S.acc[a.id] ? 'true' : 'false'}">${a.zh}</button>`).join('');
   $$('#accRow button').forEach(b => b.onclick = () => { const id = b.dataset.a; S.acc[id] = !S.acc[id]; if (id === 'goldlei' && S.acc.goldlei) S.acc.lei = false; if (id === 'lei' && S.acc.lei) S.acc.goldlei = false; compose(); renderAccRow(); S.happyT = performance.now(); chime('soft'); save(); });
 }
 function setCutBase(c, kind) {
@@ -503,9 +492,7 @@ function setCutBase(c, kind) {
 }
 function celebratePlaced() {
   S.happyT = performance.now(); chime('big'); confetti(24); setHint('TA 很开心 ✿ 框里就是明信片 · 拖动换位置');
-  earn('place_companion');
-  if (isArrival && !me.welcomed) { const r = P.earn('referral_welcome', { ref: refIn }); me.welcomed = true; lsSet(ME_KEY, me); syncPts(true);
-    S.acc.shades = true; compose(); renderAccRow(); setTimeout(() => toast(`朋友的见面礼：小墨镜 + ${r.points || 0} 积分（演示）`, 3200), 900); }
+  if (isArrival && !me.welcomed) { me.welcomed = true; lsSet(ME_KEY, me); S.acc.shades = true; compose(); renderAccRow(); setTimeout(() => toast('朋友送了 TA 一副小墨镜 🕶️', 3200), 900); }
   relayout();
 }
 $('#sampleBtn').onclick = async () => {
@@ -552,7 +539,10 @@ function wrap(x, text, maxW) { const out = []; let cur = ''; for (const ch of te
 function withCanvasSize(w, h, fn) { const pw = cv.width, ph = cv.height; cv.width = w; cv.height = h; const r = fn(); cv.width = pw; cv.height = ph; return r; }
 const lineText = () => ($('#lineIn').value.trim() || (rec && rec.line) || '我来过这里');
 function dateStr() { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; }
-function creditTxt() { return CREDIT + (S.isPlaceholder ? ' · 狗狗为示例占位' : ''); }
+function copyrightTxt() { return COPYRIGHT; }
+function placeholderTxt() { return S.isPlaceholder ? '狗狗为示例占位（画出来的剪影）' : ''; }
+// the copyright line on the bottom edge of an export (wraps to 2 lines on narrow canvases)
+function drawCopyright(x, W, H, px) { x.save(); x.fillStyle = 'rgba(255,247,238,.62)'; x.font = px + 'px ' + F; x.textAlign = 'center'; const ls = wrap(x, COPYRIGHT, W - 80); ls.forEach((l, i) => x.fillText(l, W / 2, H - 22 - (ls.length - 1 - i) * px * 1.4)); x.restore(); }
 // the postcard's photo layer: same camera as the framed live view (zoom 1, no parallax, still pose)
 function renderTop(W = CARD.W, SH = CARD.SH, sceneId = S.scene === 'door' ? 'lava' : S.scene) {
   return withCanvasSize(W, SH, () => { draw(performance.now(), { scene: sceneId, ox: 0, oy: 0, zoom: 1.0, anim: [0, 0, 1, 1] }); const c = document.createElement('canvas'); c.width = W; c.height = SH; c.getContext('2d').drawImage(cv, 0, 0); return c; });
@@ -564,9 +554,10 @@ async function makePostcard() {
   x.fillStyle = '#17100d'; x.fillRect(0, 0, W, H); x.drawImage(sc, 0, 0);
   drawTopOverlay(x, W, SH);
   x.fillStyle = 'rgba(255,207,154,.96)'; x.font = '600 36px ' + F; x.fillText('夏威夷 · 火山', 80, SH + 78);
-  x.fillStyle = 'rgba(255,247,238,.62)'; x.font = '27px ' + F; x.fillText(`${dateStr()} · HeaLoa 样张`, 80, SH + 124); x.fillText(creditTxt(), 80, SH + 166);
+  x.fillStyle = 'rgba(255,247,238,.62)'; x.font = '27px ' + F; x.fillText(`${dateStr()} · HeaLoa 样张`, 80, SH + 124); if (placeholderTxt()) x.fillText(placeholderTxt(), 80, SH + 166);
   x.fillStyle = '#fff7ee'; x.font = '600 30px ' + F; x.fillText('带你的狗也来这里 →', 80, SH + 216);
   const q = await qrCanvas(shareURL(), 170); if (q) { x.drawImage(q, W - 80 - 170, SH + 24, 170, 170); x.fillStyle = 'rgba(255,247,238,.62)'; x.font = '21px ' + F; x.textAlign = 'center'; x.fillText('扫码，把你的它也放进来', W - 80 - 85, SH + 222); x.textAlign = 'left'; }
+  drawCopyright(x, W, H, 20);
   return c;
 }
 // theme audio as a MediaStream track (only when the MP3 is really there and sound is on), so the saved video carries the music
@@ -608,7 +599,7 @@ async function makeVideo() {
         else { const a = Math.min(1, (t - 5300) / 500); x.fillStyle = `rgba(20,13,11,${.72 * a})`; x.fillRect(0, 0, W, H); x.globalAlpha = a; x.textAlign = 'center'; x.fillStyle = '#ffcf9a'; x.font = '600 30px ' + F; x.fillText('夏威夷 · 火山', W / 2, 330);
           x.fillStyle = '#fff7ee'; x.font = '600 42px ' + F; wrap(x, line, W - 120).slice(0, 2).forEach((l, i) => x.fillText(l, W / 2, 410 + i * 56));
           if (q) { x.drawImage(q, W / 2 - 120, 560, 240, 240); } x.font = '600 34px ' + F; x.fillText('带你的狗也来这里', W / 2, 870); x.fillStyle = 'rgba(255,247,238,.7)'; x.font = '24px ' + F; x.fillText('扫码，把你的它也放进来', W / 2, 912);
-          x.font = '20px ' + F; x.fillText(`HeaLoa 样张 · ${creditTxt()}`, W / 2, H - 70); x.textAlign = 'left'; x.globalAlpha = 1; }
+          x.font = '20px ' + F; x.fillText('HeaLoa 样张' + (placeholderTxt() ? ' · ' + placeholderTxt() : ''), W / 2, H - 110); x.textAlign = 'left'; drawCopyright(x, W, H, 18); x.globalAlpha = 1; }
       }
       if (t < DUR) requestAnimationFrame(frame); else res();
     }; requestAnimationFrame(frame);
@@ -662,7 +653,7 @@ function careToday(kind, silent) {
   if (rec.careDays.includes(d)) { if (!silent) toast('今天已经照顾过啦，明天再来 ✿'); return false; }
   const before = stage(); rec.careDays.push(d); save(); earn('nurture', { kind });
   const after = stage(); S.happyT = performance.now();
-  if (after > before) { confetti(34); chime('big'); setTimeout(() => toast(`小树长到「${STAGES[after].zh}」了！解锁：${STAGES[after].unlock}`, 3400), 700); }
+  if (after > before) { confetti(34); chime('big'); setTimeout(() => toast(`小树长到「${STAGES[after].zh}」了 ✿`, 3400), 700); }
   else chime('happy');
   renderHub(); return true;
 }
@@ -677,8 +668,9 @@ function renderHub() {
   const days = rec ? Math.floor((Date.now() - rec.first) / 864e5 + simDays()) : 0;
   $('#stageTxt').textContent = `小树现在是「${STAGES[st].zh}」。` + (st < 4 ? `再照顾 1 天会变成「${STAGES[st + 1].zh}」（每天最多一次）。` : '已经长成小树林啦。') + (days >= 1 ? ` 离你第一次来已经 ${days} 天。` : '');
   const spots = [['lava', '🌱 熔岩小树', 0], ['lanai', '🛋️ 露台沙发', 1], ['mango', '🥭 芒果树', 3]];
-  $('#spots').innerHTML = spots.map(([id, zh, need]) => `<button class="btn ghost sm" data-s="${id}" ${st >= need ? '' : 'disabled'}>${zh}${st >= need ? '' : ' 🔒'}${S.scene === id ? ' ·在这' : ''}</button>`).join('')
-    + (S.scene === 'mango' ? `<button class="btn sm" id="pickMango">${rec && rec.mango ? '🥭 已摘到' : '🥭 摘一颗芒果'}</button>` : '');
+  // only the spots you can go to are shown — no locks (a new spot simply appears when the tree has grown)
+  $('#spots').innerHTML = spots.filter(([, , need]) => st >= need).map(([id, zh]) => `<button class="btn ghost" data-s="${id}" aria-pressed="${S.scene === id}">${zh}${S.scene === id ? ' · 在这' : ''}</button>`).join('')
+    + (S.scene === 'mango' ? `<button class="btn" id="pickMango">${rec && rec.mango ? '🥭 已摘到' : '🥭 摘一颗芒果'}</button>` : '');
   $$('#spots button[data-s]').forEach(b => b.onclick = () => goSpot(b.dataset.s));
   const pm = $('#pickMango'); if (pm) pm.onclick = pickMango;
   setHint(hubHint());
@@ -719,7 +711,7 @@ async function restore() {
 }
 async function returnToPlace() {
   ['#landing', '#checkin', '#rec'].forEach(s => $(s).classList.add('hidden'));
-  const id = rec.scene || 'lava'; await loadScene(id); S.scene = id; S.enterT = performance.now(); $('#ptsChip').classList.remove('hidden');
+  const id = rec.scene || 'lava'; await loadScene(id); S.scene = id; S.enterT = performance.now();
   openHub(); S.happyT = performance.now() + 600;
   if (S._newDay) setTimeout(() => earn('daily_return'), 900);
 }
@@ -733,8 +725,8 @@ async function returnToPlace() {
     await Promise.all([loadScene('door'), loadScene('lava')]); S.scene = 'lava'; // landing backdrop = the lava sapling
     if (rec) S._newDay = await restore();
     // landing variants
-    if (isArrival) { $('#arrive').textContent = refCompanion ? '有位朋友带着 TA 的小伙伴来过这里，把链接分享给了你。把你的也放进来吧——放好后有一份见面礼：小墨镜 + 30 积分（演示）。' : '有位朋友把这里分享给了你。把你的小伙伴也放进来吧——放好后有一份见面礼（演示）。'; $('#arrive').classList.remove('hidden'); $('#startBtn').textContent = '把我的也放进来'; $('#skipBtn').classList.add('hidden'); }
-    else if (refIn && refIn === me.ref) { $('#arrive').textContent = '这是你自己的分享链接（自己打开不算邀请奖励）。'; $('#arrive').classList.remove('hidden'); }
+    if (isArrival) { $('#arrive').textContent = refCompanion ? '有位朋友带着 TA 的小伙伴来过这里，把链接分享给了你。把你的也放进来吧。' : '有位朋友把这里分享给了你。把你的小伙伴也放进来吧。'; $('#arrive').classList.remove('hidden'); $('#startBtn').textContent = '把我的也放进来'; $('#skipBtn').classList.add('hidden'); }
+    else if (refIn && refIn === me.ref) { $('#arrive').textContent = '这是你自己的分享链接。'; $('#arrive').classList.remove('hidden'); }
     if (rec && !isArrival) { $('#landH').innerHTML = '你上次留下的，<br>还在这里'; $('#startBtn').textContent = '回到这里'; $('#skipBtn').classList.add('hidden'); }
     syncPts(); requestAnimationFrame(loop); cv.classList.add('on'); window.__ready = performance.now();
   } catch (err) { console.error(err); toast('场景加载失败：' + err.message, 6000); window.__ready = -1; }
