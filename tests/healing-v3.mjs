@@ -17,6 +17,9 @@ function check(name, ok, detail) {
 const { server, base } = await startServer();
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "zh-CN" });
+// Platform share buttons open real web intents in a new tab; answer them locally so the run never leaves the box.
+await ctx.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<title>stub</title>ok" }));
+const B64 = (t) => Buffer.from(t, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const D = "?date=2026-09-26";
 const pageErrors = [];
 
@@ -51,7 +54,7 @@ try {
   // ---------- Home ----------
   let p = await fresh();
   check("home: headline exact", (await p.textContent("#homeTitle")) === "血压偏高、睡不好、怕冷……这个季节该怎么养？");
-  check("home: subline exact", (await p.textContent("#vHome .subline")) === "点一下你的情况，马上告诉你这个季节注意什么、吃什么、怎么动、去哪里养");
+  check("home: subline exact", (await p.textContent("#vHome .subline")) === "点一下你的情况，马上告诉你这个季节怎么吃、怎么动、去哪里养。");
   const labels = await p.$$eval("#homeConds .cond-btn", (els) => els.map((e) => e.textContent));
   check("home: ≤6 one-tap buttons with locked labels", labels.length <= 6 && JSON.stringify(labels) === JSON.stringify(CONDITION_LABELS), labels);
   check("home: 3-step explainer", (await p.$$("#vHome .steps li")).length === 3);
@@ -189,6 +192,11 @@ try {
     share: async (q) => { await q.click('#homeConds [data-cond="gut"]'); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); },
     quiz: async (q) => { await q.click('[data-action="openQuiz"]'); },
     shared: async (q) => { await q.goto(base + "?s=abc234&date=2026-09-26"); },
+    cardLine: async (q) => { await q.click('#homeConds [data-cond="gut"]'); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenLine"); },
+    sharedLine: async (q) => { await q.goto(base + "?s=abc234&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); },
+    sharedLineWriting: async (q) => { await q.goto(base + "?s=abc235&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); await q.evaluate(() => localStorage.clear()); await q.click('[data-action="replyOpen"]'); await q.fill("#replyInput", "我也想慢一点。"); },
+    sharedLineWrote: async (q) => { await q.goto(base + "?s=abc236&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); await q.evaluate(() => localStorage.clear()); await q.click('[data-action="replyOpen"]'); await q.fill("#replyInput", "我也想慢一点。"); await q.click('[data-action="replySave"]'); },
+    sharedReply: async (q) => { await q.goto(base + "?s=abc234&l=" + B64("这个秋天，慢一点。") + "&r=" + B64("我也想慢一点。") + "&date=2026-09-26"); },
   };
   const handlerIssues = [];
   const deadButtons = [];
@@ -223,8 +231,8 @@ try {
       await r.close();
     }
   }
-  check("every visible button/link/checkbox has a registered handler (8 states)", handlerIssues.length === 0, handlerIssues);
-  check(`every visible button responds when clicked (${clicked} clicks across 8 states)`, deadButtons.length === 0, deadButtons);
+  check(`every visible button/link/checkbox has a registered handler (${Object.keys(setups).length} states)`, handlerIssues.length === 0, handlerIssues);
+  check(`every visible button responds when clicked (${clicked} clicks across ${Object.keys(setups).length} states)`, deadButtons.length === 0, deadButtons);
 
   // ---------- season card: private by default; share payload has no body/feeling data ----------
   const shareLeaks = [];
@@ -267,7 +275,7 @@ try {
   // ---------- shared link view ----------
   p = await fresh(base + "?s=abc234&date=2026-09-26");
   await p.reload(); // fresh() cleared localStorage after the first load; reload so the local "opened" event is kept
-  check("shared link: plain intro + one-tap entry", (await visibleView(p)) === "shared" && (await p.$$("#sharedConds .cond-btn")).length === 6 && (await p.textContent("#vShared")).includes("分享给你"));
+  check("shared link: plain intro + one-tap entry", (await visibleView(p)) === "shared" && (await p.$$("#sharedConds .cond-btn")).length === 6 && (await p.textContent("#vShared")).includes("分享给了你"));
   await p.click('#sharedConds [data-cond="quiet"]');
   const ev2 = await p.evaluate(() => window.__healoa.events().map((e) => e.e));
   check("shared link: one tap → own result; opened + got_own_card logged locally; ?s removed from URL", (await visibleView(p)) === "result" && ev2.includes("opened") && ev2.includes("got_own_card") && !p.url().includes("s=abc234"), { ev2, url: p.url() });

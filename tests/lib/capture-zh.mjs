@@ -1,7 +1,9 @@
 /**
  * Captures every customer-facing zh string the app renders (DOM text, attributes, data, rule outputs,
  * practice cues over time, card/share texts, private PNG hash) into one normalized JSON object.
- * Used to prove the i18n refactor renders zh identically to the pre-change build (v2026-09-27-s).
+ * Used to prove zh renders identically to the intentional zh snapshot (tests/golden/zh-baseline.json).
+ * History: captured from v2026-09-27-s before the i18n refactor; re-captured ON PURPOSE for v2026-09-27-u
+ * (zh copy polish for first-time 55+ users, 留一句 / 发给一个人 / per-platform share).
  * Regenerate the golden only on purpose: node tests/lib/capture-zh.mjs --write
  */
 import { chromium } from "playwright";
@@ -75,6 +77,18 @@ export async function captureZh({ query = "" } = {}) {
     out.shared = await bodyText(p);
     await p.close();
 
+    // recipient view with the sender's line, writing one line beside it, and the reply link view (v2026-09-27-u)
+    const b64 = (t) => Buffer.from(t, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    p = await fresh(base + "?s=abc234&l=" + b64("这个秋天，慢一点。") + "&date=2026-09-26" + query);
+    out.sharedLine = { view: await bodyText(p) };
+    await p.click('[data-action="replyOpen"]'); out.sharedLine.writing = await p.textContent("#sharedLine");
+    await p.fill("#replyInput", "我也想慢一点。"); await p.click('[data-action="replySave"]');
+    out.sharedLine.wrote = await p.textContent("#sharedLine");
+    await p.close();
+    p = await fresh(base + "?s=abc234&l=" + b64("这个秋天，慢一点。") + "&r=" + b64("我也想慢一点。") + "&date=2026-09-26" + query);
+    out.sharedReply = await bodyText(p);
+    await p.close();
+
     // quiz
     p = await fresh(base + Q("2026-09-26"));
     await p.click('[data-action="openQuiz"]');
@@ -142,9 +156,24 @@ export async function captureZh({ query = "" } = {}) {
         rec.share = await q.evaluate(() => window.__healoa.buildShare());
         rec.shareDrawn = await q.evaluate(() => window.__healoa.lastShareCardText());
         await q.evaluate(() => { try { Object.defineProperty(navigator, "share", { value: undefined, configurable: true }); } catch (e) {} });
-        await q.click('[data-action="shareCopy"]'); await q.waitForTimeout(300); rec.copied = await q.textContent("#shareNote");
+        await q.click('[data-action="shareTarget"][data-target="copy"]'); await q.waitForTimeout(300); rec.copied = await q.textContent("#shareNote");
         await q.click('[data-action="shareSend"]'); await q.waitForTimeout(300); rec.sendFallback = await q.textContent("#shareNote");
         await q.click("#btnOpenShare"); rec.shareClosed = await q.textContent("#btnOpenShare");
+        for (const id of ["wechat", "xiaohongshu", "weibo", "douyin"]) {
+          await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
+          await q.evaluate(() => document.querySelectorAll("#shareTargets a").forEach((a) => a.addEventListener("click", (e) => e.preventDefault())));
+          await q.click(`[data-target="${id}"]`); await q.waitForTimeout(300);
+          rec["guide " + id] = await q.textContent("#shareNote");
+          await q.evaluate(() => document.getElementById("imgModal").classList.add("hidden"));
+          await q.click("#btnOpenShare");
+        }
+        await q.click("#btnOpenLine"); rec.linePanel = await q.textContent("#lineZone");
+        await q.fill("#lineInput", "这个秋天，慢一点。"); await q.click('[data-action="saveLine"]');
+        rec.lineCard = await q.textContent("#cardPreview"); rec.lineNote = await q.textContent("#lineNote");
+        rec.lineShareUrl = (await q.evaluate(() => window.__healoa.buildShare().url)).replace(/^.*\?/, "?");
+        await q.click("#btnOpenLine"); await q.fill("#lineInput", "睡不踏实也没关系"); await q.click('[data-action="saveLine"]');
+        rec.linePrivateNote = await q.textContent("#lineNote");
+        rec.linePrivateShareUrl = (await q.evaluate(() => window.__healoa.buildShare().url)).replace(/^.*\?/, "?");
         await q.goto(base + Q("2026-09-26"));
         rec.returnHint = await q.textContent("#returnHint");
       }

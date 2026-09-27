@@ -1,5 +1,8 @@
-/* HeaLoa · app (v2026-09-27-t)
+/* HeaLoa · app (v2026-09-27-u)
  * Main path: home (one tap) → result (season × condition) → relaxation (real timer) → season care card (private by default).
+ * After the card (optional, never before it): 「留一句」 a line the user writes for themselves (local only, shown on their card)
+ * → 「发给一个人」 native share sheet first, then per-platform buttons (app/share-targets.js), 9:16 story image.
+ * Recipient view: may show that line, 「在旁边也写一句」 once (local + URL only, no backend), 「给自己也做一张」.
  * Customer-facing text: only through t(key, vars) from app/i18n/<locale>.js (default zh). No hard-coded copy here (checked by tests).
  * Privacy: the chosen condition never goes into the URL, the share card, the share link or any payload.
  * Every button uses data-action and is handled by ACTIONS (checked by tests).
@@ -8,7 +11,10 @@
   "use strict";
   var D = window.HEALOA_DATA, R = window.HEALOA_RULES, I18N = window.HEALOA_I18N, t = I18N.t;
   var $ = function (id) { return document.getElementById(id); };
-  var LS_CARD = "healoa.card.v1", LS_EVENTS = "healoa.events.v1";
+  var LS_CARD = "healoa.card.v1", LS_EVENTS = "healoa.events.v1", LS_LINE = "healoa.line.v1", LS_REPLIED = "healoa.replied.v1";
+  var LINE_MAX = 60;
+  var SHARE_CFG = (window.HEALOA_SHARE && window.HEALOA_SHARE.byLocale[I18N.lang]) || { qr: false, targets: ["copy"] };
+  var SHARE_TARGETS = (window.HEALOA_SHARE && window.HEALOA_SHARE.targets) || {};
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function condById(id) { for (var i = 0; i < D.CONDITIONS.length; i++) if (D.CONDITIONS[i].id === id) return D.CONDITIONS[i]; return null; }
@@ -33,7 +39,37 @@
   var naturalSeason = R.seasonFor(today);
   var term = R.solarTermFor(today);
 
-  var state = { view: "home", season: naturalSeason, cond: null, placeId: null, practiceId: null, cardShowCond: false, shareUrl: null, from: null };
+  var state = { view: "home", season: naturalSeason, cond: null, placeId: null, practiceId: null, cardShowCond: false, shareUrl: null, from: null, line: "" };
+  (function () { var l = lsGet(LS_LINE); if (l && typeof l.text === "string") state.line = cleanLine(l.text); })();
+
+  /* ---------- the user's own line (留一句) ---------- */
+  function cleanLine(s) { return String(s || "").replace(/[\u0000-\u001f\u007f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, LINE_MAX); }
+  function b64e(str) { try { return btoa(unescape(encodeURIComponent(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); } catch (e) { return ""; } }
+  function b64d(str) {
+    try {
+      if (!str || !/^[A-Za-z0-9_-]{1,400}$/.test(str)) return "";
+      var b = str.replace(/-/g, "+").replace(/_/g, "/");
+      while (b.length % 4) b += "=";
+      return cleanLine(decodeURIComponent(escape(atob(b))));
+    } catch (e) { return ""; }
+  }
+  /* A line only travels with a shared card when it names no body state / feeling option (any locale). */
+  var PRIVATE_WORDS = (function () {
+    var out = [], L = window.HEALOA_LOCALES || {};
+    Object.keys(L).forEach(function (code) {
+      var c = L[code] && L[code].content && L[code].content.conditions;
+      if (c) Object.keys(c).forEach(function (k) { if (c[k]) out.push(String(c[k]).toLowerCase()); });
+      var extra = L[code] && L[code].content && L[code].content.privateWords;
+      if (extra) extra.forEach(function (w) { out.push(String(w).toLowerCase()); });
+    });
+    return out;
+  })();
+  function lineTravels(line) {
+    var low = String(line || "").toLowerCase();
+    if (!low) return false;
+    for (var i = 0; i < PRIVATE_WORDS.length; i++) if (PRIVATE_WORDS[i] && low.indexOf(PRIVATE_WORDS[i]) >= 0) return false;
+    return true;
+  }
 
   /* ---------- navigation (history state only; URL never carries the condition) ---------- */
   var VIEWS = ["home", "shared", "quiz", "result", "place", "practice", "card"];
@@ -67,7 +103,7 @@
   }
   function cleanSearch() {
     var p = new URLSearchParams(location.search);
-    p.delete("s");
+    p.delete("s"); p.delete("l"); p.delete("r");
     var s = p.toString();
     return s ? "?" + s : "";
   }
@@ -103,7 +139,46 @@
       hint.classList.remove("hidden");
     } else hint.classList.add("hidden");
   }
-  function renderShared() { condButtons($("sharedConds")); }
+  /* Recipient view. ?l = the sender's own line (optional), ?r = one line written beside it (reply link). */
+  var incoming = { id: null, line: "", reply: "", writing: false, mine: "" };
+  function repliedIds() { var r = lsGet(LS_REPLIED); return Array.isArray(r) ? r : []; }
+  function renderShared() {
+    condButtons($("sharedConds"));
+    var box = $("sharedLine"), h = "";
+    if (!incoming.line) { box.innerHTML = ""; box.classList.add("hidden"); return; }
+    if (incoming.reply) {
+      /* The sender opens the link that came back: both lines side by side. No further replies. */
+      h += '<p class="line-kicker">' + esc(t("reply.kicker")) + "</p>" +
+        '<div class="line-pair"><div class="line-bubble"><p class="line-who">' + esc(t("reply.yours")) + '</p><p class="line-text">' + esc(incoming.line) + "</p></div>" +
+        '<div class="line-bubble beside"><p class="line-who">' + esc(t("reply.theirs")) + '</p><p class="line-text">' + esc(incoming.reply) + "</p></div></div>";
+    } else {
+      h += '<div class="line-bubble"><p class="line-who">' + esc(t("recv.lineLabel")) + '</p><p class="line-text">' + esc(incoming.line) + "</p></div>";
+      var done = incoming.mine || repliedIds().indexOf(incoming.id) >= 0;
+      if (incoming.mine) {
+        h += '<div class="line-bubble beside"><p class="line-who">' + esc(t("recv.mineLabel")) + '</p><p class="line-text">' + esc(incoming.mine) + "</p></div>" +
+          '<p class="muted small">' + esc(t("recv.sendBackNote")) + "</p>" +
+          '<div class="btn-row"><button type="button" class="btn primary" data-action="replySend">' + esc(t("recv.sendBack")) + "</button>" +
+          '<button type="button" class="btn ghost" data-action="replyCopy">' + esc(t("share.t.copy")) + "</button></div>" +
+          '<p class="muted small share-link" id="replyLink">' + esc(replyUrl()) + "</p>";
+      } else if (incoming.writing) {
+        h += '<textarea id="replyInput" class="line-input" maxlength="' + LINE_MAX + '" rows="2" placeholder="' + esc(t("recv.placeholder")) + '" aria-label="' + esc(t("recv.write")) + '"></textarea>' +
+          '<p class="muted small">' + esc(t("recv.writeNote")) + "</p>" +
+          '<div class="btn-row"><button type="button" class="btn primary" data-action="replySave">' + esc(t("recv.save")) + "</button>" +
+          '<button type="button" class="btn ghost" data-action="replyCancel">' + esc(t("line.cancel")) + "</button></div>";
+      } else {
+        h += '<div class="btn-row">' + (done ? "" : '<button type="button" class="btn ghost" data-action="replyOpen">' + esc(t("recv.write")) + "</button>") +
+          '<button type="button" class="btn ghost" data-action="makeOwn">' + esc(t("recv.makeOwn")) + "</button></div>";
+        if (done) h += '<p class="muted small">' + esc(t("recv.alreadyWrote")) + "</p>";
+      }
+    }
+    h += '<p class="saved-note hidden" id="replyNote" role="status"></p>';
+    box.innerHTML = h;
+    box.classList.remove("hidden");
+  }
+  function langQuery() { return I18N.lang !== I18N.DEFAULT ? "&lang=" + encodeURIComponent(I18N.lang) : ""; }
+  function replyUrl() {
+    return location.origin + location.pathname + "?s=" + incoming.id + "&l=" + b64e(incoming.line) + "&r=" + b64e(incoming.mine) + langQuery();
+  }
 
   /* ---------- quiz (optional) ---------- */
   var quiz = { i: 0, yes: {} };
@@ -137,7 +212,8 @@
     $("resultConds").innerHTML = D.CONDITIONS.map(function (x) {
       return '<button type="button" class="chip' + (x.id === state.cond ? " on" : "") + '" data-action="pickCond" data-cond="' + x.id + '">' + esc(x.label) + "</button>";
     }).join("");
-    var h = "";
+    var lead = t("result.lead");
+    var h = lead ? '<p class="result-lead">' + esc(lead) + "</p>" : "";
     var seasonLine = state.season === naturalSeason ? t("result.seasonToday", { term: term, season: S.label }) : t("result.seasonAhead", { season: S.label, months: S.months });
     h += '<div class="block" id="blkNote"><h3>' + esc(t("result.noteTitle")) + '</h3><p class="muted small">' + esc(seasonLine) + "</p><ul>" +
       care.note.map(function (n) { return '<li><span class="tag">' + esc(n.tag) + "</span>" + esc(n.text) + "</li>"; }).join("") + "</ul></div>";
@@ -431,7 +507,8 @@
         t("card.itemMove", { move: care.move[0] }),
         t("card.itemRelax", { label: prac.label })
       ],
-      safety: care.safety
+      safety: care.safety,
+      line: state.line
     };
   }
   function renderCard() {
@@ -443,12 +520,17 @@
     h += '<div class="care-body"><p class="care-season">' + esc(m.seasonLine) + '</p><p class="care-head">' + esc(m.head) + "</p>";
     if (m.place) h += "<p><b>" + esc(t("card.placeLabel")) + "</b>" + esc(m.place.name) + '<br><span class="muted small">' + esc(m.place.reason) + "</span></p>";
     h += "<ol>" + m.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ol>";
+    if (m.line) h += '<p class="care-line" id="cardLine">' + esc(t("line.onCard", { line: m.line })) + "</p>";
     h += '<p class="care-safe">' + esc(m.safety) + '</p><p class="care-foot">' + esc(t("card.foot", { disclaimer: D.DISCLAIMER })) + "</p></div>";
     $("cardPreview").innerHTML = h;
     $("savedNote").classList.add("hidden");
     $("sharePanel").classList.add("hidden");
     $("shareNote").classList.add("hidden");
     $("btnOpenShare").textContent = t("share.open");
+    $("linePanel").classList.add("hidden");
+    $("lineNote").classList.add("hidden");
+    $("btnOpenLine").classList.remove("hidden");
+    $("btnOpenLine").textContent = t(state.line ? "line.edit" : "line.open");
     renderSocial("socialCard");
   }
 
@@ -467,14 +549,39 @@
     ctx.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, x, y, w, h);
   }
   var FONT = I18N.meta().canvasFont || "sans-serif";
-  function wrap(ctx, text, x, y, maxW, lh, log) {
-    var line = "", lines = [];
-    for (var i = 0; i < text.length; i++) {
-      var test = line + text[i];
-      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = text[i]; } else line = test;
+  /* Line breaking for canvas text: Latin words (and numbers, units, URLs pieces) stay whole and break at spaces;
+   * CJK / kana break between characters; closing punctuation never starts a line; a single token wider than
+   * the line (e.g. a long link) is split by characters. */
+  var TOKEN_RE = /[A-Za-z0-9\u00C0-\u024F\u2019'\-\u2013.,:;!?%&+\u00B0\u2103()\/#@_=~*$"\u201C\u201D]+[ \u00A0]*|\s+|[\s\S]/g;
+  var NO_START_RE = /^[\uFF0C\u3002\u3001\uFF01\uFF1F\uFF1B\uFF1A\u300D\u300F\uFF09\u300B\u3009\u3011\u201D\u2019,.!?;:)\]\u30FC\u30FB\u3063\u3083\u3085\u3087\u30C3\u30E3\u30E5\u30E7]/;
+  function wrapLines(ctx, text, maxW) {
+    var toks = String(text).match(TOKEN_RE) || [], lines = [], line = "";
+    function push() { var l = line.replace(/\s+$/, ""); if (l) lines.push(l); line = ""; }
+    for (var i = 0; i < toks.length; i++) {
+      var tk = toks[i];
+      if (!line && /^\s+$/.test(tk)) continue;
+      var test = line + tk;
+      if (ctx.measureText(test.replace(/\s+$/, "")).width <= maxW || !line || NO_START_RE.test(tk)) {
+        if (!line && ctx.measureText(tk.replace(/\s+$/, "")).width > maxW) {
+          /* over-long single token: split by characters */
+          for (var j = 0; j < tk.length; j++) {
+            if (ctx.measureText(line + tk[j]).width > maxW && line) push();
+            line += tk[j];
+          }
+          continue;
+        }
+        line = test;
+      } else { push(); line = /^\s+$/.test(tk) ? "" : tk; }
     }
-    if (line) lines.push(line);
+    push();
+    return lines;
+  }
+  var lastWrap = [];
+  function wrap(ctx, text, x, y, maxW, lh, log) {
+    var lines = wrapLines(ctx, text, maxW);
     lines.forEach(function (l, k) { ctx.fillText(l, x, y + k * lh); });
+    lastWrap.push({ text: String(text), lines: lines, maxW: maxW });
+    if (lastWrap.length > 80) lastWrap = lastWrap.slice(-80);
     if (log) log.push(text);
     return y + lines.length * lh;
   }
@@ -488,26 +595,30 @@
     ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fillRect(W - 300, 510, 280, 40);
     ctx.fillStyle = "#fff"; ctx.font = "26px " + FONT; ctx.fillText(D.CREDIT, W - 285, 540);
     var y = 640, X = 64, MW = W - 128;
-    ctx.fillStyle = "#2f5d50"; ctx.font = "bold 38px " + FONT; ctx.fillText(m.seasonLine, X, y); y += 70;
+    ctx.fillStyle = "#2f5d50"; ctx.font = "bold 38px " + FONT; y = wrap(ctx, m.seasonLine, X, y, MW, 50) + 20;
     ctx.fillStyle = "#26241f"; ctx.font = "bold 56px " + FONT; y = wrap(ctx, m.head, X, y, MW, 70); y += 20;
     ctx.font = "40px " + FONT;
     if (m.place) { y = wrap(ctx, t("card.placeLabel") + m.place.name, X, y, MW, 56); ctx.fillStyle = "#5f5a50"; ctx.font = "32px " + FONT; y = wrap(ctx, m.place.reason, X, y, MW, 46) + 20; }
     ctx.fillStyle = "#26241f"; ctx.font = "40px " + FONT;
     m.items.forEach(function (it, i) { y = wrap(ctx, (i + 1) + ". " + it, X, y, MW, 56) + 10; });
+    if (m.line) { ctx.fillStyle = "#9a5530"; ctx.font = "bold 40px " + FONT; y = wrap(ctx, t("line.onCard", { line: m.line }), X, y + 10, MW, 54) + 6; }
     ctx.fillStyle = "#7a3b12"; ctx.font = "32px " + FONT; y = wrap(ctx, m.safety, X, y + 10, MW, 46);
     ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, t("card.foot", { disclaimer: D.DISCLAIMER }), X, H - 60, MW, 40);
     return c.toDataURL("image/png");
   }
 
-  /* ---------- share (secondary): image card + link/QR; no body/feeling data anywhere ---------- */
+  /* ---------- share (secondary, after the card): image card + link (+ QR in zh only); no body/feeling data anywhere ---------- */
   function newShareId() {
     var a = new Uint8Array(6), chars = "abcdefghijkmnpqrstuvwxyz23456789", s = "";
     (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach(function (_, i) { a[i] = Math.floor(Math.random() * 256); });
     for (var i = 0; i < a.length; i++) s += chars[a[i] % chars.length];
     return s;
   }
+  /* The user's own line goes with the card only if it passes lineTravels() (names no body state / feeling option). */
+  function travellingLine() { return lineTravels(state.line) ? state.line : ""; }
   function buildShare() {
-    if (!state.shareUrl) state.shareUrl = location.origin + location.pathname + "?s=" + newShareId();
+    var line = travellingLine();
+    if (!state.shareUrl) state.shareUrl = location.origin + location.pathname + "?s=" + newShareId() + (line ? "&l=" + b64e(line) : "") + langQuery();
     var S = D.SEASONS[state.season];
     return {
       url: state.shareUrl,
@@ -517,6 +628,7 @@
         brand: t("share.cardBrand"),
         head: t("share.cardHead", { season: S.label }),
         sub: t("share.cardSub"),
+        line: line,
         photo: D.SEASON_PHOTO[state.season],
         credit: D.CREDIT,
         foot: D.DISCLAIMER
@@ -524,29 +636,76 @@
     };
   }
   var lastShareCardText = [];
-  async function sharePng(share) {
-    var W = 1080, H = 1350, c = document.createElement("canvas"), card = share.card, log = [];
-    c.width = W; c.height = H;
-    var ctx = c.getContext("2d");
-    ctx.fillStyle = "#f6f1e8"; ctx.fillRect(0, 0, W, H);
-    coverDraw(ctx, await loadImg(card.photo), 0, 0, W, 620);
-    ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fillRect(W - 300, 570, 280, 40);
-    ctx.fillStyle = "#fff"; ctx.font = "26px " + FONT; ctx.fillText(card.credit, W - 285, 600); log.push(card.credit);
-    var X = 64, MW = W - 128;
-    ctx.fillStyle = "#2f5d50"; ctx.font = "bold 36px " + FONT; ctx.fillText(card.brand, X, 700); log.push(card.brand);
-    ctx.fillStyle = "#26241f"; ctx.font = "bold 60px " + FONT; var y = wrap(ctx, card.head, X, 790, MW, 74, log);
-    ctx.fillStyle = "#5f5a50"; ctx.font = "36px " + FONT; wrap(ctx, card.sub, X, y + 16, MW, 52, log);
-    var q = qrcode(0, "M"); q.addData(share.url); q.make();
-    var n = q.getModuleCount(), size = 250, cell = size / n, qx = X, qy = H - 370;
+  function shownLink(url) { return url.replace(/^https?:\/\//, "").replace(/&[lr]=[A-Za-z0-9_-]*/g, ""); }
+  function drawQr(ctx, url, qx, qy, size) {
+    var q = qrcode(0, "M"); q.addData(url); q.make();
+    var n = q.getModuleCount(), cell = size / n;
     ctx.fillStyle = "#fff"; ctx.fillRect(qx - 12, qy - 12, size + 24, size + 24);
     ctx.fillStyle = "#111";
     for (var r = 0; r < n; r++) for (var cc = 0; cc < n; cc++) if (q.isDark(r, cc)) ctx.fillRect(qx + cc * cell, qy + r * cell, Math.ceil(cell), Math.ceil(cell));
-    var scan = t("share.scanCta");
-    ctx.fillStyle = "#26241f"; ctx.font = "bold 34px " + FONT; ctx.fillText(scan, qx + size + 40, qy + 60); log.push(scan);
-    ctx.fillStyle = "#5f5a50"; ctx.font = "26px " + FONT; wrap(ctx, share.url.replace(/^https?:\/\//, ""), qx + size + 40, qy + 110, W - (qx + size + 40) - 50, 36, log);
-    ctx.font = "24px " + FONT; ctx.fillText(card.foot, X, H - 40); log.push(card.foot);
-    lastShareCardText = log;
-    return c.toDataURL("image/png");
+  }
+  function drawLine(ctx, line, X, y, MW, px, log) {
+    if (!line) return y;
+    ctx.fillStyle = "#9a5530"; ctx.fillRect(X, y - px, 6, px * 1.2);
+    ctx.font = "bold " + px + "px " + FONT;
+    return wrap(ctx, t("line.onCard", { line: line }), X + 26, y, MW - 26, Math.round(px * 1.35), log);
+  }
+  /* Share images: 4:5 card (1080×1350) and 9:16 story (1080×1920). Text is laid out top-down under the photo;
+   * if the text (with the user's line) would run into the QR / link block, the photo gets shorter and it is redrawn. */
+  function drawShareImage(share, spec) {
+    var W = spec.W, H = spec.H, card = share.card, X = spec.X, MW = W - 2 * X, c, ctx, log, ok = false;
+    for (var k = 0; k < spec.photoHeights.length && !ok; k++) {
+      var ph = spec.photoHeights[k];
+      c = document.createElement("canvas"); c.width = W; c.height = H; ctx = c.getContext("2d"); log = [];
+      ctx.fillStyle = "#f6f1e8"; ctx.fillRect(0, 0, W, H);
+      coverDraw(ctx, spec.img, 0, 0, W, ph);
+      if (spec.fade) { var g = ctx.createLinearGradient(0, ph - 240, 0, ph); g.addColorStop(0, "rgba(246,241,232,0)"); g.addColorStop(1, "rgba(246,241,232,1)"); ctx.fillStyle = g; ctx.fillRect(0, ph - 240, W, 240); }
+      var cy = spec.creditTop ? 150 : ph - 50;
+      ctx.fillStyle = "rgba(0,0,0,.4)"; ctx.fillRect(W - 300, cy, 280, 40);
+      ctx.fillStyle = "#fff"; ctx.font = "26px " + FONT; ctx.fillText(card.credit, W - 285, cy + 30); log.push(card.credit);
+      var y = ph + spec.gap;
+      ctx.fillStyle = "#2f5d50"; ctx.font = "bold " + spec.brandPx + "px " + FONT; ctx.fillText(card.brand, X, y); log.push(card.brand);
+      ctx.fillStyle = "#26241f"; ctx.font = "bold " + spec.headPx + "px " + FONT; y = wrap(ctx, card.head, X, y + spec.headPx * 1.5, MW, Math.round(spec.headPx * 1.24), log);
+      ctx.fillStyle = "#5f5a50"; ctx.font = spec.subPx + "px " + FONT; y = wrap(ctx, card.sub, X, y + 16, MW, Math.round(spec.subPx * 1.45), log);
+      if (card.line) y = drawLine(ctx, card.line, X, y + spec.linePx * 1.3, MW, spec.linePx, log);
+      ctx.font = "24px " + FONT;
+      var footLines = wrapLines(ctx, card.foot, MW).length, footTop = H - 40 - (footLines - 1) * 30;
+      var blockTop;
+      if (SHARE_CFG.qr) {
+        var size = spec.qrSize, qy = footTop - 60 - size;
+        blockTop = qy - 24;
+        ok = y + 10 <= blockTop || k === spec.photoHeights.length - 1;
+        if (!ok) continue;
+        drawQr(ctx, share.url, X, qy, size);
+        var tx = X + size + 40, tw = W - tx - 50;
+        ctx.fillStyle = "#26241f"; ctx.font = "bold 34px " + FONT; var ty = wrap(ctx, t("share.scanCta"), tx, qy + 50, tw, 44, log);
+        ctx.fillStyle = "#5f5a50"; ctx.font = "26px " + FONT; wrap(ctx, shownLink(share.url), tx, ty + 16, tw, 36, log);
+      } else {
+        ctx.font = "bold 36px " + FONT; var ctaLines = wrapLines(ctx, t("share.openCta"), MW).length;
+        ctx.font = "28px " + FONT; var linkLines = wrapLines(ctx, shownLink(share.url), MW).length;
+        blockTop = footTop - 50 - linkLines * 38 - ctaLines * 48;
+        ok = y + 30 <= blockTop || k === spec.photoHeights.length - 1;
+        if (!ok) continue;
+        ctx.fillStyle = "#26241f"; ctx.font = "bold 36px " + FONT; var y2 = wrap(ctx, t("share.openCta"), X, blockTop + 36, MW, 48, log);
+        ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, shownLink(share.url), X, y2 + 6, MW, 38, log);
+      }
+      ctx.fillStyle = "#5f5a50"; ctx.font = "24px " + FONT; wrap(ctx, card.foot, X, footTop, MW, 30, log);
+    }
+    return { url: c.toDataURL("image/png"), log: log };
+  }
+  async function sharePng(share) {
+    var img = await loadImg(share.card.photo);
+    var r = drawShareImage(share, { W: 1080, H: 1350, X: 64, img: img, photoHeights: [620, 540, 460, 380, 300], gap: 80, brandPx: 36, headPx: 60, subPx: 36, linePx: 42, qrSize: 230 });
+    lastShareCardText = r.log;
+    return r.url;
+  }
+  /* 9:16 story image (1080×1920) for every locale (Instagram Story, 抖音, 小红书 …). */
+  var lastStoryText = [];
+  async function storyPng(share) {
+    var img = await loadImg(share.card.photo);
+    var r = drawShareImage(share, { W: 1080, H: 1920, X: 80, img: img, photoHeights: [1000, 900, 800, 700, 600], gap: 60, brandPx: 40, headPx: 72, subPx: 40, linePx: 48, qrSize: 240, fade: true, creditTop: true });
+    lastStoryText = r.log;
+    return r.url;
   }
   function qrSvg(url) {
     var q = qrcode(0, "M"); q.addData(url); q.make();
@@ -568,9 +727,53 @@
     var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
     document.body.removeChild(ta); return ok;
   }
-  function openModal(dataUrl, name) {
+  var modalFile = null;
+  function canShareFile(file) { try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { return false; } }
+  function openModal(dataUrl, name, guide) {
     $("modalImg").src = dataUrl; $("modalDownload").href = dataUrl; $("modalDownload").setAttribute("download", name);
+    var g = $("modalGuide");
+    if (guide) { g.textContent = guide; g.classList.remove("hidden"); } else { g.textContent = ""; g.classList.add("hidden"); }
+    modalFile = dataUrlToFile(dataUrl, name);
+    $("modalShare").classList.toggle("hidden", !canShareFile(modalFile));
     $("imgModal").classList.remove("hidden");
+  }
+  /* Per-platform share buttons for the active locale (app/share-targets.js). Web / sms targets are real links. */
+  function fillTpl(tpl, share) {
+    var enc = encodeURIComponent;
+    return tpl.replace("{url}", enc(share.url)).replace("{text}", enc(share.text)).replace("{textUrl}", enc(share.text + " " + share.url));
+  }
+  function targetHref(id, share) {
+    var tg = SHARE_TARGETS[id];
+    return tg && (tg.kind === "web" || tg.kind === "sms") ? fillTpl(tg.url, share) : null;
+  }
+  function renderShareTargets(share) {
+    $("shareTargets").innerHTML = SHARE_CFG.targets.filter(function (id) { return SHARE_TARGETS[id]; }).map(function (id) {
+      var tg = SHARE_TARGETS[id], label = esc(t("share.t." + id)), href = targetHref(id, share);
+      if (href) {
+        var blank = tg.kind === "web" ? ' target="_blank" rel="noopener noreferrer"' : "";
+        return '<a class="btn ghost target-btn" data-action="shareTarget" data-target="' + id + '" href="' + esc(href) + '"' + blank + ">" + label + "</a>";
+      }
+      return '<button type="button" class="btn ghost target-btn" data-action="shareTarget" data-target="' + id + '">' + label + "</button>";
+    }).join("");
+  }
+  function sharedImage(kind) {
+    var share = buildShare();
+    if (kind === "story") return storyPng(share);
+    if (shareImgData) return Promise.resolve(shareImgData);
+    return sharePng(share).then(function (u) { shareImgData = u; return u; });
+  }
+  function resetShare() {
+    state.shareUrl = null; shareImgData = null;
+    if (state.view === "card" && !$("sharePanel").classList.contains("hidden")) refreshSharePanel();
+  }
+  function refreshSharePanel() {
+    var share = buildShare();
+    $("shareLink").textContent = share.url;
+    var qrRow = $("shareQr");
+    if (SHARE_CFG.qr) { qrRow.innerHTML = qrSvg(share.url); qrRow.classList.remove("hidden"); } else { qrRow.innerHTML = ""; qrRow.classList.add("hidden"); }
+    renderShareTargets(share);
+    $("shareNote").classList.add("hidden");
+    return sharePng(share).then(function (url) { shareImgData = url; $("shareImg").src = url; });
   }
 
   /* ---------- actions (every visible button maps here) ---------- */
@@ -578,7 +781,7 @@
   var ACTIONS = {
     season: function (el) {
       state.season = el.getAttribute("data-season");
-      state.shareUrl = null;
+      state.shareUrl = null; shareImgData = null;
       if (state.view === "result") go("result", null, true); else render();
     },
     pickCond: function (el) {
@@ -627,18 +830,16 @@
         $("btnOpenShare").textContent = t("share.open");
         return;
       }
-      var share = buildShare();
       $("sharePanel").classList.remove("hidden");
       $("btnOpenShare").textContent = t("share.close");
-      $("shareLink").textContent = share.url;
-      $("shareQr").innerHTML = qrSvg(share.url);
-      sharePng(share).then(function (url) { shareImgData = url; $("shareImg").src = url; });
+      refreshSharePanel();
     },
+    /* Native share sheet first: the PNG card as a file when the device supports it, plus text + link. */
     shareSend: function () {
       var share = buildShare();
       var payload = { title: share.title, text: share.text, url: share.url };
       if (navigator.share) {
-        try { if (shareImgData && navigator.canShare && navigator.canShare({ files: [dataUrlToFile(shareImgData, "healoa.png")] })) payload.files = [dataUrlToFile(shareImgData, "healoa.png")]; } catch (e) {}
+        try { if (shareImgData) { var f = dataUrlToFile(shareImgData, "healoa.png"); if (canShareFile(f)) payload.files = [f]; } } catch (e) {}
         navigator.share(payload).then(function () { logEvent("shared"); note("shareNote", t("share.sent")); }, function () {});
       } else {
         copyText(share.text + " " + share.url).then(function (ok) {
@@ -647,13 +848,102 @@
         });
       }
     },
-    shareCopy: function () {
-      var share = buildShare();
-      copyText(share.url).then(function (ok) { if (ok) logEvent("shared"); note("shareNote", t(ok ? "share.copied" : "share.copyFailed")); });
+    shareTarget: function (el) {
+      var id = el.getAttribute("data-target"), tg = SHARE_TARGETS[id], share = buildShare();
+      if (!tg) return;
+      if (tg.kind === "web" || tg.kind === "sms") {
+        /* the <a href> itself opens the platform (new tab) or Messages; keep the href fresh */
+        el.setAttribute("href", targetHref(id, share));
+        logEvent("shared");
+        note("shareNote", t("share.guide." + id));
+        return true;
+      }
+      if (tg.kind === "copy") {
+        copyText(share.url).then(function (ok) { if (ok) logEvent("shared"); note("shareNote", t(ok ? "share.copied" : "share.copyFailed")); });
+        return;
+      }
+      if (tg.kind === "saveImage") {
+        var after = function (url) {
+          var name = t(tg.image === "story" ? "share.storyName" : "share.pngName");
+          var guide = t("share.guide." + id);
+          if (tg.copyLink) {
+            copyText(share.url).then(function (ok) {
+              openModal(url, name, guide + (ok ? " " + t("share.linkCopiedToo") : ""));
+            });
+          } else openModal(url, name, guide);
+          logEvent("shared");
+          note("shareNote", guide);
+        };
+        sharedImage(tg.image).then(after);
+      }
     },
     shareSaveImg: function () {
-      var go2 = function (url) { openModal(url, t("share.pngName")); };
-      if (shareImgData) go2(shareImgData); else sharePng(buildShare()).then(go2);
+      sharedImage("card").then(function (url) { openModal(url, t("share.pngName")); });
+    },
+    shareSaveStory: function () {
+      sharedImage("story").then(function (url) { openModal(url, t("share.storyName"), t("share.storyGuide")); });
+    },
+    modalShare: function () {
+      if (!modalFile || !navigator.share) return;
+      var share = buildShare();
+      navigator.share({ files: [modalFile], title: share.title, text: share.text + " " + share.url }).then(function () { logEvent("shared"); }, function () {});
+    },
+    /* 留一句 — the user's own line, local only, shown on their card. */
+    openLine: function () {
+      $("linePanel").classList.remove("hidden");
+      $("btnOpenLine").classList.add("hidden");
+      $("lineInput").value = state.line || "";
+      $("btnClearLine").classList.toggle("hidden", !state.line);
+      $("lineNote").classList.add("hidden");
+      try { $("lineInput").focus(); } catch (e) {}
+    },
+    saveLine: function () {
+      var v = cleanLine($("lineInput").value);
+      if (!v) { note("lineNote", t("line.empty")); return; }
+      state.line = v;
+      lsSet(LS_LINE, { text: v, savedAt: Date.now() });
+      resetShare();
+      renderCard();
+      note("lineNote", t(lineTravels(v) ? "line.saved" : "line.savedPrivate"));
+    },
+    cancelLine: function () {
+      $("linePanel").classList.add("hidden");
+      $("btnOpenLine").classList.remove("hidden");
+    },
+    clearLine: function () {
+      state.line = "";
+      try { localStorage.removeItem(LS_LINE); } catch (e) {}
+      resetShare();
+      renderCard();
+      note("lineNote", t("line.cleared"));
+    },
+    /* Recipient: write one line beside theirs (once; kept on this phone and in the link you send back). */
+    replyOpen: function () { incoming.writing = true; renderShared(); try { $("replyInput").focus(); } catch (e) {} },
+    replyCancel: function () { incoming.writing = false; renderShared(); },
+    replySave: function () {
+      var v = cleanLine($("replyInput").value);
+      if (!v) { note("replyNote", t("line.empty")); return; }
+      if (!lineTravels(v)) { note("replyNote", t("recv.private")); return; }
+      incoming.mine = v; incoming.writing = false;
+      var ids = repliedIds(); if (ids.indexOf(incoming.id) < 0) ids.push(incoming.id); lsSet(LS_REPLIED, ids.slice(-100));
+      renderShared();
+    },
+    replySend: function () {
+      var url = replyUrl(), text = t("recv.sendText");
+      if (navigator.share) {
+        navigator.share({ title: t("share.title"), text: text, url: url }).then(function () { logEvent("shared"); note("replyNote", t("share.sent")); }, function () {});
+      } else {
+        copyText(text + " " + url).then(function (ok) { if (ok) logEvent("shared"); note("replyNote", t(ok ? "share.copiedWithText" : "share.copyFailed")); });
+      }
+    },
+    replyCopy: function () {
+      copyText(replyUrl()).then(function (ok) { if (ok) logEvent("shared"); note("replyNote", t(ok ? "share.copied" : "share.copyFailed")); });
+    },
+    makeOwn: function () {
+      var g = $("sharedConds");
+      g.classList.add("pulse");
+      try { g.scrollIntoView({ block: "center" }); g.focus({ preventScroll: true }); } catch (e) {}
+      note("replyNote", t("recv.makeOwnHint"));
     },
     closeModal: function () { $("imgModal").classList.add("hidden"); },
     setLang: function (el) {
@@ -684,8 +974,14 @@
   /* ---------- boot ---------- */
   var sid = params.get("s");
   var initial = sid && /^[a-z0-9]{4,16}$/.test(sid) ? "shared" : "home";
-  if (initial === "shared") logEvent("opened");
+  if (initial === "shared") {
+    logEvent("opened");
+    incoming.id = sid;
+    incoming.line = b64d(params.get("l"));
+    incoming.reply = incoming.line ? b64d(params.get("r")) : "";
+  }
   I18N.applyDom(document, { version: D.VERSION });
+  if (I18N.draft) { $("draftBadge").textContent = t("draft.badge"); $("draftBadge").classList.remove("hidden"); }
   renderLangSwitch();
   renderSocial("socialFoot");
   show(initial); render();
@@ -696,6 +992,12 @@
     version: D.VERSION, lang: I18N.lang, state: state, actions: ACTIONS, go: go, buildShare: buildShare,
     elapsedMs: elapsedMs, timer: T, events: function () { return lsGet(LS_EVENTS) || []; },
     lastShareCardText: function () { return lastShareCardText.slice(); },
+    lastStoryText: function () { return lastStoryText.slice(); },
+    lastWrap: function () { return lastWrap.slice(); },
+    wrapLines: function (text, maxW, font) { var c = document.createElement("canvas").getContext("2d"); c.font = font || "40px " + FONT; return wrapLines(c, text, maxW); },
+    storyPng: function () { return storyPng(buildShare()); },
+    shareConfig: SHARE_CFG, targetHref: function (id) { return targetHref(id, buildShare()); },
+    incoming: incoming, lineTravels: lineTravels,
     cardModel: cardModel
   };
 })();

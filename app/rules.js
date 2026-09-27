@@ -1,4 +1,4 @@
-/* HeaLoa · rule-based recommendation (v2026-09-27-t)
+/* HeaLoa · rule-based recommendation (v2026-09-27-u)
  * Deterministic: same (condition, season) → same result. No randomness, no paid ranking.
  * Places without a photo are never in the top 3.
  * All wording comes from the active locale via t(key) (app/i18n/<locale>.js); no customer text is hard-coded here.
@@ -8,7 +8,12 @@
   var D = root.HEALOA_DATA, t = root.HEALOA_I18N.t;
 
   function fmt(n) { return (n < 0 ? "−" + Math.abs(n) : String(n)); }
-  function deg(n) { return fmt(n) + "℃"; }
+  /* Units follow the locale (meta.tempUnit "F" → °F for the US-English draft; default ℃). */
+  var UNIT = (root.HEALOA_I18N.meta && root.HEALOA_I18N.meta().tempUnit) || "C";
+  function deg(n) { return UNIT === "F" ? fmt(Math.round(n * 9 / 5 + 32)) + "°F" : fmt(n) + "℃"; }
+  /* Rain: mm per day by default; meta.rainUnit "in/month" → inches per month. */
+  var RAIN = (root.HEALOA_I18N.meta && root.HEALOA_I18N.meta().rainUnit) || "mm/day";
+  function rain(pr) { return RAIN === "in/month" ? String(Math.round(pr * 30.4 / 25.4 * 10) / 10) : String(pr); }
 
   function placeById(id) {
     for (var i = 0; i < D.PLACES.length; i++) if (D.PLACES[i].id === id) return D.PLACES[i];
@@ -23,7 +28,7 @@
     var hs = place.attrs.hotspring;
     var avg = t("rules.seasonAvg", { season: S.label, t: deg(c.t) });
     var month = S.monthNames[minIdx], min = deg(minT);
-    if (c.pr >= 8) return t("rules.skipRain", { avg: avg, pr: c.pr });
+    if (c.pr >= 8) return t("rules.skipRain", { avg: avg, pr: rain(c.pr) });
     if (c.t < -10 && cond !== "quiet") return t("rules.skipFrigid", { avg: avg, min: min });
     if (cond === "bp") {
       if (hs && c.t < 0) return t("rules.skipBpHotspring", { avg: avg });
@@ -33,7 +38,7 @@
     if (cond === "cold" && !hs && (c.t < 5 || minT < 0)) return t("rules.skipColdHands", { avg: avg, month: month, min: min });
     if (cond === "gut" && c.t < 5) return t("rules.skipGutCold", { avg: avg });
     if ((cond === "gut" || cond === "sleep") && !hs && minT < 0) return t("rules.skipNightCold", { avg: avg, month: month, min: min });
-    if ((cond === "sleep" || cond === "gut") && c.t > 26 && c.pr > 4) return t("rules.skipHumid", { avg: avg, rh: c.rh, pr: c.pr, tail: t(cond === "sleep" ? "rules.humidTailSleep" : "rules.humidTailGut") });
+    if ((cond === "sleep" || cond === "gut") && c.t > 26 && c.pr > 4) return t("rules.skipHumid", { avg: avg, rh: c.rh, pr: rain(c.pr), tail: t(cond === "sleep" ? "rules.humidTailSleep" : "rules.humidTailGut") });
     return null;
   }
 
@@ -66,7 +71,7 @@
     var r2 = t("rules.reason2", {
       m1: S.monthNames[0], t1: deg(first), m3: S.monthNames[2], t3: deg(last),
       trend: t(spread >= 8 ? "rules.trendBig" : "rules.trendStable"),
-      pr: c.pr, rain: t(c.pr < 1 ? "rules.rainLow" : c.pr > 4 ? "rules.rainHigh" : "rules.rainMid")
+      pr: rain(c.pr), rain: t(c.pr < 1 ? "rules.rainLow" : c.pr > 4 ? "rules.rainHigh" : "rules.rainMid")
     });
     var r3 = place.fit[cond] || "";
     return r3 ? [r1, r2, r3] : [r1, r2];

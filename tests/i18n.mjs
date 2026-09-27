@@ -1,6 +1,7 @@
 /**
- * i18n foundation tests (Playwright, 390×844): zh renders identically to the pre-change build,
- * missing / unknown locales fall back to zh, language switcher + social row stay hidden while there is
+ * i18n tests (Playwright, 390×844): zh renders identically to the intentional zh snapshot (tests/golden/zh-baseline.json,
+ * re-captured on purpose for v2026-09-27-u after the zh copy polish), en / ja drafts only via ?lang with a badge,
+ * es / unknown locales fall back to zh, language switcher + social row stay hidden while there is
  * nothing to show (and work when there is — test fixtures only, never shipped), native share.
  * Run: node tests/i18n.mjs
  */
@@ -21,12 +22,12 @@ const D = "?date=2026-09-26";
 const pageErrors = [];
 let server, browser;
 try {
-  // ---------- 1. zh renders identically to v2026-09-27-s (golden captured before the refactor) ----------
+  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-27-u) ----------
   const golden = JSON.parse(fs.readFileSync(GOLDEN, "utf8"));
   const now = await captureZh();
   const diff = diffGolden(golden, now);
   const n = (o) => Object.keys(o).length;
-  check(`zh identical to pre-change v2026-09-27-s: home, shared, quiz, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
+  check(`zh identical to the v2026-09-27-u zh snapshot (intentional update after the copy polish): home, shared, quiz, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
     diff.length === 0, diff.length ? diff.slice(0, 6) : "identical");
   check("key zh screens contain the locked strings", golden.home.includes("血压偏高、睡不好、怕冷……这个季节该怎么养？") && now.home === golden.home &&
     CONDITION_LABELS.every((l) => now.home.includes(l)) && now.result["bp/winter"].includes("这个季节先不选") && now.card["bp/autumn"].view.includes("只留给自己") && now.head.lang === "zh-CN");
@@ -53,20 +54,37 @@ try {
     return p.evaluate(() => document.body.innerText);
   }
 
-  // ---------- 2. missing / unknown locale → zh ----------
+  // ---------- 2. es (empty) / unknown locale → zh; en / ja drafts only via explicit ?lang ----------
   const ref = await open(base + D);
   const refHome = await shot(ref.p);
   const refResult = await resultText(ref.p);
   await ref.ctx.close();
   const fb = [];
-  for (const q of ["en", "ja", "es", "xx", "EN-us", "zh-CN", "zh", ""]) {
+  for (const q of ["es", "xx", "ES-mx", "zh-CN", "zh", ""]) {
     const { ctx, p } = await open(base + D + "&lang=" + q);
     const s = await shot(p);
     const r = await resultText(p);
     fb.push({ q, ok: s.lang === "zh-CN" && s.app === "zh" && s.text === refHome.text && s.title === refHome.title && r === refResult && s.stored !== "en" && s.stored !== "ja" && s.stored !== "es" && s.stored !== "xx" });
     await ctx.close();
   }
-  check("?lang=en / ja / es (empty stubs), unknown and malformed codes → zh, identical home + result, <html lang=zh-CN>, nothing remembered", fb.every((x) => x.ok), fb.filter((x) => !x.ok));
+  check("?lang=es (empty stub), unknown and malformed codes → zh, identical home + result, <html lang=zh-CN>, nothing remembered", fb.every((x) => x.ok), fb.filter((x) => !x.ok));
+  const dr = [];
+  for (const [q, want, badge] of [["en", "en", "Draft preview"], ["EN-us", "en", "Draft preview"], ["ja", "ja", "下書き"]]) {
+    const { ctx, p } = await open(base + D + "&lang=" + q);
+    const s = await shot(p);
+    const b = await p.evaluate(() => { const el = document.getElementById("draftBadge"); return { hidden: el.classList.contains("hidden"), text: el.textContent }; });
+    const sw = await p.evaluate(() => document.getElementById("langSwitch").classList.contains("hidden"));
+    await p.goto(base + D); // without ?lang the draft is not remembered
+    const after = await shot(p);
+    dr.push({ q, ok: s.app === want && s.lang === want && !b.hidden && b.text === badge && sw && s.stored !== want && after.app === "zh" && after.lang === "zh-CN", app: s.app, badge: b, after: after.app });
+    await ctx.close();
+  }
+  check("?lang=en / ?lang=ja open the DRAFT locales with a small 「Draft preview」/「下書き」 badge; switcher stays hidden; draft never remembered (next visit without ?lang → zh)", dr.every((x) => x.ok), dr);
+  {
+    const { ctx, p } = await open(base + D);
+    check("zh (default): no draft badge", await p.evaluate(() => document.getElementById("draftBadge").classList.contains("hidden")));
+    await ctx.close();
+  }
   {
     const { ctx, p } = await open(base + D, { init: () => { try { if (!sessionStorage.getItem("x")) { localStorage.setItem("healoa.lang.v1", "ja"); sessionStorage.setItem("x", "1"); } } catch (e) {} } });
     await p.reload();
@@ -99,7 +117,7 @@ try {
     const s = await shot(p);
     const title = await p.textContent("#homeTitle"), sub = await p.textContent("#vHome .subline"), c1 = await p.textContent('#homeConds [data-cond="bp"]'), c2 = await p.textContent('#homeConds [data-cond="sleep"]');
     check("switching to the fixture locale: ?lang=en in URL, <html lang=en>, remembered, translated keys used, missing keys fall back to zh (strings + content)",
-      p.url().includes("lang=en") && s.lang === "en" && s.stored === "en" && title === "FIXTURE headline" && s.title.startsWith("FIXTURE v2026") && sub === "点一下你的情况，马上告诉你这个季节注意什么、吃什么、怎么动、去哪里养" && c1 === "FIXTURE-bp" && c2 === "睡不踏实",
+      p.url().includes("lang=en") && s.lang === "en" && s.stored === "en" && title === "FIXTURE headline" && s.title.startsWith("FIXTURE v2026") && sub === "点一下你的情况，马上告诉你这个季节怎么吃、怎么动、去哪里养。" && c1 === "FIXTURE-bp" && c2 === "睡不踏实",
       { url: p.url(), lang: s.lang, stored: s.stored, title, sub, c1, c2 });
     await p.goto(base + D);
     check("remembered choice applies without ?lang", (await p.evaluate(() => window.__healoa.lang)) === "en" && (await p.textContent("#homeTitle")) === "FIXTURE headline");
