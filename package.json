@@ -1,10 +1,11 @@
 {
   "name": "healoa-base-prototype-preview",
-  "version": "2026.9.27-u",
+  "version": "2026.9.27-v",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/static-checks.mjs && node tests/healing-v3.mjs && node tests/i18n.mjs && node tests/merged-plan.mjs",
+    "test": "node tests/static-checks.mjs && node tests/healing-v3.mjs && node tests/i18n.mjs && node tests/merged-plan.mjs && node tests/rules.mjs",
+    "test:rules": "node tests/rules.mjs",
     "test:static": "node tests/static-checks.mjs",
     "test:browser": "node tests/healing-v3.mjs",
     "test:i18n": "node tests/i18n.mjs",

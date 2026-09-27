@@ -2,7 +2,8 @@
 
 > 只写**当前生效**的版本。历史规则见 `DECISIONS.md`（标记 SUPERSEDED，不删除）。
 > 依据：《HeaLoa-Base 疗愈 App 方案 v3（锁定版）》· Cindy 锁定裁定 2026-09-26 · **Cindy 批准的「合并方案」2026-09-27（D-27-02）**。
-> 当前预览版本：**v2026-09-27-u** · Live: https://healoa88.github.io/healoa-base-prototype-preview/
+> 创始人规则：**`HEALOA_RULES.md`**（机器可读：`rules/healoa-rules.json`，由 `tests/rules.mjs` 逐条检查，D-27-03）。
+> 当前预览版本：**v2026-09-27-v** · Live: https://healoa88.github.io/healoa-base-prototype-preview/
 
 ## 一句话
 

@@ -1,4 +1,7 @@
 # Move to .github/workflows/tests.yml to enable (needs a token with `workflow` scope to push).
+# Runs the FULL suite: static-checks, healing-v3, i18n, merged-plan and the founder-rule suite
+# tests/rules.mjs (rules/healoa-rules.json ↔ HEALOA_RULES.md). To make it blocking, require the
+# "tests" check in branch protection on main.
 name: tests
 on:
   pull_request:
@@ -14,7 +17,16 @@ jobs:
           node-version: 20
       - run: npm i --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - run: npm test
+      - name: static checks
+        run: npm run test:static
+      - name: healing-v3 (browser)
+        run: npm run test:browser
+      - name: i18n
+        run: npm run test:i18n
+      - name: merged plan
+        run: npm run test:merged
+      - name: founder rules (HEALOA_RULES.md / rules/healoa-rules.json)
+        run: npm run test:rules
       - run: npm run shots
         env:
           HEALOA_SHOTS_DIR: shots

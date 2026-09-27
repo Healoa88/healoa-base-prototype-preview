@@ -281,7 +281,7 @@
       "rules.shortAltitude": ", about 6,600 ft up — check with a health professional before you go"
     },
     content: {
-      privateWords: ["sleep", "stomach", "tension", "tense", "cold hands", "cold feet", "pressure", "my health"],
+      privateWords: ["sleep", "stomach", "tension", "tense", "cold hands", "cold feet", "pressure", "my health", "insomn", "anxi", "diabet", "blood", "illness", "diseas", "pain", "ache", "medication"],
       conditions: { bp: "Steady and calm", sleep: "Deep rest", cold: "Warmth", gut: "Easy on the stomach", tense: "Let go of tension", quiet: "Quiet" },
       seasons: {
         autumn: { label: "Fall", months: "Sep–Nov", monthNames: ["Sep", "Oct", "Nov"] },

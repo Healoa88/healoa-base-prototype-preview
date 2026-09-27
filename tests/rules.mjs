@@ -1,0 +1,338 @@
+/**
+ * Founder-rule suite (v2026-09-27-v): every rule in rules/healoa-rules.json (human-readable: HEALOA_RULES.md)
+ * has at least one automated check here. Check ids ("R05.b") are listed in each rule's `enforcedBy`,
+ * and the META checks fail if a rule has no passing check or the doc and the JSON drift apart.
+ * Static part (no browser) + Playwright part (390×844, zh default; en/ja drafts via ?lang=).
+ * Run: node tests/rules.mjs
+ */
+import { chromium } from "playwright";
+import fs from "fs";
+import path from "path";
+import vm from "vm";
+import { execSync } from "child_process";
+import { startServer, ROOT } from "./lib/server.mjs";
+import { scanLocale, scanRendered, scanText, stripJsComments } from "./wording.mjs";
+
+const RULES = JSON.parse(fs.readFileSync(path.join(ROOT, "rules/healoa-rules.json"), "utf8"));
+const rule = (id) => RULES.rules.find((r) => r.id === id);
+const results = [];
+function check(id, name, ok, detail) {
+  results.push({ id, name, ok: !!ok, detail: detail ?? null });
+  console.log(`${ok ? "PASS" : "FAIL"}  [${id}] ${name}${detail != null ? " — " + (typeof detail === "string" ? detail : JSON.stringify(detail)).slice(0, 400) : ""}`);
+}
+const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+const SC = RULES.scope;
+const LOCALE_FILES = SC.localeFiles;
+
+/** Scan every customer-facing source with one rule's per-locale list (code/markup with zh, each locale file with its own). */
+function scanRule(r) {
+  const hits = [];
+  const scanWith = (text, locale) => {
+    const words = (r.banned && r.banned[locale]) || [];
+    if (!words.length) return [];
+    // reuse the locale matcher with a rule-only list
+    return scanLocaleWords(text, locale, words);
+  };
+  for (const f of SC.customerCodeFiles) for (const h of scanWith(read(f), SC.codeFilesScannedAs)) hits.push({ f, ...h });
+  for (const [l, f] of Object.entries(LOCALE_FILES)) for (const h of scanWith(read(f), l)) hits.push({ f, ...h });
+  return hits;
+}
+function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+function scanLocaleWords(text, locale, words) {
+  if (RULES.matchModes[locale] !== "word") return scanText(text, words);
+  const hits = [];
+  text.split("\n").forEach((line, i) => {
+    for (const w of words) if (new RegExp(`(^|[^\\p{L}\\p{N}])${escRe(w)}($|[^\\p{L}\\p{N}])`, "iu").test(line)) hits.push({ word: w, line: i + 1, text: line.trim().slice(0, 120) });
+  });
+  return hits;
+}
+const OUTCOME = rule("R02").outcomePatterns.map((p) => new RegExp(p.re, p.flags));
+function outcomeHits(text) {
+  const hits = [];
+  text.split("\n").forEach((line, i) => { for (const re of OUTCOME) { const m = line.match(re); if (m) hits.push({ re: re.source.slice(0, 30), match: m[0], line: i + 1 }); } });
+  return hits;
+}
+
+// ================= static =================
+// R01 / R02 / R03 / R04 / R07 / R12 — per-rule word lists over every customer-facing source.
+const WORD_CHECKS = { R01: "R01.a", R02: "R02.a", R03: "R03.a", R04: "R04.a", R07: "R07.a", R12: "R12.a" };
+for (const [rid, cid] of Object.entries(WORD_CHECKS)) {
+  const r = rule(rid), hits = scanRule(r);
+  const counts = Object.entries(r.banned).map(([l, w]) => `${l} ${w.length}`).join(", ");
+  check(cid, `${rid} banned words (${counts}) absent from ${SC.customerCodeFiles.length} code/markup files + ${Object.keys(LOCALE_FILES).length} locale files`, hits.length === 0, hits.length ? hits.slice(0, 8) : null);
+}
+// R01.b — the six gentle labels are the entry, and none of them names a disease.
+const ctx = {}; ctx.globalThis = ctx; vm.createContext(ctx);
+for (const f of [...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "app/data.js", "app/rules.js"]) vm.runInContext(read(f), ctx, { filename: f });
+const D = ctx.HEALOA_DATA, I = ctx.HEALOA_I18N;
+{
+  const labels = D.CONDITIONS.map((c) => c.label);
+  const bad = labels.filter((l) => scanLocaleWords(l, "zh", rule("R01").banned.zh).length);
+  check("R01.b", "zh entry labels are exactly the gentle labels (" + rule("R01").gentleLabels.zh.join(" / ") + ") and contain no disease word", JSON.stringify(labels) === JSON.stringify(rule("R01").gentleLabels.zh) && bad.length === 0, { labels, bad });
+}
+// R02.b — no outcome phrasing anywhere in customer sources (all languages).
+{
+  const hits = [];
+  for (const f of [...SC.customerCodeFiles, ...Object.values(LOCALE_FILES)]) for (const h of outcomeHits(stripJsComments(read(f)))) hits.push({ f, ...h });
+  check("R02.b", `no outcome phrasing (${OUTCOME.length} patterns: 疗愈失眠 / heals insomnia / improves blood pressure / treats anxiety / therapeutic …)`, hits.length === 0, hits.length ? hits.slice(0, 6) : null);
+}
+// R02.c — 疗愈 / restorative / 癒し only next to place / atmosphere / experience / feeling words.
+{
+  const r = rule("R02"), bad = [], W = r.allowedNear.window;
+  let n = 0;
+  for (const [code, word] of Object.entries(r.restorativeWords)) {
+    const near = new RegExp(r.allowedNear[code], code === "en" ? "i" : "");
+    const files = code === "zh" ? [LOCALE_FILES.zh, ...SC.customerCodeFiles] : [LOCALE_FILES[code]];
+    for (const f of files) {
+      const txt = stripJsComments(read(f));
+      let i = -1;
+      while ((i = txt.indexOf(word, i + 1)) >= 0) { n++; const win = txt.slice(Math.max(0, i - W), i + word.length + W); if (!near.test(win)) bad.push({ f, win }); }
+    }
+  }
+  check("R02.c", `疗愈 / restorative / 癒し describe only a place / atmosphere / feeling (${n} uses checked)`, bad.length === 0, bad.length ? bad : null);
+}
+// R05.a — the share builder never reads the body state and only emits allowed URL params.
+{
+  const app = read("app/app.js");
+  const fn = app.slice(app.indexOf("function buildShare"), app.indexOf("var lastShareCardText"));
+  const lq = app.slice(app.indexOf("function langQuery"), app.indexOf("function langQuery") + 200).split("\n")[0];
+  const params = [...(fn + lq).matchAll(/[?&]([a-z]+)=/g)].map((m) => m[1]);
+  const allowed = rule("R05").allowedShareParams;
+  check("R05.a", `buildShare() never touches state.cond; its URL params ⊆ {${allowed.join(", ")}}`, fn.length > 50 && !/cond/i.test(fn) && params.length > 0 && params.every((p) => allowed.includes(p)), { params });
+}
+// R08.a — healoa.com nowhere in the shipped repo (except the files that hold the rule itself).
+{
+  const tracked = execSync("git ls-files", { cwd: ROOT, encoding: "utf8" }).split("\n").filter(Boolean);
+  const ex = SC.repoWideExclude;
+  const files = tracked.filter((f) => !ex.some((e) => f === e || f.startsWith(e)) && /\.(html|js|mjs|md|css|json|yml|yaml|txt)$/.test(f) && fs.existsSync(path.join(ROOT, f)));
+  const hits = [];
+  for (const f of files) for (const h of scanText(read(f), rule("R08").bannedAnywhere)) hits.push({ f, ...h });
+  const r12 = [];
+  for (const f of files) for (const h of scanText(read(f), rule("R12").bannedAnywhere)) r12.push({ f, ...h });
+  check("R08.a", `no "healoa.com" in ${files.length} tracked files (excluding ${ex.join(", ")})`, hits.length === 0, hits.length ? hits.slice(0, 5) : null);
+  check("R12.b", `no old product / website terms (${rule("R12").bannedAnywhere.join(" / ")}) in ${files.length} tracked files`, r12.length === 0, r12.length ? r12.slice(0, 5) : null);
+}
+// R09.b — the home steps describe the main line in order.
+{
+  const s = ctx.HEALOA_LOCALES.zh.strings;
+  const seq = [s["home.step1"], s["home.step2"], s["home.step3"]];
+  check("R09.b", "home steps: 1 点一下你的情况 → 2 季节 + 去哪里 → 3 放松 → 本季养护卡", /情况/.test(seq[0]) && /季节/.test(seq[1]) && /去哪里/.test(seq[1]) && /放松/.test(seq[2]) && seq[2].indexOf("放松") < seq[2].indexOf("本季养护卡"), seq);
+}
+// R10.a — every photo the app renders carries the credit (source-level), and the share card draws it.
+{
+  const app = read("app/app.js");
+  const imgLines = app.split("\n").filter((l) => /<img src=/.test(l));
+  const bad = imgLines.filter((l) => !/D\.CREDIT/.test(l));
+  check("R10.a", `credit text is exactly 「${rule("R10").credit}」; all ${imgLines.length} photo <img> templates in app.js carry D.CREDIT; share card draws the credit`, D.CREDIT === rule("R10").credit && imgLines.length >= 3 && bad.length === 0 && /credit: D\.CREDIT/.test(app), bad.map((l) => l.trim().slice(0, 80)));
+}
+// R11.a — zh is the only complete locale; en/ja drafts; es empty.
+{
+  const r = rule("R11");
+  const esCode = stripJsComments(read(LOCALE_FILES.es)).trim();
+  check("R11.a", "zh default + only complete locale (switcher needs ≥2 → hidden); en/ja meta.draft; es stub empty and es banned list empty",
+    I.DEFAULT === r.defaultLocale && JSON.stringify(I.completeLocales()) === '["zh"]' && r.draftLocales.every((l) => I.isDraft(l) && !I.isComplete(l)) && esCode === "" && !ctx.HEALOA_LOCALES.es && (rule("R01").banned.es || []).length === 0 && /codes\.length < 2/.test(read("app/app.js")));
+}
+
+// ================= browser =================
+let server, browser;
+const pageErrors = [];
+try {
+  let base;
+  ({ server, base } = await startServer());
+  browser = await chromium.launch();
+  const origin = new URL(base).origin;
+  const DQ = "date=2026-09-26";
+  async function open(url, lang = "zh-CN") {
+    const c = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: lang });
+    await c.grantPermissions(["clipboard-read", "clipboard-write"], { origin });
+    await c.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => r.fulfill({ status: 200, contentType: "text/html", body: "ok" }));
+    const p = await c.newPage();
+    p.setDefaultTimeout(8000);
+    p.on("pageerror", (e) => pageErrors.push(String(e)));
+    await p.goto(url);
+    await p.evaluate(() => localStorage.clear()); await p.reload();
+    return { c, p };
+  }
+  const text = (p) => p.evaluate(() => document.body.innerText);
+  const hrefs = (p) => p.evaluate(() => [...document.querySelectorAll("[href],[src],[action]")].map((e) => e.getAttribute("href") || e.getAttribute("src") || e.getAttribute("action")));
+  const creditAudit = (p, credit) => p.evaluate((credit) => {
+    const v = document.querySelector(".view:not(.hidden)");
+    const bad = [];
+    let n = 0;
+    for (const im of v.querySelectorAll("img")) {
+      const src = im.getAttribute("src") || "";
+      if (!src.startsWith("assets/") || !im.offsetParent) continue;
+      n++;
+      const ph = im.closest(".photo"), cr = ph && ph.querySelector(".credit"), inline = v.querySelector(".credit-inline");
+      if (!((cr && cr.textContent === credit) || (inline && inline.textContent === credit && inline.offsetParent))) bad.push(src);
+    }
+    return { n, bad };
+  }, credit);
+
+  // ---- sweep of the zh main path: every screen scanned with ALL rule word lists + outcome patterns; links + credits audited ----
+  {
+    const { c, p } = await open(base + "?" + DQ);
+    const hits = [], outcome = [], links = [], credits = { n: 0, bad: [] };
+    const sweep = async (where) => {
+      const t = await text(p);
+      for (const h of scanRendered(t, "zh")) hits.push({ where, ...h });
+      for (const h of outcomeHits(t)) outcome.push({ where, ...h });
+      for (const h of await hrefs(p)) if (h && /healoa\.com/i.test(h)) links.push({ where, h });
+      const a = await creditAudit(p, rule("R10").credit); credits.n += a.n; credits.bad.push(...a.bad.map((b) => where + ":" + b));
+    };
+    await sweep("home");
+    await p.click('[data-action="openQuiz"]'); await sweep("quiz"); await p.click('[data-action="goHome"]');
+    for (const season of ["autumn", "winter"]) for (const id of D.CONDITIONS.map((x) => x.id)) {
+      await p.evaluate(({ id, season }) => window.__healoa.go("result", { cond: id, season }, true), { id, season }); await sweep(`result ${id}/${season}`);
+      for (const pl of D.PLACES.filter((x) => x.photo).map((x) => x.id)) { await p.evaluate((pl) => window.__healoa.go("place", { placeId: pl }, true), pl); await sweep(`place ${pl}`); }
+      await p.evaluate(() => window.__healoa.go("card", {}, true)); await sweep(`card ${id}/${season}`);
+    }
+    for (const pr of Object.keys(D.PRACTICES)) { await p.evaluate((pr) => window.__healoa.go("practice", { cond: "sleep", practiceId: pr }, true), pr); await sweep("practice " + pr); }
+    await p.evaluate(() => window.__healoa.go("card", { cond: "sleep", season: "autumn" }, true));
+    await p.click("#btnOpenLine"); await sweep("leave a line");
+    await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); await sweep("share panel");
+    const drawn = await p.evaluate(() => window.__healoa.lastShareCardText().join("\n"));
+    for (const h of scanRendered(drawn, "zh")) hits.push({ where: "share card image", ...h });
+    const r07 = hits.filter((h) => rule("R07").banned.zh.includes(h.word));
+    await p.evaluate(() => { document.getElementById("about").open = true; }); await p.evaluate(() => window.__healoa.go("home", {}, true)); await sweep("about");
+    check("R01.c", "rendered zh sweep (home, quiz, 12 results, every photo place, 12 cards, every practice, 留一句, share panel + share image, about) → 0 hits for ALL rule word lists (R01/R02/R03/R04/R07/R12) and 0 outcome phrases", hits.length === 0 && outcome.length === 0, { hits: hits.slice(0, 6), outcome: outcome.slice(0, 4) });
+    check("R07.b", "no points / rewards / streak / invite wording rendered anywhere on the zh path incl. the share flow + share image", r07.length === 0 && !/积分|奖励|打卡|签到|邀请|返利/.test(drawn), r07.slice(0, 4));
+    check("R08.b", "no link / src / action to healoa.com in any rendered zh screen", links.length === 0, links.slice(0, 4));
+    check("R10.b", `every rendered Cindy photo (${credits.n} across result / place / practice screens) shows 「${rule("R10").credit}」`, credits.n >= 20 && credits.bad.length === 0, credits.bad.slice(0, 5));
+    check("R10.c", "share card image draws the credit", drawn.includes(rule("R10").credit), drawn.includes(rule("R10").credit) ? null : drawn.slice(0, 200));
+    await c.close();
+  }
+
+  // ---- R05: share link / image never carry body-state info ----
+  {
+    const r = rule("R05");
+    const labelsAll = Object.values(ctx.HEALOA_LOCALES).flatMap((L) => Object.values(L.content.conditions || {}));
+    const bad = [];
+    for (const [lang, q] of [["zh", ""], ["en", "&lang=en"], ["ja", "&lang=ja"]]) {
+      for (const id of D.CONDITIONS.map((x) => x.id)) {
+        const { c, p } = await open(base + "?" + DQ + q, lang);
+        await p.click(`#homeConds [data-cond="${id}"]`);
+        await p.click('#resultBody [data-action="openCard"]');
+        await p.click("#btnOpenShare");
+        await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
+        const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText(), story: (window.__healoa.storyPng(), 1), url: location.href }));
+        const u = new URL(sh.share.url);
+        const keys = [...u.searchParams.keys()];
+        const blob = JSON.stringify([sh.share, sh.drawn]) + decodeURIComponent(sh.share.url);
+        const leaked = labelsAll.filter((l) => blob.includes(l));
+        if (!keys.every((k) => r.allowedShareParams.includes(k)) || leaked.length || /[?&](c|cond|condition|body)=/.test(sh.url)) bad.push({ lang, id, keys, leaked, page: sh.url });
+        await c.close();
+      }
+    }
+    check("R05.b", `18 runs (zh/en/ja × 6 body states): share link params ⊆ {${r.allowedShareParams.join(", ")}}, page URL has no condition, share text + share image text contain no body-state label (any locale)`, bad.length === 0, bad.slice(0, 4));
+  }
+  {
+    const r = rule("R05");
+    const { c, p } = await open(base + "?" + DQ);
+    const priv = [], travel = [];
+    for (const [l, list] of Object.entries(r.lineProbesMustStayPrivate)) for (const s of list) if (await p.evaluate((s) => window.__healoa.lineTravels(s), s)) priv.push(l + ": " + s);
+    for (const [l, list] of Object.entries(r.lineProbesMayTravel)) for (const s of list) if (!(await p.evaluate((s) => window.__healoa.lineTravels(s), s))) travel.push(l + ": " + s);
+    // end-to-end: a condition line is kept on the own card but not in the link / share image
+    const probe = r.lineProbesMustStayPrivate.zh[2];
+    await p.click('#homeConds [data-cond="sleep"]'); await p.click('#resultBody [data-action="openCard"]');
+    await p.click("#btnOpenLine"); await p.fill("#lineInput", probe); await p.click('[data-action="saveLine"]');
+    await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
+    const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText() }));
+    const e2e = !new URL(sh.share.url).searchParams.has("l") && !sh.drawn.some((t) => t.includes(probe)) && (await p.textContent("#cardLine")).includes(probe);
+    check("R05.c", `留一句 naming a body state stays off the share link + image (${Object.values(r.lineProbesMustStayPrivate).flat().length} probes zh/en/ja rejected by lineTravels; plain lines still travel; end-to-end with 「${probe}」)`, priv.length === 0 && travel.length === 0 && e2e, { travelsButShouldNot: priv, blocked: travel, e2e, url: sh.share.url });
+    await c.close();
+  }
+
+  // ---- R06: share entry after saving the card; not on home; default 只留给自己 ----
+  {
+    const r = rule("R06");
+    const { c, p } = await open(base + "?" + DQ);
+    const home = await p.evaluate(() => {
+      const v = document.getElementById("vHome");
+      return { text: v.innerText, shareEls: v.querySelectorAll('[data-action="openShare"],[data-action="shareSend"],[data-target],#sharePanel').length,
+        visibleShare: [...document.querySelectorAll('#btnOpenShare,#sharePanel,[data-action="shareSend"]')].filter((e) => e.offsetParent).length };
+    });
+    check("R06.a", "home first screen has no share entry (no share buttons / panel, no 「发给」「分享」 text)", home.shareEls === 0 && home.visibleShare === 0 && !/发给|分享/.test(home.text), home);
+    await p.click('#homeConds [data-cond="gut"]'); await p.click('#resultBody [data-action="openCard"]');
+    const def = await p.evaluate(() => ({ keep: document.getElementById("btnKeep").textContent, primary: document.getElementById("btnKeep").classList.contains("primary"), showCond: document.getElementById("cardShowCond").checked, note: document.querySelector("#vCard [data-i18n='card.privateNote']").textContent, panelOpen: !document.getElementById("sharePanel").classList.contains("hidden") }));
+    check("R06.b", `card defaults to 「${r.keepLabel.zh}」 (primary action), condition not written on the card, share panel closed`, def.keep === r.keepLabel.zh && def.primary && !def.showCond && /只给你自己看/.test(def.note) && !def.panelOpen, def);
+    await p.click("#btnKeep");
+    await p.waitForSelector("#savedNote:not(.hidden)");
+    const saved = await p.textContent("#savedNote");
+    const entry = await p.evaluate(() => { const b = document.getElementById("btnOpenShare"); return { visible: !!b.offsetParent, label: b.textContent, afterSave: !!(document.getElementById("savedNote").compareDocumentPosition(b) & 4) }; });
+    await p.click("#btnOpenShare");
+    const panel = await p.evaluate(() => ({ open: !!document.getElementById("sharePanel").offsetParent, send: !!document.querySelector('#sharePanel [data-action="shareSend"]').offsetParent, lead: document.querySelector("#sharePanel .share-lead").textContent }));
+    check("R06.c", `after 「${r.keepLabel.zh}」 saves the card, a visible share entry 「${r.shareActionLabel.zh}…」 follows and opens the share panel with 发送`, entry.visible && entry.label.startsWith(r.shareActionLabel.zh) && entry.afterSave && panel.open && panel.send && saved.length > 0, { saved, entry, panel });
+    await c.close();
+  }
+
+  // ---- R09: main line order ----
+  {
+    const { c, p } = await open(base + "?" + DQ);
+    const steps = [];
+    steps.push(await p.evaluate(() => document.querySelectorAll("#homeConds [data-cond]").length === 6 && !!document.getElementById("homeConds").offsetParent));
+    await p.click('#homeConds [data-cond="tense"]');
+    const order = await p.evaluate(() => {
+      const rb = document.getElementById("resultBody");
+      const place = rb.querySelector(".place-card .reason1"), practice = rb.querySelector('.btn.primary[data-action="openPractice"]'), card = rb.querySelector('[data-action="openCard"]');
+      const before = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & 4));
+      return { season: /^(秋|冬) · /.test(document.getElementById("resultTitle").textContent), reason: !!(place && /\d/.test(place.textContent)), placeBeforePractice: before(place, practice), practiceBeforeCard: before(practice, card) };
+    });
+    steps.push(order.season && order.reason && order.placeBeforePractice && order.practiceBeforeCard);
+    await p.click('#resultBody .btn.primary[data-action="openPractice"]');
+    steps.push(await p.isVisible("#vPractice") && (await p.$$('#vPractice [data-action="openCard"]')).length > 0);
+    await p.evaluate(() => window.__healoa.go("card", {}, true));
+    steps.push(await p.isVisible("#cardPreview"));
+    check("R09.a", "main line: body/feeling entry (6 buttons) → season + places with numeric reasons → relaxation practice → 本季养护卡", steps.every(Boolean), { steps, order });
+    await c.close();
+  }
+
+  // ---- R11: drafts only via ?lang=, badge, switcher hidden, es empty ----
+  {
+    const out = {};
+    for (const [k, q, lang] of [["zh", "", "zh-CN"], ["zhBrowserEn", "", "en-US"], ["en", "&lang=en", "en-US"], ["ja", "&lang=ja", "ja-JP"], ["es", "&lang=es", "es-ES"]]) {
+      const { c, p } = await open(base + "?" + DQ + q, lang);
+      out[k] = await p.evaluate(() => ({ lang: document.documentElement.lang, badge: !document.getElementById("draftBadge").classList.contains("hidden"), badgeText: document.getElementById("draftBadge").textContent, switcher: !document.getElementById("langSwitch").classList.contains("hidden"), langLinks: [...document.querySelectorAll("a[href]")].filter((a) => /[?&]lang=/.test(a.getAttribute("href"))).length }));
+      await c.close();
+    }
+    const ok = out.zh.lang === "zh-CN" && !out.zh.badge && !out.zh.switcher && out.zh.langLinks === 0 &&
+      out.zhBrowserEn.lang === "zh-CN" && !out.zhBrowserEn.badge &&
+      out.en.lang === "en" && out.en.badge && !out.en.switcher && out.ja.lang === "ja" && out.ja.badge && !out.ja.switcher &&
+      out.es.lang === "zh-CN" && !out.es.badge;
+    check("R11.b", "default zh (even with an English browser): no badge, switcher hidden, no ?lang links; ?lang=en / ?lang=ja → draft badge, switcher still hidden; ?lang=es → zh", ok, out);
+  }
+  check("RUN", "no page errors during the rules run", pageErrors.length === 0, pageErrors.slice(0, 4));
+} catch (e) {
+  check("RUN", "rules test run crashed", false, String((e && e.stack) || e));
+} finally {
+  if (browser) await browser.close();
+  if (server) server.close();
+}
+
+// ================= meta: every rule enforced, doc ↔ JSON in sync =================
+{
+  const ids = RULES.rules.map((r) => r.id);
+  const seqOk = ids.every((id, i) => id === "R" + String(i + 1).padStart(2, "0"));
+  const byId = Object.fromEntries(results.map((r) => [r.id, r]));
+  const gaps = [];
+  for (const r of RULES.rules) {
+    const own = r.enforcedBy.filter((x) => x.startsWith("rules:")).map((x) => x.slice(6));
+    if (!own.length) gaps.push(r.id + ": no rules: check listed");
+    for (const cid of own) if (!byId[cid]) gaps.push(`${r.id}: ${cid} did not run`); else if (!byId[cid].ok) gaps.push(`${r.id}: ${cid} failed`);
+  }
+  const ran = results.filter((r) => /^R\d\d\./.test(r.id)).map((r) => r.id);
+  const unlisted = ran.filter((cid) => !RULES.rules.some((r) => r.enforcedBy.includes("rules:" + cid)));
+  check("META.a", `every rule (${ids.length}) lists ≥1 rules: check in enforcedBy, and all listed checks ran and passed; every check that ran is listed`, seqOk && gaps.length === 0 && unlisted.length === 0, { gaps, unlisted });
+  const doc = read(RULES.doc);
+  const missing = [];
+  for (const r of RULES.rules) {
+    if (!new RegExp(`\\b${r.id}\\b`).test(doc)) missing.push(r.id);
+    for (const x of r.enforcedBy.filter((x) => x.startsWith("rules:"))) if (!doc.includes(x.slice(6))) missing.push(x);
+  }
+  check("META.b", `${RULES.doc} names every rule id and every enforcing check id, and points at rules/healoa-rules.json`, missing.length === 0 && doc.includes("rules/healoa-rules.json") && doc.includes("tests/rules.mjs"), missing);
+}
+
+const failed = results.filter((r) => !r.ok);
+console.log(`\nrules: ${results.length - failed.length}/${results.length} PASS`);
+if (process.env.HEALOA_RESULTS_DIR) fs.writeFileSync(path.join(process.env.HEALOA_RESULTS_DIR, "rules.json"), JSON.stringify(results, null, 2));
+process.exit(failed.length ? 1 : 0);

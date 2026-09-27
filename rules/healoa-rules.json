@@ -1,0 +1,152 @@
+{
+  "$comment": "Machine-readable HeaLoa founder rules (Cindy Yang). Human-readable version: HEALOA_RULES.md. Enforced by tests/rules.mjs (plus the other suites named in enforcedBy). Any reviewer tool can read this file: every rule has an id, zh text, en gloss, machine checks (word lists, regex patterns, required UI facts) and the exact test check ids that enforce it.",
+  "schemaVersion": 1,
+  "owner": "Cindy Yang (founder)",
+  "doc": "HEALOA_RULES.md",
+  "matchModes": {
+    "zh": "substring",
+    "ja": "substring",
+    "en": "word",
+    "es": "word",
+    "$comment": "substring = any occurrence (CJK); word = whole word/phrase, case-insensitive (Latin). es list stays EMPTY until a native reviewer exists."
+  },
+  "scope": {
+    "customerCodeFiles": ["index.html", "app/data.js", "app/rules.js", "app/app.js", "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "scene-seed-legacy.html"],
+    "localeFiles": { "zh": "app/i18n/zh.js", "en": "app/i18n/en.js", "ja": "app/i18n/ja.js", "es": "app/i18n/es.js" },
+    "codeFilesScannedAs": "zh",
+    "repoWideExclude": ["tests/", "rules/", "HEALOA_RULES.md"],
+    "$comment": "customerCodeFiles are scanned with the zh list; each locale file with its own list. repoWideExclude: files that hold the lists themselves."
+  },
+  "rules": [
+    {
+      "id": "R01",
+      "zh": "健康疗愈，不是治疗：客户界面不出现疾病名和医疗词，用温和的说法（血压偏高 / 睡不踏实 / 怕冷手脚凉 / 肠胃弱 / 心里绷得紧 / 想安静一点）。",
+      "en": "Wellness, not treatment: no disease names or medical words on customer screens; use the gentle body-state labels.",
+      "banned": {
+        "zh": ["治疗", "诊断", "疗效", "降压", "降血压", "治失眠", "药", "患者", "医生", "病", "高血压", "失眠", "糖尿病", "抑郁", "焦虑症", "症状"],
+        "en": ["treat", "treatment", "therapy", "diagnose", "diagnosis", "patient", "doctor", "insomnia", "hypertension", "blood pressure", "medicine", "disease", "diabetes", "disorder", "symptom", "clinical"],
+        "ja": ["治療", "診断", "患者", "医師", "医者", "不眠症", "高血圧", "薬", "病", "糖尿病", "症状"]
+      },
+      "gentleLabels": { "zh": ["血压偏高", "睡不踏实", "怕冷手脚凉", "肠胃弱", "心里绷得紧", "想安静一点"] },
+      "enforcedBy": ["rules:R01.a", "rules:R01.b", "rules:R01.c", "static-checks:banned-words (locale-aware)", "healing-v3 / merged-plan rendered scans"]
+    },
+    {
+      "id": "R02",
+      "zh": "「疗愈 / healing」只能形容地方、氛围、体验、感受，不能说成结果（不说「疗愈失眠」「改善血压」「治焦虑」「有疗效」）。",
+      "en": "Healing/restorative may describe only a place, atmosphere, experience or feeling, never an outcome (no 'heals insomnia', 'improves blood pressure', 'treats anxiety', 'therapeutic').",
+      "banned": {
+        "zh": ["治愈", "改善", "缓解", "调理"],
+        "en": ["heal", "heals", "healed", "cure", "cures", "treats", "therapeutic", "improve", "improves", "relieve", "relieves"],
+        "ja": ["治す", "治る", "効果", "改善"]
+      },
+      "restorativeWords": { "zh": "疗愈", "en": "restorative", "ja": "癒し" },
+      "allowedNear": {
+        "zh": "(氛围|环境|地方|感受|山林|空气|森林|体验)",
+        "en": "(calm|atmosphere|place|air|feel|setting|wooded|quiet|experience)",
+        "ja": "(空気|雰囲気|場所|森|景色|体験)",
+        "window": 16
+      },
+      "outcomePatterns": [
+        { "re": "(疗愈|治愈|调理|改善|缓解|治)(了|好)?(失眠|睡眠|血压|焦虑|肠胃|身体|疾病)", "flags": "u" },
+        { "re": "\\b(heal(s|ing|ed)?|cure[sd]?|treat(s|ing|ed)?|fix(es)?)\\s+(your\\s+|the\\s+)?(insomnia|sleep|blood pressure|anxiety|stress|body|pain)", "flags": "iu" },
+        { "re": "\\b(improv|lower|reduc|reliev)\\w*\\s+(your\\s+)?(blood pressure|sleep|insomnia|anxiety|stress)", "flags": "iu" },
+        { "re": "\\btherapeutic\\b", "flags": "iu" },
+        { "re": "(癒し|癒す|治す)[^。]{0,4}(不眠|血圧|不安|病)", "flags": "u" }
+      ],
+      "enforcedBy": ["rules:R02.a", "rules:R02.b", "rules:R02.c", "static-checks:疗愈 / restorative / 癒し only describe a place"]
+    },
+    {
+      "id": "R03",
+      "zh": "投资人用语不进客户界面：数字资产、AGI、基础设施、网络效应、未来朋友。",
+      "en": "Investor words never appear in customer UI: digital asset, AGI, infrastructure, network effect, future friend.",
+      "banned": {
+        "zh": ["数字资产", "网络效应", "基础设施", "AGI", "未来朋友", "未来的朋友"],
+        "en": ["digital asset", "AGI", "infrastructure", "network effect", "future friend"],
+        "ja": ["デジタル資産", "AGI", "インフラ", "ネットワーク効果"]
+      },
+      "enforcedBy": ["rules:R03.a", "rules:R01.c"]
+    },
+    {
+      "id": "R04",
+      "zh": "不提中医顾问 / 顾问 / 医学审核人。",
+      "en": "No mention of a TCM consultant, advisor or medical reviewer.",
+      "banned": {
+        "zh": ["中医顾问", "医学顾问", "顾问", "医学审核", "中医师", "专家审核"],
+        "en": ["TCM", "consultant", "advisor", "adviser", "medical reviewer", "practitioner"],
+        "ja": ["顧問", "監修", "漢方医"]
+      },
+      "enforcedBy": ["rules:R04.a", "rules:R01.c"]
+    },
+    {
+      "id": "R05",
+      "zh": "身体 / 感受信息永远不进任何分享图、分享链接或网址参数；「留一句」里如果写了身体情况，就不跟着分享链接走。",
+      "en": "Body/feeling info never goes into a shared card image, share link or URL parameter; a 'leave a line' text naming a condition stays off the share link.",
+      "allowedShareParams": ["s", "l", "lang"],
+      "lineProbesMustStayPrivate": {
+        "zh": ["最近睡不踏实", "我血压偏高", "有点失眠", "手脚凉", "心里绷得紧", "想安静一点", "高血压", "我有糖尿病", "有点焦虑", "肠胃弱"],
+        "en": ["I can't sleep lately", "my blood pressure", "insomnia again", "a bit of anxiety"],
+        "ja": ["最近眠れない", "血圧が高め", "不眠が続く"]
+      },
+      "lineProbesMayTravel": { "zh": ["这个秋天，慢一点。"], "en": ["Slow mornings."] },
+      "enforcedBy": ["rules:R05.a", "rules:R05.b", "rules:R05.c", "merged-plan:share card + link contain no body-state / feeling words"]
+    },
+    {
+      "id": "R06",
+      "zh": "存下本季养护卡之后，必须有分享入口，包含「发给一个人」；首页第一屏没有分享；卡片默认「只留给自己」。",
+      "en": "After saving the season care card there must be a share entry with a 'send to one person' action; no share on the home first screen; the card defaults to 'keep it to myself'.",
+      "shareActionLabel": { "zh": "发给一个人" },
+      "keepLabel": { "zh": "只留给自己" },
+      "enforcedBy": ["rules:R06.a", "rules:R06.b", "rules:R06.c", "merged-plan:share entry reads 「发给一个人…」"]
+    },
+    {
+      "id": "R07",
+      "zh": "不做积分、奖励、拉新返利、连续打卡、邀请换好处。",
+      "en": "No points, rewards, referrals, check-in streaks or invite-for-benefit.",
+      "banned": {
+        "zh": ["积分", "奖励", "打卡", "签到", "邀请好友", "邀请有礼", "推荐码", "返利", "解锁", "排行", "福利"],
+        "en": ["streak", "points", "reward", "rewards", "unlock", "invite friends", "invite a friend", "referral", "bonus", "check-in"],
+        "ja": ["ポイント", "招待特典", "特典", "紹介特典", "連続ログイン"]
+      },
+      "enforcedBy": ["rules:R07.a", "rules:R07.b", "merged-plan:no rewards / points / streak / invite wording"]
+    },
+    {
+      "id": "R08",
+      "zh": "App 里永远不链接 healoa.com。",
+      "en": "The app never links to healoa.com.",
+      "bannedAnywhere": ["healoa.com"],
+      "enforcedBy": ["rules:R08.a", "rules:R08.b", "static-checks:app-only"]
+    },
+    {
+      "id": "R09",
+      "zh": "主线顺序：身体 / 感受入口 → 季节 + 地点（带理由）→ 放松练习 → 本季养护卡。",
+      "en": "Main line order: body/feeling entry → season + places with reasons → relaxation practice → season care card.",
+      "order": ["home:#homeConds", "result:place reasons", "result:openPractice", "practice:openCard", "card:#cardPreview"],
+      "enforcedBy": ["rules:R09.a", "rules:R09.b"]
+    },
+    {
+      "id": "R10",
+      "zh": "出现 Cindy 照片的地方要署名「Photo · Cindy Yang」。",
+      "en": "Every Cindy photo shows the credit 'Photo · Cindy Yang'.",
+      "credit": "Photo · Cindy Yang",
+      "photoPathPrefix": "assets/",
+      "enforcedBy": ["rules:R10.a", "rules:R10.b", "rules:R10.c"]
+    },
+    {
+      "id": "R11",
+      "zh": "en / ja 只是草稿，只能用 ?lang= 打开并显示草稿标记；公开的语言切换隐藏；es 为空。",
+      "en": "en/ja are drafts reachable only via ?lang= with a draft badge; the public language switcher stays hidden; es is empty.",
+      "draftLocales": ["en", "ja"],
+      "emptyLocales": ["es"],
+      "defaultLocale": "zh",
+      "enforcedBy": ["rules:R11.a", "rules:R11.b", "static-checks:i18n: en + ja are DRAFTS", "i18n suite"]
+    },
+    {
+      "id": "R12",
+      "zh": "（沿用 v3 锁定 2026-09-26）语气温和、不做情绪日记；不出现旧产品 / 网站用语（光圈、Keeper、Host、Choose Again、/board）。",
+      "en": "(Carried over from the v3 lock, 2026-09-26) gentle tone, no mood diary; no old product/website terms.",
+      "banned": { "zh": ["累", "烦", "日记", "情绪曲线"] },
+      "bannedAnywhere": ["光圈", "Keeper", "Host", "Choose Again", "/board"],
+      "enforcedBy": ["rules:R12.a", "rules:R12.b", "static-checks:banned-words (locale-aware)", "static-checks:app-only"]
+    }
+  ]
+}

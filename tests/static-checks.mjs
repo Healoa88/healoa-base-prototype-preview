@@ -30,21 +30,22 @@ check("banned-words (locale-aware): " + Object.values(LOCALE_FILES).join(", ") +
   const zhW = BANNED_BY_LOCALE.zh.words, enW = BANNED_BY_LOCALE.en.words, jaW = BANNED_BY_LOCALE.ja.words;
   const enNeed = ["digital asset", "AGI", "infrastructure", "network effect", "future friend", "heal", "heals", "cure", "treat", "treatment", "therapy", "therapeutic", "diagnose", "patient", "doctor", "insomnia", "hypertension", "blood pressure", "improve", "relieve", "medicine", "streak", "points", "reward", "unlock", "invite friends"];
   const jaNeed = ["治療", "治す", "効果", "診断", "患者", "医師", "不眠症", "高血圧", "改善", "薬", "ポイント", "招待特典", "デジタル資産"];
-  check("banned-word config (merged plan): zh locked 24 + 数字资产/网络效应/基础设施; en 26 (word match); ja 13 (substring); es empty (deferred, TODO)",
-    JSON.stringify(LOCALES) === '["zh","en","ja","es"]' && zhW.length === 27 && ["数字资产", "网络效应", "基础设施", "治疗", "药", "积分", "解锁"].every((w) => zhW.includes(w)) &&
-    BANNED_BY_LOCALE.en.match === "word" && enNeed.every((w) => enW.includes(w)) && enW.length === enNeed.length &&
-    BANNED_BY_LOCALE.ja.match === "substring" && jaNeed.every((w) => jaW.includes(w)) && jaW.length === jaNeed.length &&
-    Array.isArray(BANNED_BY_LOCALE.es.words) && BANNED_BY_LOCALE.es.words.length === 0 && /TODO\(native review\)/.test(read("tests/wording.mjs")));
+  const allIn = (need, have) => need.every((w) => have.includes(w));
+  check("banned-word config: derived from rules/healoa-rules.json; still contains the zh locked 24 + 数字资产/网络效应/基础设施, the en 26 (word match) and ja 13 (substring) merged-plan words; es empty (deferred, TODO)",
+    JSON.stringify(LOCALES) === '["zh","en","ja","es"]' && /healoa-rules\.json/.test(read("tests/wording.mjs")) && zhW.length >= 27 && allIn(["治疗", "治愈", "疗效", "诊断", "降压", "降血压", "治失眠", "改善", "缓解", "调理", "药", "患者", "医生", "高血压", "失眠", "累", "烦", "日记", "打卡", "积分", "邀请好友", "解锁", "排行", "情绪曲线", "数字资产", "网络效应", "基础设施"], zhW) &&
+    BANNED_BY_LOCALE.en.match === "word" && allIn(enNeed, enW) &&
+    BANNED_BY_LOCALE.ja.match === "substring" && allIn(jaNeed, jaW) &&
+    Array.isArray(BANNED_BY_LOCALE.es.words) && BANNED_BY_LOCALE.es.words.length === 0 && /TODO\(native review\)/.test(read("tests/wording.mjs")), { zh: zhW.length, en: enW.length, ja: jaW.length });
   // The word matcher really catches the en phrases (and does not flag brand names like HeaLoa or words like "healing").
   const probe = scanLocale("Doctor says this will heal and improve your blood pressure. Earn points!", "en").map((h) => h.word);
   check("en word matcher: catches doctor / heal / improve / blood pressure / points; ignores HeaLoa", ["doctor", "heal", "improve", "blood pressure", "points"].every((w) => probe.includes(w)) && scanLocale("HeaLoa · healing places · Photo", "en").length === 0, probe);
 }
 
-// 2. App-only words anywhere in tracked files (tests/ hold the list itself, so they are excluded).
+// 2. App-only words anywhere in tracked files (tests/, rules/ and HEALOA_RULES.md hold the list itself, so they are excluded).
 let tracked = [];
 try { tracked = execSync("git ls-files", { cwd: ROOT, encoding: "utf8" }).split("\n").filter(Boolean); } catch { tracked = CUSTOMER_FILES; }
 const untrackedNew = ["index.html", "app/data.js", "app/rules.js", "app/app.js", "app/app.css", "app/social.js", ...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "README.md", "PRODUCT_CURRENT.md", "DECISIONS.md", "vendor/qrcode.js"].filter((f) => fs.existsSync(path.join(ROOT, f)));
-const files = [...new Set([...tracked, ...untrackedNew])].filter((f) => !f.startsWith("tests/") && /\.(html|js|mjs|md|css|json|yml|yaml|txt)$/.test(f) && fs.existsSync(path.join(ROOT, f)));
+const files = [...new Set([...tracked, ...untrackedNew])].filter((f) => !f.startsWith("tests/") && !f.startsWith("rules/") && f !== "HEALOA_RULES.md" /* the rule files hold the list itself */ && /\.(html|js|mjs|md|css|json|yml|yaml|txt)$/.test(f) && fs.existsSync(path.join(ROOT, f)));
 const anyHits = [];
 for (const f of files) for (const h of scanText(read(f), BANNED_ANYWHERE)) anyHits.push({ file: f, ...h });
 check("app-only: no healoa.com / 光圈 / Keeper / Host / Choose Again / /board in " + files.length + " files", anyHits.length === 0, anyHits.length ? anyHits.slice(0, 10) : null);
