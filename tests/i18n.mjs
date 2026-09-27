@@ -22,12 +22,12 @@ const D = "?date=2026-09-26";
 const pageErrors = [];
 let server, browser;
 try {
-  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-27-u) ----------
+  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-27-w) ----------
   const golden = JSON.parse(fs.readFileSync(GOLDEN, "utf8"));
   const now = await captureZh();
   const diff = diffGolden(golden, now);
   const n = (o) => Object.keys(o).length;
-  check(`zh identical to the v2026-09-27-u zh snapshot (intentional update after the copy polish): home, shared, quiz, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
+  check(`zh identical to the v2026-09-27-w zh snapshot (intentional update: private card without condition text, 睡前慢呼吸 replaces 4-7-8, plain wording, solar-term dates): home, shared, quiz, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
     diff.length === 0, diff.length ? diff.slice(0, 6) : "identical");
   check("key zh screens contain the locked strings", golden.home.includes("血压偏高、睡不好、怕冷……这个季节该怎么养？") && now.home === golden.home &&
     CONDITION_LABELS.every((l) => now.home.includes(l)) && now.result["bp/winter"].includes("这个季节先不选") && now.card["bp/autumn"].view.includes("只留给自己") && now.head.lang === "zh-CN");
@@ -80,6 +80,19 @@ try {
     await ctx.close();
   }
   check("?lang=en / ?lang=ja open the DRAFT locales with a small 「Draft preview」/「下書き」 badge; switcher stays hidden; draft never remembered (next visit without ?lang → zh)", dr.every((x) => x.ok), dr);
+  {
+    // ja draft home at 390px: the six buttons wrap only at phrase breaks — no button leaves 1–2 kana alone on its last line
+    const { ctx, p } = await open(base + D + "&lang=ja");
+    const btns = await p.evaluate(() => [...document.querySelectorAll("#homeConds .cond-btn")].map((b) => {
+      const walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), rows = {};
+      for (let n; (n = walker.nextNode());) for (let i = 0; i < n.data.length; i++) { const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1); const top = Math.round(r.getBoundingClientRect().top); rows[top] = (rows[top] || "") + n.data[i]; }
+      const lines = Object.keys(rows).sort((a, b) => a - b).map((k) => rows[k]);
+      return { label: b.textContent, lines, overflow: b.scrollWidth > b.clientWidth + 1 };
+    }));
+    const bad = btns.filter((x) => x.lines.length > 2 || x.overflow || (x.lines.length === 2 && x.lines[1].length <= 2));
+    check("ja draft home (390px): 6 buttons wrap only at phrase breaks — ≤2 lines, no last line of ≤2 characters, no overflow", btns.length === 6 && bad.length === 0, btns.map((x) => x.lines.join(" / ")));
+    await ctx.close();
+  }
   {
     const { ctx, p } = await open(base + D);
     check("zh (default): no draft badge", await p.evaluate(() => document.getElementById("draftBadge").classList.contains("hidden")));

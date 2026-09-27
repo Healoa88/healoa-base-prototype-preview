@@ -1,4 +1,4 @@
-/* HeaLoa · 顺着季节养 · v2026-09-27-v · mobile-first, large type, high contrast */
+/* HeaLoa · 顺着季节养 · v2026-09-27-w · mobile-first, large type, high contrast */
 :root {
   --bg: #f6f1e8; --card: #fffdf9; --ink: #26241f; --muted: #5f5a50; --line: #e3dccf;
   --green: #2f5d50; --green-2: #e3eee9; --warm: #9a5530; --warm-2: #f6e6da; --warn: #7a3b12; --warn-bg: #fbeee2;
@@ -36,6 +36,8 @@ img { max-width: 100%; display: block; }
   border-radius: var(--radius); font-size: 20px; font-weight: 700; cursor: pointer; padding: 8px;
 }
 .cond-btn:active { background: var(--green-2); }
+/* ja draft: labels are long and have no spaces — break only between words (app.js adds <wbr>), balance the two lines. */
+html[lang="ja"] .cond-btn { font-size: 18px; padding: 8px 6px; word-break: keep-all; line-break: strict; text-wrap: balance; }
 .hint-line { text-align: center; color: var(--muted); font-size: 15px; margin: 12px 0 6px; }
 .return-hint { width: 100%; min-height: 52px; margin: 8px 0; border: 1px dashed var(--warm); background: var(--warm-2); color: var(--warm); border-radius: 12px; font-size: 17px; cursor: pointer; }
 
@@ -79,7 +81,6 @@ img { max-width: 100%; display: block; }
 .skip-list li, .more-list li { font-size: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .skip-list li:last-child, .more-list li:last-child { border-bottom: 0; }
 .skip-name { font-weight: 700; }
-.pending { font-size: 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; margin-left: 4px; }
 
 .btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; border-radius: 14px; font-size: 19px; font-weight: 700; cursor: pointer; border: 2px solid var(--green); text-decoration: none; padding: 8px 12px; text-align: center; }
 .btn.primary { background: var(--green); color: #fff; }

@@ -30,6 +30,8 @@
       "season.switchAria": "Switch season",
       "season.autumn": "Fall",
       "season.winter": "Winter",
+      "season.spring": "Spring",
+      "season.summer": "Summer",
       "cond.groupAria": "What would feel good today?",
       "lang.switchAria": "Language",
       "social.follow": "Follow us",
@@ -44,6 +46,7 @@
       "home.quizLink": "Not sure which one? Answer 5 quick questions (optional)",
       "home.seasonToday": "Today · around the {term} · {season}",
       "home.seasonAhead": "Looking ahead to {season}",
+      "home.seasonPending": "Today · around the {term} · {now}. {now} ideas are still being prepared — here is {season} for now",
       "home.returnHint": "You saved a {season} card last time · Tap to open it",
 
       "shared.kicker": "Someone shared HeaLoa with you",
@@ -75,8 +78,7 @@
       "result.soakBtn": "10-minute foot soak timer",
       "result.skipTitle": "Better another season",
       "result.moreTitle": "More places",
-      "result.moreSub": "Photos are on the way. Until then, these stay out of the top three.",
-      "result.photoPending": "Photo coming",
+      "result.moreSub": "These places could suit you too. We haven't photographed them yet, so here are just a few words, and they stay out of the top three.",
       "result.relaxCta": "Take a few calm minutes · {label}",
       "result.eatTitle": "Food and drink",
       "result.eatMore": "Enjoy more: ",
@@ -85,14 +87,14 @@
       "result.eatDrink": "To drink: ",
       "result.eatNote": "Herbal teas: if you're pregnant or have an ongoing health condition, ask a health professional first.",
       "result.moveTitle": "Moving your body",
-      "result.moveFollow": "Follow along (simple samples, standing or seated):",
+      "result.moveFollow": "Follow along (simple moves, standing or seated):",
       "result.moveWalk": "Slow-walk rhythm",
       "result.moveBaduanjin": "Baduanjin, first move",
       "result.moveTaiji": "Tai chi opening",
       "result.moveBreath": "3 minutes of slow breathing",
       "result.caution": "Please note: ",
       "result.cardCta": "Make my season card",
-      "result.srcNote": "Place weather: past averages, not a forecast · Climate data: NASA POWER (CC BY 4.0) · Photos {credit}",
+      "result.srcNote": "Temperatures and humidity are past averages, not a forecast · Photos {credit}",
 
       "place.cindyLine": "“{line}” — Cindy",
       "place.skipLabel": "Better another season: ",
@@ -102,7 +104,7 @@
       "place.todoTitle": "What to do here",
       "place.hotspringCaution": "Hot springs: 105°F (41°C) or cooler, 10 minutes at a time, and stand up slowly.",
       "place.homeTitle": "Can't go? Try this at home",
-      "place.srcNote": "Past weather averages, not a forecast · Climate data: NASA POWER (CC BY 4.0) · Grid elevation about {elev} m (rough; to be checked by hand)",
+      "place.srcNote": "Temperatures and humidity are past averages, not a forecast. Up in the hills it feels cooler than the table says.",
 
       "practice.modesAria": "Choose an exercise",
       "practice.footL": "L",
@@ -146,6 +148,7 @@
       "card.seasonAhead": "{season} ({months})",
       "card.head": "{who} · your {season} plan",
       "card.whoAnon": "Made for you",
+      "card.lineHidden": "Your line shows on the card and in the image only when the switch above is on.",
       "card.placeLabel": "A place that fits: ",
       "card.itemEat": "Eat: {tip} Enjoy more {foods}.",
       "card.itemMove": "Move: {move}",
@@ -215,7 +218,7 @@
       "line.onCard": "“{line}”",
       "line.empty": "Write a few words first, then tap “Put it on my card.”",
       "line.saved": "Done. It's on your card and stays on this phone. If you send the card, the line goes with it.",
-      "line.savedPrivate": "Done. It's on your own card only — it mentions your health, so it won't be sent with the card.",
+      "line.savedPrivate": "Done. It stays on this phone — it mentions your health, so it won't be sent with the card, and it shows on your own card only when the switch above is on.",
       "line.cleared": "Your line is removed.",
       "recv.lineLabel": "They left a line:",
       "recv.write": "Add a line beside theirs",
@@ -246,7 +249,7 @@
       "about.versionPrefix": "Preview",
       "about.versionSuffix": "· a clickable prototype, not the finished app.",
       "about.how": "<b>How places are picked:</b> by season, each place's past weather, and what you tapped, using fixed rules. No business pays to be listed, and nothing is random. Places without a real photo stay out of the top three.",
-      "about.climate": "<b>Weather numbers:</b> past averages, not a forecast. Climate data: NASA POWER (CC BY 4.0), monthly averages 2001–2020. The grid elevation is rough (the Wudang grid sits at about 398 m; up on the mountain it's higher and colder) and will be checked by hand before launch.",
+      "about.climate": "<b>Weather numbers:</b> past averages (monthly, 2001–2020), not a forecast. Up in the hills it feels cooler than the table says. Source: NASA POWER (CC BY 4.0).",
       "about.photos": "<b>Photos:</b> Photo · Cindy Yang. The signed line under each place will come from Cindy herself; where she hasn't written one yet, it stays empty.",
       "about.privacy": "<b>Privacy:</b> what you tap stays on this phone (browser storage) and is never uploaded. Shared images and links carry nothing about your body or feelings — just a random code. A line you write goes into the link only when you choose to send it. This demo has no server.",
       "about.timer": "<b>Timer:</b> exercises run on real clock time, so pause, resume, and stop are accurate. Where supported, your screen stays on.",
@@ -297,7 +300,7 @@
           cindyLine: "",
           food: ["Simple mountain greens and hot soups", "A pot of hot tea, sipped slowly on the terrace", "Go easy on spicy and greasy food"],
           todo: ["Walk slowly around the courtyard and stone steps for 20 minutes in the morning", "Try a few tai chi or Baduanjin moves (Wudang has long been linked with tai chi)", "Watch the clouds from the terrace with a cup of tea"],
-          caution: ["The numbers come from a weather grid below the mountain (about 398 m). It's colder up top, so pack an extra layer.", "Lots of stone steps: take them slowly. No need to race to the summit."],
+          caution: ["The temperatures are for the foot of the mountain. It's colder up top, so pack an extra layer.", "Lots of stone steps: take them slowly. No need to race to the summit."],
           fit: {
             bp: "The courtyard and gentle paths are made for slow walks, and a few slow tai chi moves never ask you to strain.",
             sleep: "Night falls early in the mountains and it's very quiet — easy to go to bed with the sky.",
@@ -333,7 +336,7 @@
           cindyLine: "",
           food: ["Hot soba and warm soups", "A glass of warm water before and after a soak"],
           todo: ["Stroll the onsen streets and watch the steam over the spring field", "Soak your body or just your feet: choose pools 105°F (41°C) or cooler, 10 minutes at a time"],
-          caution: ["Rinse your hands and feet first, stand up slowly, and don't soak alone. Skip it right after a meal or a drink, and get out if you feel dizzy.", "The grid elevation is about 1,036 m, so mornings and evenings are cool — bring an extra layer."],
+          caution: ["Rinse your hands and feet first, stand up slowly, and don't soak alone. Skip it right after a meal or a drink, and get out if you feel dizzy.", "The town sits up in the mountains, so mornings and evenings are cool — bring an extra layer."],
           fit: {
             bp: "You can soak, but keep to this: 105°F (41°C) or cooler, 10 minutes at a time, and stand up slowly.",
             sleep: "Soak for 10 minutes one to two hours before bed, dry off, bundle up, and turn in early.",
@@ -398,7 +401,7 @@
             ],
             eat: { more: "lily bulb, lotus seeds, millet, snow fungus, pears", less: "strong tea or coffee in the evening, late-night snacks", tip: "Stop at about 70% full at dinner, and don't eat in the two hours before bed.", drink: "a small bowl of warm millet porridge or a cup of warm milk before bed." },
             move: ["Take a 20-minute slow walk in the early evening; nothing strenuous in the two hours before bed."],
-            safety: "If restless nights keep going, talk with a health professional. If the breathing exercise feels stuffy, switch to in 4, out 6."
+            safety: "If restless nights keep going, talk with a health professional. If the breathing exercise feels stuffy, slow down and just breathe naturally."
           },
           winter: {
             note: [
@@ -408,7 +411,7 @@
             ],
             eat: { more: "red dates, millet, walnuts, longan (a little)", less: "a heavy dinner, spicy food", tip: "Have dinner a bit earlier and keep it light.", drink: "a warm, caffeine-free drink before bed." },
             move: ["Walk slowly in the sunshine for 20 minutes during the day."],
-            safety: "If restless nights keep going, talk with a health professional. If the breathing exercise feels stuffy, switch to in 4, out 6."
+            safety: "If restless nights keep going, talk with a health professional. If the breathing exercise feels stuffy, slow down and just breathe naturally."
           }
         },
         cold: {
@@ -507,11 +510,11 @@
           intro: "Follow the circle: breathe in slowly through your nose as it grows, and breathe out slowly as it shrinks. No holding your breath.",
           phases: ["Breathe in", "Breathe out"]
         },
-        breath478: {
-          label: "4-7-8 breathing · before bed",
-          short: "4-7-8",
-          intro: "In for 4, pause for 7, out for 8 — four rounds. If the pause feels like too much, don't push; switch to in 4, out 6.",
-          phases: ["Breathe in", "Pause", "Breathe out slowly"]
+        breathNight: {
+          label: "Bedtime slow breathing · in 4, out 6",
+          short: "Bedtime breathing",
+          intro: "Lying down or seated. Follow the circle: breathe in slowly for 4 as it grows, out slowly for 6 as it shrinks. No holding your breath. Ten rounds, under 2 minutes.",
+          phases: ["Breathe in", "Breathe out slowly"]
         },
         walk: {
           label: "Slow-walk rhythm",
@@ -526,7 +529,7 @@
         baduanjin1: {
           label: "Baduanjin, first move · Holding up the sky",
           short: "Baduanjin 1",
-          intro: "A one-move sample you can do standing or seated. If your shoulders or neck complain, only lift as high as feels comfortable.",
+          intro: "Start with the first move — standing or seated. If your shoulders or neck complain, only lift as high as feels comfortable.",
           steps: [
             "Stand with your feet shoulder-width apart (or sit), shoulders relaxed.",
             "Lace your fingers in front of your belly, palms up, and breathe in slowly.",
@@ -540,7 +543,7 @@
         taiji1: {
           label: "Tai chi · Opening",
           short: "Tai chi",
-          intro: "A one-move sample: slow, soft, in time with your breath. If your knees complain, bend less.",
+          intro: "Start with the opening move: slow, soft, in time with your breath. If your knees complain, bend less.",
           steps: [
             "Stand with your feet together, body relaxed, eyes looking ahead.",
             "Step your left foot out gently to shoulder width.",
@@ -551,9 +554,13 @@
           ]
         }
       },
+      careGeneric: {
+        autumn: { eat: "Eat: fall air is dry, so enjoy moist foods such as pears, lily bulb and white fungus.", move: "Move: a slow 20–30 minute walk each day — a light sweat, still able to chat.", relax: "Settle: slow breathing, in for 4, out for 6, any time you think of it.", safety: "Go at your own pace; if anything feels off, stop and rest." },
+        winter: { eat: "Eat: warm food, not too full — radish, Chinese yam, millet, warm soup.", move: "Move: a slow 20-minute walk in the warm middle of the day; walk indoors on windy days.", relax: "Settle: slow breathing, in for 4, out for 6, any time you think of it.", safety: "Go at your own pace; if anything feels off, stop and rest." }
+      },
       homePlan: {
         bp: ["Soak your feet for 10 minutes, one to two hours before bed (105°F / 41°C or cooler)", "3 minutes of slow breathing: in for 4, out for 6, no holding", "A slow 20–30 minute walk in a nearby park"],
-        sleep: ["Soak your feet for 10 minutes, one to two hours before bed", "Dim the lights and set the phone aside", "Four rounds of 4-7-8 breathing before you lie down"],
+        sleep: ["Soak your feet for 10 minutes, one to two hours before bed", "Dim the lights and set the phone aside", "Ten rounds of bedtime slow breathing before you lie down: in for 4, out for 6"],
         cold: ["Soak your feet for 10 minutes in the evening, then put on socks right away", "A cup of warm red date tea", "A slow 20-minute walk when the sun is out"],
         gut: ["A warm bowl of porridge for breakfast", "A slow 15-minute walk half an hour after meals", "Gently rub your belly in clockwise circles for 3 minutes before bed"],
         tense: ["Follow the slow-walk rhythm for 20 minutes", "3 minutes of slow breathing", "10 minutes a day of doing nothing at all"],

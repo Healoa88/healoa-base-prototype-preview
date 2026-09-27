@@ -79,8 +79,8 @@
     },
     {
       "id": "R05",
-      "zh": "身体 / 感受信息永远不进任何分享图、分享链接或网址参数；「留一句」里如果写了身体情况，就不跟着分享链接走。",
-      "en": "Body/feeling info never goes into a shared card image, share link or URL parameter; a 'leave a line' text naming a condition stays off the share link.",
+      "zh": "身体 / 感受信息永远不进任何分享图、分享链接或网址参数；「留一句」里如果写了身体情况，就不跟着分享链接走。没打开「写出我的情况」时，自己的养护卡和「存成图片」也不写任何能看出情况的字（情况名、和情况有关的安全提醒 / 吃 / 动）。",
+      "en": "Body/feeling info never goes into a shared card image, share link or URL parameter; a 'leave a line' text naming a condition stays off the share link. With 'write my condition' off, the private card and its saved PNG carry no condition-identifying text either.",
       "allowedShareParams": ["s", "l", "lang"],
       "lineProbesMustStayPrivate": {
         "zh": ["最近睡不踏实", "我血压偏高", "有点失眠", "手脚凉", "心里绷得紧", "想安静一点", "高血压", "我有糖尿病", "有点焦虑", "肠胃弱"],
@@ -88,7 +88,12 @@
         "ja": ["最近眠れない", "血圧が高め", "不眠が続く"]
       },
       "lineProbesMayTravel": { "zh": ["这个秋天，慢一点。"], "en": ["Slow mornings."] },
-      "enforcedBy": ["rules:R05.a", "rules:R05.b", "rules:R05.c", "merged-plan:share card + link contain no body-state / feeling words"]
+      "privateCardWhenOff": {
+        "$comment": "v2026-09-27-w: with 「写出我的情况」 OFF (the default), the private card (screen) and its 「存成图片」 PNG must contain no condition-identifying text: no condition label (any locale), no privateWords stem, and none of the condition-specific care lines (safety / eat tip / first move). A 留一句 that names a body state stays off too.",
+        "toggle": "#cardShowCond",
+        "forbidden": ["conditions (all locales)", "content.privateWords (all locales)", "care[cond][season].safety", "care[cond][season].eat.tip", "care[cond][season].move[0]"]
+      },
+      "enforcedBy": ["rules:R05.a", "rules:R05.b", "rules:R05.c", "rules:R05.d", "merged-plan:share card + link contain no body-state / feeling words"]
     },
     {
       "id": "R06",
@@ -147,6 +152,30 @@
       "banned": { "zh": ["累", "烦", "日记", "情绪曲线"] },
       "bannedAnywhere": ["光圈", "Keeper", "Host", "Choose Again", "/board"],
       "enforcedBy": ["rules:R12.a", "rules:R12.b", "static-checks:banned-words (locale-aware)", "static-checks:app-only"]
+    },
+    {
+      "id": "R13",
+      "zh": "客户界面不出现内部 / 没做完的用语（网格海拔、待人工核对、样品、照片待补、Climate data……），用长辈看得懂的大白话，或者不显示。数据来源只写在「关于这份 Demo」。",
+      "en": "No internal / unfinished developer wording on customer screens (grid elevation, to be checked by hand, sample, photo coming, 'Climate data' …); say it plainly or hide it. Data sources live only in the About section.",
+      "banned": {
+        "zh": ["网格", "待人工核对", "人工核对", "待核对", "样品", "照片待补", "待补", "较粗", "Climate data", "占位"],
+        "en": ["grid elevation", "weather grid", "checked by hand", "photo coming", "photos are on the way", "sample", "samples", "Climate data"],
+        "ja": ["グリッド", "確認予定", "人の目で確認", "写真準備中", "Climate data"]
+      },
+      "enforcedBy": ["rules:R13.a", "rules:R01.c"]
+    },
+    {
+      "id": "R14",
+      "zh": "放松练习对每个人都安全：因为只能选一种情况，任何练习都不能靠「选了什么」来保护人。任何一步都不憋气超过 2 秒（不做 4-7-8 这类长憋气），用吸 4 呼 6 这类温和的长呼气。",
+      "en": "Every practice is safe for everyone: only one condition can be picked, so no practice may rely on it. No breath hold longer than 2 seconds anywhere (no 4-7-8); use gentle extended-exhale patterns such as in 4 / out 6.",
+      "maxHoldSec": 2,
+      "holdDefinition": "a breath phase whose circle scale equals the previous phase's scale (cyclic), or a step text that says to pause / hold for N seconds",
+      "banned": {
+        "zh": ["4-7-8", "停 7 秒", "屏气", "憋气 7"],
+        "en": ["4-7-8", "hold for 7", "pause for 7"],
+        "ja": ["4-7-8", "7秒止め"]
+      },
+      "enforcedBy": ["rules:R14.a", "rules:R14.b", "rules:R14.c"]
     }
   ]
 }

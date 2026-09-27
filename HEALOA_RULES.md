@@ -4,7 +4,7 @@
 >
 > **机器可读的同一份规则：[`rules/healoa-rules.json`](rules/healoa-rules.json)**（禁用词表、正则、必须存在的界面事实、每条规则对应的测试 ID）。
 > Any reviewer tool (CI, code review bot, rule engine) should read that JSON; this page is its human-readable twin.
-> 执行：`npm test`（含 `tests/rules.mjs`）。`tests/wording.mjs` 的各语言禁用词表由这个 JSON 生成，所以所有测试共用一个来源。
+> 执行：`npm test`（含 `tests/rules.mjs`；季节 / 节气的单元测试在 `tests/season.mjs`）。`tests/wording.mjs` 的各语言禁用词表由这个 JSON 生成，所以所有测试共用一个来源。
 > 改规则的顺序：先改 JSON → 再改本页 → 跑 `node tests/rules.mjs`。`META.a` / `META.b` 会在规则没人检查、或本页和 JSON 对不上时失败。
 
 匹配方式 / matching：中文、日文按「出现即算」（substring）；英文按整词、不分大小写（word）。es 词表为空，等母语审核人。
@@ -16,7 +16,7 @@
 | **R02** | **「疗愈 / healing」只能形容地方、氛围、体验、感受，不能说成结果。** 不说「疗愈失眠」「改善血压」「治焦虑」「有疗效 / therapeutic」。 | Healing may describe a place, atmosphere, experience or feeling — never an outcome. | `R02.a` 结果类词（治愈 / 改善 / 缓解 / heal / improve / 治す …）· `R02.b` 结果句式正则（heals insomnia / improves blood pressure / treats anxiety / 疗愈失眠 …）· `R02.c` 疗愈 / restorative / 癒し 旁边必须是地方 / 氛围 / 感受词 |
 | **R03** | **投资人用语不进客户界面：** 数字资产、AGI、基础设施、网络效应、未来朋友（digital asset / AGI / infrastructure / network effect / future friend）。 | Investor words never appear in customer UI. | `R03.a` · `R01.c`（运行时） |
 | **R04** | **不提中医顾问 / 顾问 / 医学审核人。** | No TCM consultant, advisor or medical reviewer mentions. | `R04.a` · `R01.c`（运行时） |
-| **R05** | **身体 / 感受信息永远不进分享图、分享链接、网址参数。** 「留一句」里写了身体情况，就只留在自己的卡上，不跟着分享链接走。 | Body/feeling info never in a shared image, share link or URL param; a line naming a condition stays off the link. | `R05.a` 分享代码不读身体状态、链接参数只允许 `s` / `l` / `lang` · `R05.b` zh / en / ja × 6 种情况实测分享链接和分享图 · `R05.c` 含身体词的「留一句」样例全部不外带（端到端验证） · 另有 `merged-plan` |
+| **R05** | **身体 / 感受信息永远不进分享图、分享链接、网址参数。** 「留一句」里写了身体情况，就只留在自己的卡上，不跟着分享链接走。**没打开「写出我的情况」（默认）时，自己的养护卡和「存成图片」也不写任何能看出情况的字**：卡上换成对所有人都一样的本季通用安排和通用提醒；提到身体的「留一句」也先不写上卡（v2026-09-27-w）。 | Body/feeling info never in a shared image, share link or URL param; a line naming a condition stays off the link. With “write my condition” off, the private card and its saved PNG carry no condition-identifying text. | `R05.a` 分享代码不读身体状态、链接参数只允许 `s` / `l` / `lang` · `R05.b` zh / en / ja × 6 种情况实测分享链接和分享图 · `R05.c` 含身体词的「留一句」样例全部不外带（端到端验证；打开「写出我的情况」才上自己的卡） · `R05.d` 开关关着：zh / en / ja × 6 种情况 × 秋冬 共 36 次，卡片页面文字 + 「存成图片」PNG 上画的每一行都不含情况名、`privateWords` 词根、和情况有关的安全 / 吃 / 动句子；打开开关的对照组能看到情况 · 另有 `merged-plan` |
 | **R06** | **存下本季养护卡之后，必须有分享入口，包含「发给一个人」。** 首页第一屏没有分享；卡片默认「只留给自己」。 | After saving the card there must be a share entry with “send to one person”; no share on the home first screen; card defaults to “keep it to myself”. | `R06.a` 首页无分享 · `R06.b` 卡片默认「只留给自己」、不写身体情况 · `R06.c` 点「只留给自己」后可见「发给一个人…」并能打开分享面板 · 另有 `merged-plan` |
 | **R07** | **不做积分、奖励、拉新返利、连续打卡、邀请换好处。** | No points, rewards, referrals, check-in streaks or invite-for-benefit. | `R07.a` 源码扫词 · `R07.b` 运行时主路径 + 分享流程 + 分享图 |
 | **R08** | **App 里永远不链接 healoa.com。** | The app never links to healoa.com. | `R08.a` 仓库所有已跟踪文件（除规则文件本身）· `R08.b` 运行时每一屏的 href / src |
@@ -24,6 +24,8 @@
 | **R10** | **出现 Cindy 照片的地方署名「Photo · Cindy Yang」。** | Every Cindy photo carries the credit “Photo · Cindy Yang”. | `R10.a` 源码里每个照片模板都带署名 · `R10.b` 运行时每张可见照片都有署名 · `R10.c` 分享图上画了署名 |
 | **R11** | **en / ja 只是草稿：** 只能用 `?lang=` 打开，并显示草稿标记；公开的语言切换隐藏；es 为空。 | en/ja are drafts, reachable only via `?lang=` with a draft badge; public switcher hidden; es empty. | `R11.a` 只有 zh 是完整语言、es 为空 · `R11.b` 浏览器实测默认 / 英文浏览器 / `?lang=en` / `?lang=ja` / `?lang=es` · 另有 `static-checks`、`i18n` |
 | **R12** | （沿用 v3 锁定 2026-09-26）语气温和、不做情绪日记（累 / 烦 / 日记 / 情绪曲线）；不出现旧产品 / 网站用语（见 JSON `bannedAnywhere`）。 | Carried over from the v3 lock: gentle tone, no mood diary, no old product/website terms. | `R12.a` 源码扫词 · `R12.b` 仓库已跟踪文件 |
+| **R13** | **客户界面不出现内部 / 没做完的用语**：网格海拔、待人工核对、样品、照片待补、Climate data……改成长辈看得懂的大白话，或者不显示；数据来源只写在「关于这份 Demo」。 | No internal / unfinished developer wording on customer screens; say it plainly or hide it. | `R13.a` 源码逐语言扫词（JSON `R13.banned`）· `R01.c`（运行时每一屏） |
+| **R14** | **放松练习对每个人都安全。** 只能选一种情况，所以任何练习都不能靠「选了什么」来保护人：任何一步憋气 / 停顿都不超过 2 秒，不做 4-7-8 这类长憋气，用吸 4 呼 6 这类温和的长呼气（v2026-09-27-w）。 | Every practice is safe for everyone: no breath hold longer than 2 s anywhere (no 4-7-8). | `R14.a` 源码扫词（4-7-8 / 停 7 秒 …）· `R14.b` 每个练习的呼吸形状 + 步骤时长 + 三种语言的说明文字，停顿都 ≤ 2 秒（含检测器自检）· `R14.c` 浏览器：6 种情况 × 秋冬，结果页和练习页能点到的每个练习都 ≤ 2 秒 |
 
 ## 元检查 / Meta checks
 

@@ -1,7 +1,7 @@
 # HeaLoa Base · 顺着季节养（可点原型）
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- 版本：**预览 v2026-09-27-v** · 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）· 疗愈主线（Cindy 2026-09-26 锁定 v3）+ 合并方案（留一句 / 发给一个人 / 按平台分享，D-27-02）+ 多语言（只上线中文；en / ja 为草稿预览）
+- 版本：**预览 v2026-09-27-w** · 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）· 疗愈主线（Cindy 2026-09-26 锁定 v3）+ 合并方案（留一句 / 发给一个人 / 按平台分享，D-27-02）+ 多语言（只上线中文；en / ja 为草稿预览）
 - 当前产品定义只看 **[`PRODUCT_CURRENT.md`](PRODUCT_CURRENT.md)**；历史规则与 SUPERSEDED 标记见 **[`DECISIONS.md`](DECISIONS.md)**。
 - 这是可点原型，不是正式 App；纯静态页面（GitHub Pages，main 分支），无后端、无账号、无网络请求。
 
@@ -36,11 +36,11 @@
 ```bash
 npm i
 npx playwright install chromium   # 第一次
-npm test              # static-checks + healing-v3 + i18n + merged-plan + rules（R01–R12 每条规则至少一个检查；禁用词按语言、App-only、首页→结果 1 次点击、结果随输入变化、每个按钮有响应、分享无身体信息、真实计时、中文快照、语言回退 / 草稿、留一句 / 收件人 / 每个平台按钮 / 9:16 图）
+npm test              # static-checks + healing-v3 + i18n + merged-plan + season（节气 / 季节单元测试）+ rules（R01–R14 每条规则至少一个检查；禁用词按语言、App-only、首页→结果 1 次点击、结果随输入变化、每个按钮有响应、分享无身体信息、真实计时、中文快照、语言回退 / 草稿、留一句 / 收件人 / 每个平台按钮 / 9:16 图）
 npm run test:merged   # 只跑合并方案测试
 npm run shots         # 390×844 截图（默认输出 /workspace/hb-merge-shots，可用 HEALOA_SHOTS_DIR 改）
 npm run test:legacy   # 归档页旧测试（可选，较慢）
-npm run golden:zh     # 把当前中文渲染与 tests/golden/zh-baseline.json（v2026-09-27-u 有意更新的快照）对比；--write 重新采集
+npm run golden:zh     # 把当前中文渲染与 tests/golden/zh-baseline.json（v2026-09-27-w 有意更新的快照）对比；--write 重新采集
 ```
 
 `tests/golden/zh-baseline.json` 含私有养护卡 PNG 的哈希，和机器字体有关；换机器跑如不一致，在当前提交上 `node tests/lib/capture-zh.mjs --write` 重新采集。
