@@ -26,7 +26,7 @@ export const BANNED_ANYWHERE = uniq(RULES.rules.flatMap((r) => r.bannedAnywhere 
 export const CONDITION_LABELS = ["血压偏高", "睡不踏实", "怕冷手脚凉", "肠胃弱", "心里绷得紧", "想安静一点"];
 export const CONDITION_IDS = ["bp", "sleep", "cold", "gut", "tense", "quiet"];
 export const DISCLAIMER = "这是顺应季节的养生参考，身体不适请以专业意见为准";
-export const VERSION = "v2026-09-27-x";
+export const VERSION = "v2026-09-27-y";
 
 export function scanText(text, words) {
   const hits = [];

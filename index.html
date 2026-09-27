@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-09-27-x">
+<meta name="healoa-version" content="v2026-09-27-y">
 <meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-09-27-x）</title>
-<link rel="stylesheet" href="app/app.css?v=2026-09-27-x">
+<title>HeaLoa · 顺着季节养（预览 v2026-09-27-y）</title>
+<link rel="stylesheet" href="app/app.css?v=2026-09-27-y">
 <script>
   /* Old Scene Seed links (#seed=…) keep working on the archived demo page. */
   if (/^#seed(Id)?=/.test(location.hash)) location.replace("scene-seed-legacy.html" + location.hash);
@@ -19,7 +19,15 @@
 
   <!-- 首页：一句话说清楚 + 3 步「怎么用」 + 一个开始按钮 -->
   <section id="vHome" class="view" data-view="home" aria-labelledby="homeTitle">
-    <div class="brand"><span class="brand-name">HeaLoa</span><span class="brand-sub" data-i18n="brand.sub">顺着季节养</span></div>
+    <div class="home-hero">
+      <img id="homeHeroImg" class="home-hero-img" alt="" src="assets/places/wudang/02-terrace-sunrise.jpg">
+      <div id="homeAtmo"></div>
+      <div class="home-hero-text">
+        <div class="brand light"><span class="brand-name">HeaLoa</span><span class="brand-sub" data-i18n="brand.sub">顺着季节养</span></div>
+        <h1 id="homeTitle" class="headline" data-i18n="home.headline">这个节气，哪里最适合你？</h1>
+        <p class="subline" data-i18n="home.subline">按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方——给想顺着季节照顾自己的人。</p>
+      </div>
+    </div>
     <div class="season-row">
       <span class="season-now" id="homeSeasonNow"></span>
       <div class="seg" role="group" aria-label="切换季节" data-i18n-attr="aria-label:season.switchAria">
@@ -28,8 +36,6 @@
       </div>
     </div>
     <p class="muted small hidden" id="homeTermExplain" data-i18n="home.termExplain">节气是中国传统历法里的 24 个小季节，大约半个月换一个。</p>
-    <h1 id="homeTitle" class="headline" data-i18n="home.headline">这个节气，哪里最适合你？</h1>
-    <p class="subline" data-i18n="home.subline">按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方——给想顺着季节照顾自己的人。</p>
     <button type="button" class="return-hint hidden" id="homeRematch" data-action="rematch"></button>
     <h2 class="steps-title" id="homeStepsTitle" data-i18n="home.stepsTitle">怎么用</h2>
     <ol class="steps" aria-label="怎么用" data-i18n-attr="aria-label:home.stepsAria">
@@ -107,7 +113,8 @@
   <section id="vPractice" class="view hidden" data-view="practice">
     <div class="practice-bg" id="practiceBg"></div>
     <div class="practice-inner">
-      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><span class="credit-inline">Photo · Cindy Yang</span></div>
+      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnMusic" data-action="toggleMusic" aria-pressed="false" data-i18n="music.off">音乐：关</button></div>
+      <p class="music-note hidden" id="musicNote"></p>
       <div class="chip-row light" id="practiceModes" role="group" aria-label="选择练习" data-i18n-attr="aria-label:practice.modesAria"></div>
       <h2 class="practice-title" id="practiceTitle"></h2>
       <p class="practice-intro" id="practiceIntro"></p>
@@ -122,6 +129,7 @@
       </div>
       <p class="practice-safe" id="practiceSafe"></p>
       <p class="wake-note hidden" id="wakeNote" data-i18n="practice.wakeNote">练习时屏幕会保持常亮</p>
+      <button type="button" class="text-link light-link" id="btnRemind" data-action="openRemind" data-i18n="remind.open">每天提醒我做 3 分钟（可以不要）</button>
       <div class="done-panel hidden" id="donePanel">
         <p class="done-title" id="doneTitle" data-i18n="practice.done">做完了</p>
         <p class="done-sub" data-i18n="practice.doneSub">这一段只为让你当场放松一下。感觉怎么样都可以。</p>
@@ -129,7 +137,9 @@
         <button type="button" class="btn ghost" data-action="practiceAgain" data-i18n="practice.again">再来一次</button>
         <p class="done-sub hidden" id="doneLogged" data-i18n="practice.logged">这一次已经记在「我的养护记录」里，只在这台手机上。</p>
         <button type="button" class="btn ghost" data-action="openRecords" data-i18n="practice.openRecords">看看我的养护记录</button>
+        <button type="button" class="btn ghost" data-action="openRemind" data-i18n="remind.openDone">要不要每天轻轻提醒一下？</button>
       </div>
+      <p class="copyright copyright-inline" data-i18n="copyright">本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
     </div>
   </section>
 
@@ -165,17 +175,17 @@
       <div id="sharePanel" class="share-panel hidden">
         <p class="muted" data-i18n="share.panelNote">卡上只写季节和这个 App 是做什么的，不写你的身体情况；链接里只有一个随机编号。</p>
         <p class="share-lead" data-i18n="share.lead">发给一个你想分享这一刻的人。</p>
-        <img id="shareImg" class="share-img" alt="分享图预览" data-i18n-attr="alt:share.imgAlt">
-        <div class="share-row"><div id="shareQr" class="qr" aria-label="二维码" data-i18n-attr="aria-label:share.qrAria"></div><div class="share-link-box"><p class="muted small" data-i18n="share.linkLabel">链接</p><p id="shareLink" class="share-link"></p></div></div>
+        <div class="share-preview"><img id="shareImg" class="share-img" alt="分享图预览" data-i18n-attr="alt:share.imgAlt"></div>
         <div class="stack">
-          <button type="button" class="btn primary" data-action="shareSend" data-i18n="share.send">发送</button>
+          <button type="button" class="btn primary" data-action="shareSend" id="btnShareSend" data-i18n="share.send">发给一个人…</button>
         </div>
-        <p class="muted small share-or" data-i18n="share.orPlatform">或者选一个地方发：</p>
+        <p class="muted small share-howto" data-i18n="share.howTo">在手机上点「发给一个人…」，会打开手机自带的分享，可以直接选要发的 App 和人。也可以先存图片或视频，再从相册发。</p>
+        <div class="share-grid" id="shareGrid">
+          <button type="button" class="btn ghost" data-action="shareSaveImg" id="btnSaveImg" data-i18n="share.saveImg">存图片</button>
+          <button type="button" class="btn ghost" data-action="shareSaveVideo" id="btnSaveVideo" data-i18n="share.saveVideo">存视频</button>
+        </div>
         <div class="share-targets" id="shareTargets"></div>
-        <div class="btn-row">
-          <button type="button" class="btn ghost" data-action="shareSaveImg" data-i18n="share.saveImg">存分享图</button>
-          <button type="button" class="btn ghost" data-action="shareSaveStory" data-i18n="share.saveStory">存竖版图（9:16）</button>
-        </div>
+        <div class="share-row"><div id="shareQr" class="qr" aria-label="二维码" data-i18n-attr="aria-label:share.qrAria"></div><div class="share-link-box"><p class="muted small" data-i18n="share.linkLabel">链接</p><p id="shareLink" class="share-link"></p></div></div>
         <p class="saved-note hidden" id="shareNote" role="status"></p>
       </div>
     </div>
@@ -189,12 +199,53 @@
     <div id="recordsBody"></div>
   </section>
 
+  <!-- 每天 3 分钟的小提醒（自己打开才有，默认关） -->
+  <section id="vRemind" class="view hidden" data-view="remind" aria-labelledby="remindTitle">
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h2 id="remindTitle" class="result-title" data-i18n="remind.title">每天 3 分钟的小提醒</h2>
+    <p class="muted" data-i18n="remind.lead">想要的话，每天到点轻轻提醒你一下。错过了也没关系，想做的时候再做。</p>
+    <div class="block">
+      <h3 data-i18n="remind.whenTitle">什么时候提醒？</h3>
+      <div class="chip-row wrap" id="remindTimes" role="group" aria-label="提醒时间" data-i18n-attr="aria-label:remind.whenTitle"></div>
+      <label class="time-line"><span data-i18n="remind.custom">或者自己选时间</span> <input type="time" id="remindTimeInput" data-action="remindTimeSet" value="21:30"></label>
+      <h3 data-i18n="remind.whatTitle">做哪一个？</h3>
+      <div class="chip-row wrap" id="remindPractices" role="group" aria-label="做哪一个" data-i18n-attr="aria-label:remind.whatTitle"></div>
+    </div>
+    <div class="stack">
+      <button type="button" class="btn primary" data-action="remindIcs" id="btnRemindIcs" data-i18n="remind.ics">加到手机日历（每天重复）</button>
+      <button type="button" class="btn ghost" data-action="remindNotify" id="btnRemindNotify" data-i18n="remind.notify">App 开着时，也在这台设备上提醒我</button>
+    </div>
+    <p class="muted small" data-i18n="remind.howNote">日历提醒由你手机自己的日历来响，App 关着也会提醒；随时可以在日历里删掉。网页版的通知只在 App 开着时才会出现。</p>
+    <p class="saved-note hidden" id="remindOnNote" data-i18n="remind.onNote">这台设备上的提醒已经打开。</p>
+    <p class="saved-note hidden" id="remindNote" role="status"></p>
+    <button type="button" class="text-link hidden" id="btnRemindOff" data-action="remindOff" data-i18n="remind.offBtn">不要提醒了</button>
+  </section>
+
+  <!-- 走进这里看看：用 Cindy 的照片做的 2.5D 景深，可以拖动 / 转动手机 -->
+  <section id="vImmersive" class="view hidden" data-view="immersive" aria-labelledby="immTitle">
+    <div class="imm-stage" id="immStage">
+      <canvas id="immCanvas" class="imm-canvas" aria-hidden="true"></canvas>
+      <div id="immFallback" class="imm-fallback hidden" aria-hidden="true"></div>
+      <div class="imm-mist" aria-hidden="true"><i></i><i></i></div>
+    </div>
+    <div class="imm-ui">
+      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnImmSound" data-action="toggleMusic" aria-pressed="false" data-i18n="music.off">音乐：关</button></div>
+      <div class="imm-bottom">
+        <h2 id="immTitle" class="imm-title"></h2>
+        <p id="immHint" class="imm-hint"></p>
+        <button type="button" class="chip light-chip" id="btnImmGyro" data-action="immGyro" data-i18n="imm.gyro">转动手机来看</button>
+        <p class="copyright copyright-inline" data-i18n="copyright">本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
+      </div>
+    </div>
+  </section>
+
   <!-- 图片弹层 -->
   <div id="imgModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="图片" data-i18n-attr="aria-label:modal.aria">
     <div class="modal-box">
       <img id="modalImg" alt="养护卡图片" data-i18n-attr="alt:modal.imgAlt">
+      <video id="modalVideo" class="hidden" controls playsinline loop muted></video>
       <p class="modal-guide hidden" id="modalGuide" role="status"></p>
-      <p class="muted small" data-i18n="modal.longPress">手机上可以长按图片保存到相册。</p>
+      <p class="muted small" id="modalLongPress" data-i18n="modal.longPress">手机上可以长按图片保存到相册。</p>
       <div class="stack">
         <button type="button" class="btn primary hidden" id="modalShare" data-action="modalShare" data-i18n="modal.share">发送这张图</button>
         <a class="btn primary" id="modalDownload" download="healoa-card.png" href="#" data-action="downloadImg" data-i18n="modal.download">下载图片</a>
@@ -205,33 +256,36 @@
 
   <footer class="site-foot">
     <p class="disclaimer" id="disclaimer" data-i18n="disclaimer">这是顺应季节的养生参考，身体不适请以专业意见为准</p>
+    <p class="copyright" id="copyright" data-i18n="copyright">本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
     <div class="social-row hidden" id="socialFoot"></div>
     <div class="lang-switch hidden" id="langSwitch" role="group" aria-label="语言" data-i18n-attr="aria-label:lang.switchAria"></div>
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-27-x</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-27-y</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
         <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
-        <p data-i18n-html="about.photos"><b>照片：</b>Photo · Cindy Yang。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
+        <p data-i18n-html="about.photos"><b>照片：</b>本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
+        <p data-i18n-html="about.immersive"><b>走进这里看看：</b>用 Cindy 的一张照片，在这台电脑上算出远近（景深），拖动或转动手机时，近处和远处移动得不一样。照片没有上传到任何地方。</p>
+        <p data-i18n-html="about.music"><b>音乐：</b>练习时的音乐是手机当场合成的轻柔音色，不是录好的曲子；默认关着。</p>
         <p data-i18n-html="about.privacy"><b>隐私：</b>你的回答和养护记录只存在这台手机上（浏览器本地存储），不上传。分享图和分享链接里没有身体或感受信息，只有一个随机编号；你自己留的一句话只在你选择发送时才写进链接。本 Demo 没有服务器，正式版短链接会是 /s/编号。</p>
         <p data-i18n-html="about.timer"><b>计时：</b>放松练习按真实时间计时，暂停、继续、停止都准确；支持时会让屏幕保持常亮。</p>
       </div>
     </details>
   </footer>
 </div>
-<script src="vendor/qrcode.js?v=2026-09-27-x"></script>
-<script src="app/i18n/zh.js?v=2026-09-27-x"></script>
-<script src="app/i18n/en.js?v=2026-09-27-x"></script>
-<script src="app/i18n/ja.js?v=2026-09-27-x"></script>
-<script src="app/i18n/es.js?v=2026-09-27-x"></script>
-<script src="app/i18n/i18n.js?v=2026-09-27-x"></script>
-<script src="app/social.js?v=2026-09-27-x"></script>
-<script src="app/share-targets.js?v=2026-09-27-x"></script>
-<script src="app/data.js?v=2026-09-27-x"></script>
-<script src="app/rules.js?v=2026-09-27-x"></script>
-<script src="app/kb.js?v=2026-09-27-x"></script>
-<script src="app/match.js?v=2026-09-27-x"></script>
-<script src="app/app.js?v=2026-09-27-x"></script>
+<script src="vendor/qrcode.js?v=2026-09-27-y"></script>
+<script src="app/i18n/zh.js?v=2026-09-27-y"></script>
+<script src="app/i18n/en.js?v=2026-09-27-y"></script>
+<script src="app/i18n/ja.js?v=2026-09-27-y"></script>
+<script src="app/i18n/es.js?v=2026-09-27-y"></script>
+<script src="app/i18n/i18n.js?v=2026-09-27-y"></script>
+<script src="app/social.js?v=2026-09-27-y"></script>
+<script src="app/share-targets.js?v=2026-09-27-y"></script>
+<script src="app/data.js?v=2026-09-27-y"></script>
+<script src="app/rules.js?v=2026-09-27-y"></script>
+<script src="app/kb.js?v=2026-09-27-y"></script>
+<script src="app/match.js?v=2026-09-27-y"></script>
+<script src="app/app.js?v=2026-09-27-y"></script>
 </body>
 </html>

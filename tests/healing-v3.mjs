@@ -72,7 +72,7 @@ try {
   check("version label " + VERSION, (await p.getAttribute('meta[name="healoa-version"]', "content")) === VERSION && (await p.textContent("#verLabel")) === VERSION);
   check("tech notes are inside collapsible 「关于这份 Demo」", await p.evaluate(() => { const d = document.getElementById("about"); return d.tagName === "DETAILS" && !d.open && d.querySelector("summary").textContent === "关于这份 Demo"; }));
   const homeTxt = await allText(p);
-  check("home: no old social/fake elements (1 人在场 / 留一笔 / Scene Seed / bubbles)", !/人在场|留一笔|Scene Seed|场景种子/.test(homeTxt) && (await p.$$(".bubble, .particle, .bubbles, #bubbles, canvas")).length === 0);
+  check("home: no old social/fake elements (1 人在场 / 留一笔 / Scene Seed / bubbles)", !/人在场|留一笔|Scene Seed|场景种子/.test(homeTxt) && (await p.$$(".bubble, .particle, .bubbles, #bubbles, canvas:not(#immCanvas)")).length === 0);
   check("home: no horizontal overflow at 390px", (await overflow(p)) <= 0);
   await p.close();
 
@@ -86,10 +86,11 @@ try {
     const one = await q.$$eval("#revealBody .flip-card.flipped", (els) => els.length);
     await q.click('#revealBody [data-action="flipAll"]');
     const all = await q.$$eval("#revealBody .flip-card.flipped", (els) => els.length);
-    const credit = (await q.textContent("#revealBody")).includes("Photo · Cindy Yang");
+    // v2026-09-27-y (R10): no overlay credit on the photos; the copyright line sits at the bottom of the page.
+    const credit = !(await q.textContent("#revealBody")).includes("Photo · Cindy Yang") && (await q.$$eval("#revealBody .flip-back img", (els) => els.every((e) => getComputedStyle(e).objectFit === "cover"))) && (await q.isVisible("#copyright"));
     await q.click('#revealBody [data-action="openWhy"]');
     const why = await q.$$eval("#resultBody .place-card", (els) => els.length);
-    check("home → quiz → flip reveal: 1–3 face-down cards, tap flips one, 「全部翻开」 flips all, photos keep Photo · Cindy Yang, 「看看为什么」 → places with reasons",
+    check("home → quiz → flip reveal: 1–3 face-down cards, tap flips one, 「全部翻开」 flips all, full-bleed photos (cover, no overlay credit, copyright line in the footer), 「看看为什么」 → places with reasons",
       cards >= 1 && cards <= 3 && backHidden && one === 1 && all === cards && credit && why === cards, { cards, one, all, why });
     await q.close();
   }
@@ -118,10 +119,10 @@ try {
       for (const h of scanRendered(await allText(q), await pageLang(q))) domHits.push({ state: `place ${id}/${season}`, ...h });
       if ((await overflow(q)) > 0) overflowStates.push(`place ${id}/${season}`);
       if (id === "bp" && season === "winter") {
-        check("place card: photo + credit + 3 reasons with numbers + 当地吃 + 做什么 + 适合谁 + 要避开什么 + 在这里做一件事", await q.evaluate(() => {
+        check("place card: photo + copyright line + 3 reasons with numbers + 当地吃 + 做什么 + 适合谁 + 要避开什么 + 在这里做一件事", await q.evaluate(() => {
           const b = document.getElementById("placeBody");
           const reasons = [...b.querySelectorAll(".reasons li")].map((l) => l.textContent);
-          return !!b.querySelector(".place-hero img") && b.textContent.includes("Photo · Cindy Yang") && reasons.length === 3 && reasons.filter((r) => /\d/.test(r)).length >= 2 &&
+          return !!b.querySelector(".place-hero img") && !b.textContent.includes("Photo · Cindy Yang") && !!document.getElementById("copyright").offsetParent && reasons.length === 3 && reasons.filter((r) => /\d/.test(r)).length >= 2 &&
             b.textContent.includes("在这里可以吃") && b.textContent.includes("在这里做什么") && b.textContent.includes("要避开什么") && b.textContent.includes("适合谁") && b.textContent.includes("在这里做一件事");
         }));
         check("place card: Cindy line slot renders nothing while empty", (await q.$$(".cindy-line")).length === 0);
@@ -323,7 +324,7 @@ try {
   const kept = await p.$$eval("#quizBody .quiz-opt.on", (els) => els.map((e) => e.dataset.opt));
   await p.click('#quizBody [data-action="quizSkip"]');
   const afterSkip = await p.evaluate(() => JSON.stringify(window.__healoa.quiz().picks));
-  check("quiz: one question per screen, 第 1 题 / 共 8 题 + progress bar, big options (≥56px)", q1.qs === 1 && q1.prog === "第 1 题 / 共 8 题" && q1.now === "1" && q1.opts.length === 7 && q1.opts.every((h) => h >= 56), q1);
+  check("quiz: one question per screen, 第 1 题 / 共 8 题 + progress bar, big options (≥56px)", q1.qs === 1 && q1.prog === "第 1 题 / 共 8 题" && q1.now === "1" && q1.opts.length === 9 && q1.opts.every((h) => h >= 56), q1);
   check("quiz: Q1 multi-select; 「都还好」 clears the others; tapping another clears 「都还好」", JSON.stringify(multi) === '["bp","sleep"]' && JSON.stringify(excl) === '["fine"]', { multi, excl });
   check("quiz: single-choice question moves on by itself; 「上一题」 goes back with the answer kept; 「都不是 / 说不准」 skips", q2 === "第 2 题 / 共 8 题" && q3 === "第 3 题 / 共 8 题" && JSON.stringify(kept) === '["hot"]' && afterSkip.includes('"q2":[]'), { q2, q3, kept, afterSkip });
   check("quiz: answers never in the URL", !/q\d|bp|sleep|hot/.test(new URL(p.url()).search.replace("date=2026-09-26", "")), p.url());

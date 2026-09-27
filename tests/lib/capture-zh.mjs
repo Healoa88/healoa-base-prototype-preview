@@ -5,7 +5,7 @@
  * History: captured from v2026-09-27-s before the i18n refactor; re-captured ON PURPOSE for v2026-09-27-u
  * (zh copy polish for first-time 55+ users, 留一句 / 发给一个人 / per-platform share); re-captured ON PURPOSE for v2026-09-27-w
  * (audit fixes: private card without condition text when 「写出我的情况」 is off, 睡前慢呼吸 吸4呼6 replaces 4-7-8,
- * plain wording instead of 网格 / 待人工核对 / 样品 / 照片待补, exact solar-term dates); re-captured ON PURPOSE for v2026-09-27-x
+ * plain wording instead of 网格 / 待人工核对 / 样品 / 照片待补, exact solar-term dates); re-captured ON PURPOSE for v2026-09-27-y (D-27-06; before that v2026-09-27-x)
  * (v4 Phase 1, D-27-05: new home + 怎么用, 8-question matching quiz one per screen, flip reveal, 为什么是你 page,
  * all places open, per-place 适合谁 / 要避开什么 / 在这里做一件事, 我的养护记录; the 6 one-tap home buttons are gone).
  * Regenerate the golden only on purpose: node tests/lib/capture-zh.mjs --write
@@ -187,14 +187,12 @@ export async function captureZh({ query = "" } = {}) {
         await q.click('[data-action="shareTarget"][data-target="copy"]'); await q.waitForTimeout(300); rec.copied = await q.textContent("#shareNote");
         await q.click('[data-action="shareSend"]'); await q.waitForTimeout(300); rec.sendFallback = await q.textContent("#shareNote");
         await q.click("#btnOpenShare"); rec.shareClosed = await q.textContent("#btnOpenShare");
-        for (const id of ["wechat", "xiaohongshu", "weibo", "douyin"]) {
-          await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
-          await q.evaluate(() => document.querySelectorAll("#shareTargets a").forEach((a) => a.addEventListener("click", (e) => e.preventDefault())));
-          await q.click(`[data-target="${id}"]`); await q.waitForTimeout(300);
-          rec["guide " + id] = await q.textContent("#shareNote");
-          await q.evaluate(() => document.getElementById("imgModal").classList.add("hidden"));
-          await q.click("#btnOpenShare");
-        }
+        // v2026-09-27-y: 存图片 (9:16) replaces the per-platform save buttons
+        await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
+        await q.click("#btnSaveImg"); await q.waitForFunction(() => !document.getElementById("imgModal").classList.contains("hidden"));
+        rec["guide saveImg"] = await q.textContent("#modalGuide");
+        await q.evaluate(() => document.getElementById("imgModal").classList.add("hidden"));
+        await q.click("#btnOpenShare");
         await q.click("#btnOpenLine"); rec.linePanel = await q.textContent("#lineZone");
         await q.fill("#lineInput", "这个秋天，慢一点。"); await q.click('[data-action="saveLine"]');
         rec.lineCard = await q.textContent("#cardPreview"); rec.lineNote = await q.textContent("#lineNote");

@@ -44,6 +44,19 @@
       { answer: "q7:forest", tag: "scene_forest", weight: 8, layer: "scene" },
       { answer: "q7:snow", tag: "scene_snow", weight: 8, layer: "scene" },
       { answer: "q8:near", tag: "near_home", weight: 1, layer: "distance" },
+      /* v2026-09-27-y: the new options reuse the same climate / scene tags (no new inference; nothing traditional-medicine) */
+      { answer: "q1:heavy", tag: "gentle_pace", weight: 1.5, layer: "scene" },
+      { answer: "q1:eyes", tag: "open_view", weight: 1, layer: "scene" },
+      { answer: "q1:eyes", tag: "nature", weight: 1, layer: "scene" },
+      { answer: "q5:noexercise", tag: "gentle_pace", weight: 1.5, layer: "scene" },
+      { answer: "q5:screen", tag: "nature", weight: 1, layer: "scene" },
+      { answer: "q5:busy", tag: "quiet", weight: 1, layer: "scene" },
+      { answer: "q6:sun", tag: "want_warm", weight: 1.5, layer: "climate" },
+      { answer: "q6:sun", tag: "open_view", weight: 1, layer: "scene" },
+      { answer: "q6:green", tag: "nature", weight: 2, layer: "scene" },
+      { answer: "q6:alone", tag: "quiet", weight: 1.5, layer: "scene" },
+      { answer: "q7:view", tag: "open_view", weight: 4, layer: "scene" },
+      { answer: "q7:cozy", tag: "cozy", weight: 4, layer: "scene" },
       /* traditional-medicine layer: placeholders only (tag ids are neutral; Cindy chooses the categories and names) */
       { answer: "q2:cold", tag: "tcm_pending_1", weight: null, layer: "tcm", status: "pending-cindy", sourceRef: null },
       { answer: "q3:dry", tag: "tcm_pending_2", weight: null, layer: "tcm", status: "pending-cindy", sourceRef: null },
@@ -57,6 +70,8 @@
     /* Practice layer: which relaxation to offer first (ids from app/data.js PRACTICES). */
     practiceHints: [
       { answer: "q1:sleep", practice: "breathNight" },
+      { answer: "q5:noexercise", practice: "sitEasy" },
+      { answer: "q1:heavy", practice: "sitEasy" },
       { answer: "q6:tense", practice: "walk" },
       { answer: "q1:stiff", practice: "walk" },
       { answer: "q5:sitting", practice: "walk" }

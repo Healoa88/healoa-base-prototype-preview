@@ -177,12 +177,15 @@ check("cindyLine stays empty in every locale (zh / en / ja)", [ZH, EN, JA].every
   // Per-platform share config.
   const SH = ctx.HEALOA_SHARE;
   const byL = SH && SH.byLocale;
-  const want = { zh: ["wechat", "xiaohongshu", "weibo", "douyin", "copy"], en: ["sms", "instagram", "facebook", "whatsapp", "x", "copy"], ja: ["line", "x", "copy"], es: ["whatsapp", "facebook", "copy"] };
+  // v2026-09-27-y (Cindy): the system share sheet + save image / save video do the real work; only buttons that work on their own stay.
+  const want = { zh: ["copy"], en: ["sms", "copy"], ja: ["line", "x", "copy"], es: ["whatsapp", "copy"] };
   const okTargets = byL && Object.entries(want).every(([l, ids]) => JSON.stringify(byL[l].targets) === JSON.stringify(ids));
   const qrOk = byL && byL.zh.qr === true && byL.en.qr === false && byL.ja.qr === false && byL.es.qr === false;
   const webOk = Object.values(SH.targets).every((tg) => tg.kind !== "web" || /^https:\/\/[a-z0-9.-]+\//.test(tg.url));
-  check("share targets per locale: zh 微信/小红书/微博/抖音/copy (+QR); en Text/Instagram Story/Facebook/WhatsApp/X/copy; ja LINE/X/copy; es WhatsApp/Facebook/copy; QR only in zh; web intents https",
-    okTargets && qrOk && webOk && SH.targets.instagram.image === "story" && SH.targets.sms.url.startsWith("sms:") && SH.targets.wechat.copyLink === true, byL);
+  const noFake = !Object.values(SH.targets).some((tg) => tg.kind === "saveImage") && !["wechat", "xiaohongshu", "weibo", "douyin", "instagram", "facebook"].some((id) => SH.targets[id]);
+  check("share targets per locale: zh copy (+QR); en Text/copy; ja LINE/X/copy; es WhatsApp/copy; no save-and-open-the-app platform buttons; QR only in zh; web intents https",
+    okTargets && qrOk && webOk && noFake && SH.targets.sms.url.startsWith("sms:"), byL);
+  check("share panel: system share + save image + save video buttons in markup", /data-action="shareSend"/.test(html) && /data-action="shareSaveImg"/.test(html) && /id="btnSaveVideo"[^>]*|data-action="shareSaveVideo"/.test(html));
   const labelMiss = [];
   for (const [l, ids] of Object.entries(want)) for (const id of ids) for (const Lc of [ZH, EN, JA]) if (!Lc.strings["share.t." + id] || !Lc.strings["share.guide." + id] && id !== "copy") labelMiss.push(l + ":" + id);
   check("every share target has a label (share.t.*) and a how-to line (share.guide.*) in zh / en / ja", labelMiss.length === 0, labelMiss);

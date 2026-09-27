@@ -1,6 +1,6 @@
 {
   "name": "healoa-base-prototype-preview",
-  "version": "2026.9.27-x",
+  "version": "2026.9.27-y",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,6 +14,7 @@
     "test:match": "node tests/match.mjs",
     "golden:zh": "node tests/lib/capture-zh.mjs",
     "shots": "node tests/shots.mjs",
+    "shots:v4y": "node tests/shots-v4y.mjs",
     "test:legacy": "node tests/legacy-scene-seed-p0.mjs"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-/* HeaLoa · 顺着季节养 · v2026-09-27-x · mobile-first, large type, high contrast */
+/* HeaLoa · 顺着季节养 · v2026-09-27-y · mobile-first, large type, high contrast */
 :root {
   --bg: #f6f1e8; --card: #fffdf9; --ink: #26241f; --muted: #5f5a50; --line: #e3dccf;
   --green: #2f5d50; --green-2: #e3eee9; --warm: #9a5530; --warm-2: #f6e6da; --warn: #7a3b12; --warn-bg: #fbeee2;
@@ -67,7 +67,6 @@ html[lang="ja"] .cond-btn { font-size: 18px; padding: 8px 6px; word-break: keep-
 .place-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin: 12px 0; }
 .photo { position: relative; aspect-ratio: 16 / 10; background: #d9d2c4; overflow: hidden; }
 .photo img { width: 100%; height: 100%; object-fit: cover; }
-.photo .credit { position: absolute; right: 8px; bottom: 6px; font-size: 12px; color: #fff; background: rgba(0,0,0,.38); padding: 1px 7px; border-radius: 6px; }
 .photo .rank { position: absolute; left: 8px; top: 8px; font-size: 14px; color: #fff; background: rgba(47,93,80,.9); padding: 2px 9px; border-radius: 8px; }
 .place-main { padding: 12px 14px 14px; }
 .place-name { font-size: 21px; font-weight: 800; }
@@ -111,7 +110,6 @@ html[lang="ja"] .cond-btn { font-size: 18px; padding: 8px 6px; word-break: keep-
 .practice-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(18,24,22,.55), rgba(18,24,22,.72)); }
 .practice-inner { position: relative; padding: 16px 18px 28px; display: flex; flex-direction: column; min-height: 100vh; }
 .topbar.light .back { color: #fff; }
-.credit-inline { font-size: 12px; opacity: .85; }
 .chip-row.light .chip { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.35); color: #fff; }
 .chip-row.light .chip.on { background: #fff; color: var(--green); }
 .practice-title { font-size: 23px; margin-top: 8px; }
@@ -262,3 +260,133 @@ body.practicing .site-foot { display: none; }
 .rec-when { color: var(--muted); font-size: 15px; margin: 0; }
 .rec-what { margin: 2px 0 4px; }
 .rec-note { color: var(--warm); margin: 4px 0; }
+
+/* ---------- v2026-09-27-y: photo-first redesign (Cindy 2026-09-27) ----------
+ * Photos are never stretched: always object-fit: cover with a per-photo focal point (object-position set inline from
+ * HEALOA_DATA.PHOTO_META, see assets/places/PHOTO_AUDIT.md). Portrait photos fill the tall phone frames (4:5, 9:16);
+ * landscape photos are used as the wide desktop backdrop. */
+.photo img { object-fit: cover; }
+.photo.tall { aspect-ratio: 4 / 5; }
+.photo-name { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 40px 14px 12px; color: #fff; font-size: 23px; font-weight: 800; background: linear-gradient(transparent, rgba(10,14,12,.72)); text-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.hero-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 60px 18px 16px; color: #fff; background: linear-gradient(transparent, rgba(10,14,12,.78)); }
+.hero-text .place-title { color: #fff; margin: 0; font-size: 28px; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.hero-text .place-area { color: rgba(255,255,255,.9); margin: 2px 0 0; }
+.place-hero { margin: -16px -18px 0; }
+.place-hero .photo { aspect-ratio: 4 / 5; max-height: 78vh; width: 100%; }
+.place-card .photo.tall { border-radius: 0; }
+.places-grid { display: grid; gap: 14px; }
+.places-grid .place-card { margin: 0; }
+.card-hero { aspect-ratio: 4 / 5; }
+.card-hero .care-season { color: rgba(255,255,255,.92); margin: 0; }
+.card-hero .care-head { color: #fff; font-size: 24px; margin: 2px 0 0; }
+
+/* Home hero: the season's portrait photo, full-bleed */
+.home-hero { position: relative; margin: -16px -18px 6px; height: 50vh; min-height: 380px; max-height: 520px; overflow: hidden; background: #3a4a44; }
+.home-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.home-hero-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 70px 18px 18px; background: linear-gradient(transparent, rgba(10,14,12,.8)); color: #fff; }
+.home-hero-text .headline { color: #fff; font-size: 28px; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
+.home-hero-text .subline { color: rgba(255,255,255,.94); font-size: 16px; margin: 8px 0 0; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+#vHome .season-row { margin: 4px 0 4px; }
+#vHome .steps { margin: 8px 0 4px; gap: 8px; }
+#vHome .steps li { padding: 8px 12px; font-size: 16px; }
+#vHome .steps-title { margin-top: 8px; }
+#vHome .btn.big { margin-top: 10px; }
+.brand.light .brand-name, .brand.light .brand-sub { color: #fff; }
+.brand.light .brand-sub { opacity: .9; }
+
+/* Falling leaves (autumn) / snow (winter): a quiet atmosphere layer, off for reduced motion */
+.atmo { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+#revealBody { position: relative; }
+#revealBody .atmo { position: fixed; }
+.atmo i { position: absolute; top: -20px; display: block; animation: atmo-fall linear infinite; opacity: .85; }
+.atmo-autumn i { width: 12px; height: 8px; border-radius: 12px 0; background: #c8752f; }
+.atmo-autumn i:nth-child(3n) { background: #e0a43a; }
+.atmo-autumn i:nth-child(4n) { background: #9a4a25; }
+.atmo-winter i { width: 7px; height: 7px; border-radius: 50%; background: #fff; box-shadow: 0 0 4px rgba(255,255,255,.8); }
+@keyframes atmo-fall { 0% { transform: translate3d(0, -20px, 0) rotate(0); } 50% { transform: translate3d(24px, 50vh, 0) rotate(180deg); } 100% { transform: translate3d(-12px, 105vh, 0) rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .atmo { display: none; } }
+
+/* Flip reveal: tall portrait cards, gold front with a soft glow, staggered entrance, full-bleed photo back */
+.flip-list { position: relative; z-index: 2; }
+.flip-card { min-height: 440px; animation: flip-in .55s ease both; animation-delay: var(--d, 0s); }
+.flip-inner, .flip-face { min-height: 440px; }
+.flip-front { background: radial-gradient(circle at 50% 38%, #f5d58a, #c99a3e 55%, #8a6424); color: #3a2a0c; border: 0; }
+.flip-front .flip-tap { border-color: rgba(58,42,12,.55); }
+.flip-glow { position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent, rgba(255,255,255,.45), transparent 30%); animation: glow-spin 6s linear infinite; }
+.flip-n, .flip-tap { position: relative; }
+.flip-back .photo { position: absolute; inset: 0; aspect-ratio: auto; }
+.flip-back .flip-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 70px 16px 16px; background: linear-gradient(transparent, rgba(10,14,12,.82)); color: #fff; }
+.flip-back .flip-match { color: #f5d58a; }
+.flip-back .flip-name { font-size: 24px; font-weight: 800; }
+.flip-back .flip-reason { color: rgba(255,255,255,.92); }
+@keyframes flip-in { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes glow-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .flip-card, .flip-glow { animation: none; } }
+
+/* Things to do in a place */
+.act-list { display: grid; gap: 10px; margin-top: 8px; }
+.act-card { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: stretch; width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; cursor: pointer; text-align: left; min-height: 96px; }
+.act-card.main { border: 2px solid var(--green); }
+.act-photo { position: relative; display: block; }
+.act-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.act-text { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 10px 12px 10px 0; font-size: 18px; line-height: 1.4; }
+.act-go { align-self: flex-start; font-size: 15px; font-weight: 700; color: #fff; background: var(--green); border-radius: 999px; padding: 3px 14px; }
+.immersive-btn { margin: 12px 0 0; gap: 10px; background: #1f2b27; color: #fff; border-color: #1f2b27; }
+.imm-ico { width: 22px; height: 22px; border: 2px solid #fff; border-radius: 50%; position: relative; }
+.imm-ico::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #fff; }
+
+/* Music chip, reminder */
+.music-chip { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.45); color: #fff; }
+.music-chip[aria-pressed="true"] { background: #fff; color: var(--green); font-weight: 700; }
+.music-note { font-size: 13px; opacity: .85; margin: -6px 0 6px; text-align: right; }
+.light-link { color: #fff; }
+.chip-row.wrap { flex-wrap: wrap; overflow: visible; }
+.time-line { display: flex; align-items: center; gap: 10px; font-size: 16px; margin: 6px 0 12px; min-height: 48px; }
+.time-line input { font: inherit; min-height: 44px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+
+/* Immersive */
+#vImmersive { position: relative; margin: -16px -18px 0; min-height: 100vh; background: #111; color: #fff; overflow: hidden; }
+.imm-stage { position: absolute; inset: 0; touch-action: none; cursor: grab; }
+.imm-canvas, .imm-fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+.imm-fallback { background-size: cover; transform: scale(1.12); transition: transform .2s ease-out; }
+.imm-mist i { position: absolute; left: -30%; width: 160%; height: 30%; background: radial-gradient(ellipse at center, rgba(255,255,255,.22), transparent 70%); animation: mist 22s ease-in-out infinite alternate; pointer-events: none; }
+.imm-mist i:first-child { top: 45%; }
+.imm-mist i:last-child { top: 62%; animation-duration: 30s; animation-direction: alternate-reverse; }
+@keyframes mist { from { transform: translateX(-8%); } to { transform: translateX(8%); } }
+@media (prefers-reduced-motion: reduce) { .imm-mist i { animation: none; } }
+.imm-ui { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 16px 18px 20px; pointer-events: none; }
+.imm-ui button, .imm-ui a { pointer-events: auto; }
+.imm-bottom { background: linear-gradient(transparent, rgba(0,0,0,.6)); margin: 0 -18px -20px; padding: 60px 18px 20px; }
+.imm-title { font-size: 26px; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+.imm-hint { margin: 4px 0 10px; opacity: .92; }
+.light-chip { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.5); color: #fff; }
+
+/* Share: 9:16 story preview + real actions */
+.share-preview { display: flex; justify-content: center; }
+.share-preview .share-img { width: 62%; max-width: 280px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 16px; box-shadow: 0 8px 24px rgba(40,30,10,.18); }
+.share-howto { margin: 4px 0 10px; }
+.share-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 10px; }
+.share-grid .btn { min-height: 52px; font-size: 17px; }
+.share-targets { margin-bottom: 12px; }
+.modal-box video { width: 100%; border-radius: 10px; max-height: 70vh; background: #000; }
+
+/* Copyright: bottom of every page (footer) and inline in the full-screen views */
+.copyright { font-size: 13px; color: var(--muted); text-align: center; margin: 4px 0 8px; line-height: 1.5; }
+.copyright-inline { color: rgba(255,255,255,.78); margin-top: 14px; }
+
+/* Desktop / landscape: an intentional centred phone-width frame over a blurred wide photo of the season or place
+ * (landscape photos serve the desktop; nothing is stretched). */
+@media (min-width: 760px), (orientation: landscape) and (max-height: 540px) {
+  body { background: #1d2522; min-height: 100vh; }
+  body::before { content: ""; position: fixed; inset: -40px; background: var(--backdrop, none) center / cover no-repeat, #2a332f; filter: blur(18px) saturate(1.05) brightness(.7); z-index: -1; }
+  .app { max-width: 430px; margin: 28px auto; background: var(--bg); border-radius: 28px; box-shadow: 0 20px 60px rgba(0,0,0,.45); overflow: hidden; min-height: calc(100vh - 56px); }
+  #vPractice, #vImmersive, .practice-inner, .imm-ui { min-height: calc(100vh - 56px); }
+  .home-hero, .place-hero .photo { max-height: 640px; }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  .app { margin: 0 auto; border-radius: 0; min-height: 100vh; }
+  .home-hero { aspect-ratio: auto; height: 86vh; min-height: 0; }
+  .place-hero .photo { aspect-ratio: auto; height: 86vh; }
+  .flip-card, .flip-inner, .flip-face { min-height: 380px; }
+}
+.practice-inner > .copyright-inline { margin-top: auto; padding-top: 14px; }
