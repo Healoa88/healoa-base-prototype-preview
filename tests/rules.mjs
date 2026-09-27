@@ -1,5 +1,5 @@
 /**
- * Founder-rule suite (v2026-09-27-w): every rule in rules/healoa-rules.json (human-readable: HEALOA_RULES.md)
+ * Founder-rule suite (v2026-09-27-x): every rule in rules/healoa-rules.json (human-readable: HEALOA_RULES.md)
  * has at least one automated check here. Check ids ("R05.b") are listed in each rule's `enforcedBy`,
  * and the META checks fail if a rule has no passing check or the doc and the JSON drift apart.
  * Static part (no browser) + Playwright part (390×844, zh default; en/ja drafts via ?lang=).
@@ -11,6 +11,7 @@ import path from "path";
 import vm from "vm";
 import { execSync } from "child_process";
 import { startServer, ROOT } from "./lib/server.mjs";
+import { toResult, runQuiz } from "./lib/flow.mjs";
 import { scanLocale, scanRendered, scanText, stripJsComments } from "./wording.mjs";
 
 const RULES = JSON.parse(fs.readFileSync(path.join(ROOT, "rules/healoa-rules.json"), "utf8"));
@@ -55,7 +56,7 @@ function outcomeHits(text) {
 
 // ================= static =================
 // R01 / R02 / R03 / R04 / R07 / R12 — per-rule word lists over every customer-facing source.
-const WORD_CHECKS = { R01: "R01.a", R02: "R02.a", R03: "R03.a", R04: "R04.a", R07: "R07.a", R12: "R12.a", R13: "R13.a", R14: "R14.a" };
+const WORD_CHECKS = { R01: "R01.a", R02: "R02.a", R03: "R03.a", R04: "R04.a", R07: "R07.a", R12: "R12.a", R13: "R13.a", R14: "R14.a", R15: "R15.a" };
 for (const [rid, cid] of Object.entries(WORD_CHECKS)) {
   const r = rule(rid), hits = scanRule(r);
   const counts = Object.entries(r.banned).map(([l, w]) => `${l} ${w.length}`).join(", ");
@@ -63,12 +64,16 @@ for (const [rid, cid] of Object.entries(WORD_CHECKS)) {
 }
 // R01.b — the six gentle labels are the entry, and none of them names a disease.
 const ctx = {}; ctx.globalThis = ctx; vm.createContext(ctx);
-for (const f of [...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "app/data.js", "app/rules.js"]) vm.runInContext(read(f), ctx, { filename: f });
+for (const f of [...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "app/data.js", "app/rules.js", "app/kb.js", "app/match.js"]) vm.runInContext(read(f), ctx, { filename: f });
 const D = ctx.HEALOA_DATA, I = ctx.HEALOA_I18N;
 {
   const labels = D.CONDITIONS.map((c) => c.label);
   const bad = labels.filter((l) => scanLocaleWords(l, "zh", rule("R01").banned.zh).length);
-  check("R01.b", "zh entry labels are exactly the gentle labels (" + rule("R01").gentleLabels.zh.join(" / ") + ") and contain no disease word", JSON.stringify(labels) === JSON.stringify(rule("R01").gentleLabels.zh) && bad.length === 0, { labels, bad });
+  // v4: the same gentle labels are the quiz options (Q1 body states, Q6 feelings) and drive the safety rules
+  const q = Object.fromEntries(D.QUIZ.map((x) => [x.id, Object.fromEntries(x.options.map((o) => [o.id, o.label]))]));
+  const inQuiz = D.CONDITIONS.every((c) => q.q1[c.id] === c.label || q.q6[c.id] === c.label);
+  const quizBad = D.QUIZ.flatMap((x) => [x.q, ...x.options.map((o) => o.label)]).filter((l) => scanLocaleWords(l, "zh", rule("R01").banned.zh).length);
+  check("R01.b", "zh body-state labels are exactly the gentle labels (" + rule("R01").gentleLabels.zh.join(" / ") + "), appear as the quiz options (Q1 / Q6), and no quiz question or option contains a disease word", JSON.stringify(labels) === JSON.stringify(rule("R01").gentleLabels.zh) && bad.length === 0 && inQuiz && quizBad.length === 0, { labels, bad, inQuiz, quizBad });
 }
 // R02.b — no outcome phrasing anywhere in customer sources (all languages).
 {
@@ -154,7 +159,7 @@ function textHolds(txt) {
 {
   const s = ctx.HEALOA_LOCALES.zh.strings;
   const seq = [s["home.step1"], s["home.step2"], s["home.step3"]];
-  check("R09.b", "home steps: 1 点一下你的情况 → 2 季节 + 去哪里 → 3 放松 → 本季养护卡", /情况/.test(seq[0]) && /季节/.test(seq[1]) && /去哪里/.test(seq[1]) && /放松/.test(seq[2]) && seq[2].indexOf("放松") < seq[2].indexOf("本季养护卡"), seq);
+  check("R09.b", "home 「怎么用」 steps (v4): 1 花 2 分钟点几下说身体和心情 → 2 翻牌看 3 个地方和原因 → 3 走进一个地方放松、记下这一次", /2 分钟/.test(seq[0]) && /身体/.test(seq[0]) && /心情/.test(seq[0]) && /翻牌/.test(seq[1]) && /3 个地方/.test(seq[1]) && /原因/.test(seq[1]) && /走进/.test(seq[2]) && /放松/.test(seq[2]) && seq[2].indexOf("放松") < seq[2].indexOf("记下"), seq);
 }
 // R10.a — every photo the app renders carries the credit (source-level), and the share card draws it.
 {
@@ -169,6 +174,29 @@ function textHolds(txt) {
   const esCode = stripJsComments(read(LOCALE_FILES.es)).trim();
   check("R11.a", "zh default + only complete locale (switcher needs ≥2 → hidden); en/ja meta.draft; es stub empty and es banned list empty",
     I.DEFAULT === r.defaultLocale && JSON.stringify(I.completeLocales()) === '["zh"]' && r.draftLocales.every((l) => I.isDraft(l) && !I.isComplete(l)) && esCode === "" && !ctx.HEALOA_LOCALES.es && (rule("R01").banned.es || []).length === 0 && /codes\.length < 2/.test(read("app/app.js")));
+}
+
+// R16.a — knowledge-base layer: every tcm weight is null / pending (→ 0 in scoring); nothing unsourced can be displayed.
+{
+  const KB = ctx.HEALOA_KB, M = ctx.HEALOA_MATCH;
+  const tcm = KB.answerWeights.filter((x) => x.layer === "tcm");
+  const allAnswers = Object.fromEntries(D.QUIZ.map((x) => [x.id, x.options.map((o) => o.id).filter((id) => !(x.exclusive || []).includes(id)).slice(0, x.multi ? 99 : 1)]));
+  const w = M.weightsFor(allAnswers);
+  const tcmScored = Object.keys(w).filter((t) => tcm.some((x) => x.tag === t));
+  const unsourcedShown = M.sourced([...KB.seasonAdvice, { text: "FIXTURE", sourceRef: null }, { text: "FIXTURE", sourceRef: "nope" }]);
+  const placeSuits = Object.values(KB.placeSuits || {}).every((v) => v === null);
+  check("R16.a", `knowledge base: ${tcm.length} tcm-layer weights are all null + status pending-cindy + no sourceRef, and score 0 even with every answer picked; sourced() shows nothing without a verified source (${KB.sources.length} sources, ${KB.seasonAdvice.length} advice slots); placeSuits all pending`,
+    tcm.length > 0 && tcm.every((x) => x.weight === null && x.status === "pending-cindy" && x.sourceRef === null) && tcmScored.length === 0 && unsourcedShown.length === 0 && KB.seasonAdvice.every((x) => x.text === null || x.sourceRef) && placeSuits, { tcmScored, unsourcedShown });
+}
+// R17.a — quiz structure: 8 questions, multi-select exactly where the plan says, every question has options and a skip.
+{
+  const r = rule("R17");
+  const multi = D.QUIZ.filter((x) => x.multi).map((x) => x.id);
+  const app = read("app/app.js");
+  const renderQ = app.slice(app.indexOf("function renderQuiz"), app.indexOf("function quizAdvance"));
+  check("R17.a", `quiz: ${r.questionCount} questions (${D.QUIZ.map((x) => x.id).join(" ")}); multi-select = ${r.multiQuestions.join(" / ")}; every screen renders one question + skip (「都不是 / 说不准」) + back + progress bar`,
+    D.QUIZ.length === r.questionCount && JSON.stringify(multi) === JSON.stringify(r.multiQuestions) && D.QUIZ.every((x) => x.options.length >= 2 && x.q) &&
+    /quizSkip/.test(renderQ) && /quizPrev/.test(renderQ) && /progressbar/.test(renderQ) && (renderQ.match(/class="quiz-q"/g) || []).length === 1, { multi });
 }
 
 // ================= browser =================
@@ -219,7 +247,13 @@ try {
       const a = await creditAudit(p, rule("R10").credit); credits.n += a.n; credits.bad.push(...a.bad.map((b) => where + ":" + b));
     };
     await sweep("home");
-    await p.click('[data-action="openQuiz"]'); await sweep("quiz"); await p.click('[data-action="goHome"]');
+    await p.click('[data-action="openQuiz"]');
+    for (let i = 0; i < 8; i++) { await sweep("quiz " + (i + 1)); await p.click('#quizBody [data-action="quizSkip"]'); }
+    await sweep("reveal (face down)"); await p.click('#revealBody [data-action="flipAll"]'); await sweep("reveal (flipped)");
+    await p.click('#revealBody [data-action="openWhy"]'); await sweep("why these places");
+    await p.evaluate(() => window.__healoa.go("places", {}, true)); await sweep("all places");
+    await p.evaluate(() => localStorage.setItem("healoa.log.v1", JSON.stringify([{ d: "2026-09-26", term: 17, place: "wudang", practice: "walk", note: "", at: 1 }, { d: "2026-09-26", term: 17, kind: "card", note: "", at: 2 }])));
+    await p.evaluate(() => window.__healoa.go("records", {}, true)); await sweep("我的养护记录");
     for (const season of ["autumn", "winter"]) for (const id of D.CONDITIONS.map((x) => x.id)) {
       await p.evaluate(({ id, season }) => window.__healoa.go("result", { cond: id, season }, true), { id, season }); await sweep(`result ${id}/${season}`);
       for (const pl of D.PLACES.filter((x) => x.photo).map((x) => x.id)) { await p.evaluate((pl) => window.__healoa.go("place", { placeId: pl }, true), pl); await sweep(`place ${pl}`); }
@@ -233,7 +267,7 @@ try {
     for (const h of scanRendered(drawn, "zh")) hits.push({ where: "share card image", ...h });
     const r07 = hits.filter((h) => rule("R07").banned.zh.includes(h.word));
     await p.evaluate(() => { document.getElementById("about").open = true; }); await p.evaluate(() => window.__healoa.go("home", {}, true)); await sweep("about");
-    check("R01.c", "rendered zh sweep (home, quiz, 12 results, every photo place, 12 cards, every practice, 留一句, share panel + share image, about) → 0 hits for ALL rule word lists (R01/R02/R03/R04/R07/R12) and 0 outcome phrases", hits.length === 0 && outcome.length === 0, { hits: hits.slice(0, 6), outcome: outcome.slice(0, 4) });
+    check("R01.c", "rendered zh sweep (home, 8 quiz screens, flip reveal, 为什么是你, all places, 我的养护记录, 12 results, every photo place, 12 cards, every practice, 留一句, share panel + share image, about) → 0 hits for ALL rule word lists (R01/R02/R03/R04/R07/R12) and 0 outcome phrases", hits.length === 0 && outcome.length === 0, { hits: hits.slice(0, 6), outcome: outcome.slice(0, 4) });
     check("R07.b", "no points / rewards / streak / invite wording rendered anywhere on the zh path incl. the share flow + share image", r07.length === 0 && !/积分|奖励|打卡|签到|邀请|返利/.test(drawn), r07.slice(0, 4));
     check("R08.b", "no link / src / action to healoa.com in any rendered zh screen", links.length === 0, links.slice(0, 4));
     check("R10.b", `every rendered Cindy photo (${credits.n} across result / place / practice screens) shows 「${rule("R10").credit}」`, credits.n >= 20 && credits.bad.length === 0, credits.bad.slice(0, 5));
@@ -249,7 +283,7 @@ try {
     for (const [lang, q] of [["zh", ""], ["en", "&lang=en"], ["ja", "&lang=ja"]]) {
       for (const id of D.CONDITIONS.map((x) => x.id)) {
         const { c, p } = await open(base + "?" + DQ + q, lang);
-        await p.click(`#homeConds [data-cond="${id}"]`);
+        await toResult(p, id);
         await p.click('#resultBody [data-action="openCard"]');
         await p.click("#btnOpenShare");
         await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
@@ -272,7 +306,7 @@ try {
     for (const [l, list] of Object.entries(r.lineProbesMayTravel)) for (const s of list) if (!(await p.evaluate((s) => window.__healoa.lineTravels(s), s))) travel.push(l + ": " + s);
     // end-to-end: a condition line is kept on the own card but not in the link / share image
     const probe = r.lineProbesMustStayPrivate.zh[2];
-    await p.click('#homeConds [data-cond="sleep"]'); await p.click('#resultBody [data-action="openCard"]');
+    await toResult(p, "sleep"); await p.click('#resultBody [data-action="openCard"]');
     await p.click("#btnOpenLine"); await p.fill("#lineInput", probe); await p.click('[data-action="saveLine"]');
     await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
     const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText() }));
@@ -357,7 +391,7 @@ try {
         visibleShare: [...document.querySelectorAll('#btnOpenShare,#sharePanel,[data-action="shareSend"]')].filter((e) => e.offsetParent).length };
     });
     check("R06.a", "home first screen has no share entry (no share buttons / panel, no 「发给」「分享」 text)", home.shareEls === 0 && home.visibleShare === 0 && !/发给|分享/.test(home.text), home);
-    await p.click('#homeConds [data-cond="gut"]'); await p.click('#resultBody [data-action="openCard"]');
+    await toResult(p, "gut"); await p.click('#resultBody [data-action="openCard"]');
     const def = await p.evaluate(() => ({ keep: document.getElementById("btnKeep").textContent, primary: document.getElementById("btnKeep").classList.contains("primary"), showCond: document.getElementById("cardShowCond").checked, note: document.querySelector("#vCard [data-i18n='card.privateNote']").textContent, panelOpen: !document.getElementById("sharePanel").classList.contains("hidden") }));
     check("R06.b", `card defaults to 「${r.keepLabel.zh}」 (primary action), condition not written on the card, share panel closed`, def.keep === r.keepLabel.zh && def.primary && !def.showCond && /只给你自己看/.test(def.note) && !def.panelOpen, def);
     await p.click("#btnKeep");
@@ -370,24 +404,93 @@ try {
     await c.close();
   }
 
-  // ---- R09: main line order ----
+  // ---- R09: main line order (v4) ----
   {
     const { c, p } = await open(base + "?" + DQ);
-    const steps = [];
-    steps.push(await p.evaluate(() => document.querySelectorAll("#homeConds [data-cond]").length === 6 && !!document.getElementById("homeConds").offsetParent));
-    await p.click('#homeConds [data-cond="tense"]');
+    const steps = {};
+    steps.home = await p.evaluate(() => !!document.getElementById("btnStart2").offsetParent && document.querySelectorAll("#vHome .steps li").length === 3);
+    await p.click("#btnStart2");
+    steps.quiz = await p.isVisible("#vQuiz") && (await p.$$("#quizBody .quiz-q")).length === 1;
+    await runQuiz(p, { q6: ["tense"], q7: ["mountain"] }, { start: null });
+    steps.reveal = (await p.$$("#revealBody .flip-card")).length >= 1;
+    await p.click('#revealBody [data-action="flipAll"]');
+    await p.click('#revealBody [data-action="openWhy"]');
     const order = await p.evaluate(() => {
       const rb = document.getElementById("resultBody");
-      const place = rb.querySelector(".place-card .reason1"), practice = rb.querySelector('.btn.primary[data-action="openPractice"]'), card = rb.querySelector('[data-action="openCard"]');
+      const card1 = rb.querySelector(".place-card"), why = card1 && card1.querySelector(".why li"), eda = card1 && card1.querySelectorAll(".eda li").length, enter = card1 && card1.querySelector('[data-action="openPlace"]'), toCard = rb.querySelector('[data-action="openCard"]');
       const before = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & 4));
-      return { season: /^(秋|冬) · /.test(document.getElementById("resultTitle").textContent), reason: !!(place && /\d/.test(place.textContent)), placeBeforePractice: before(place, practice), practiceBeforeCard: before(practice, card) };
+      return { season: /^(秋|冬) · /.test(document.getElementById("resultTitle").textContent), reason: !!why, eda, placeBeforeCard: before(card1, toCard), enter: !!enter };
     });
-    steps.push(order.season && order.reason && order.placeBeforePractice && order.practiceBeforeCard);
-    await p.click('#resultBody .btn.primary[data-action="openPractice"]');
-    steps.push(await p.isVisible("#vPractice") && (await p.$$('#vPractice [data-action="openCard"]')).length > 0);
+    steps.why = order.season && order.reason && order.eda === 3 && order.placeBeforeCard && order.enter;
+    await p.click('#resultBody .place-card [data-action="openPlace"] >> nth=0');
+    steps.place = await p.isVisible("#vPlace") && (await p.$$('#placeBody [data-action="openPractice"][data-place]')).length === 1;
+    await p.click('#placeBody [data-action="openPractice"][data-place]');
+    steps.practice = await p.isVisible("#vPractice") && (await p.$$('#vPractice [data-action="openCard"]')).length > 0;
     await p.evaluate(() => window.__healoa.go("card", {}, true));
-    steps.push(await p.isVisible("#cardPreview"));
-    check("R09.a", "main line: body/feeling entry (6 buttons) → season + places with numeric reasons → relaxation practice → 本季养护卡", steps.every(Boolean), { steps, order });
+    steps.card = await p.isVisible("#cardPreview");
+    check("R09.a", "main line (v4): home 「开始配对」 → quiz one question per screen → flip reveal → 为什么是你 (reasons + 吃 / 做 / 避开, places before the card) → place 「在这里做一件事」 → practice → 本季养护卡", Object.values(steps).every(Boolean) && Object.keys(steps).length === 7, { steps, order });
+    await c.close();
+  }
+
+  // ---- R15: every place open from the first visit ----
+  {
+    const { c, p } = await open(base + "?" + DQ);
+    const photoIds = D.PLACES.filter((x) => x.photo).map((x) => x.id);
+    await p.click('#vHome [data-action="openPlaces"]');
+    const list = await p.evaluate(() => [...document.querySelectorAll("#placesBody [data-place]")].map((e) => ({ id: e.getAttribute("data-place"), disabled: !!e.disabled || e.getAttribute("aria-disabled") === "true", lockCls: /lock/i.test(e.className) })));
+    const ids = [...new Set(list.map((x) => x.id))];
+    const opened = [];
+    for (const id of ids) {
+      await p.evaluate(() => window.__healoa.go("places", {}, true));
+      await p.click(`#placesBody [data-action="openPlace"][data-place="${id}"] >> nth=0`);
+      opened.push((await p.isVisible("#vPlace")) && (await p.textContent("#placeBody")).length > 100 ? id : "!" + id);
+    }
+    await p.evaluate(() => window.__healoa.go("places", {}, true));
+    const txt = await p.evaluate(() => document.body.innerText);
+    check("R15.b", `first visit (empty storage): 「所有地方」 lists all ${photoIds.length} photo places (${photoIds.join(", ")}), none disabled / locked, each opens its page`,
+      JSON.stringify(ids.slice().sort()) === JSON.stringify(photoIds.slice().sort()) && list.every((x) => !x.disabled && !x.lockCls) && opened.every((x) => !x.startsWith("!")) && !/即将开放|解锁|锁/.test(txt), { ids, opened });
+    await c.close();
+  }
+
+  // ---- R16.b: an unsourced knowledge-base sentence is never rendered; a verified one is ----
+  {
+    const { c, p } = await open(base + "?" + DQ);
+    const seen = await p.evaluate(() => {
+      const KB = window.HEALOA_KB, term = window.__healoa.currentMatch().termIndex;
+      KB.seasonAdvice.push({ solarTerm: term, tag: "want_warm", type: "eat", text: "FIXTURE-NO-SOURCE", sourceRef: null, status: "pending-cindy" });
+      KB.seasonAdvice.push({ solarTerm: term, tag: "want_warm", type: "avoid", text: "FIXTURE-UNVERIFIED", sourceRef: "fx-unverified", status: "pending-cindy" });
+      KB.sources.push({ id: "fx-unverified", verified: false });
+      window.__healoa.go("result", { answers: { q2: ["cold"] } }, true);
+      const a = document.getElementById("resultBody").innerText;
+      KB.sources.push({ id: "fx-ok", verified: true });
+      KB.seasonAdvice.push({ solarTerm: term, tag: "want_warm", type: "do", text: "FIXTURE-VERIFIED", sourceRef: "fx-ok" });
+      window.__healoa.go("result", { answers: { q2: ["cold"] } }, true);
+      const b = document.getElementById("resultBody").innerText;
+      window.__healoa.go("result", { answers: { q2: ["hot"] } }, true);
+      const d = document.getElementById("resultBody").innerText;
+      return { noSource: a.includes("FIXTURE-NO-SOURCE"), unverified: a.includes("FIXTURE-UNVERIFIED"), verified: b.includes("FIXTURE-VERIFIED"), otherAnswers: d.includes("FIXTURE-VERIFIED") };
+    });
+    check("R16.b", "fixture (test only, not shipped): an advice line with no sourceRef or an unverified source is NOT rendered on 为什么是你; the same line with a verified source is rendered, and only for answers that point to its tag", !seen.noSource && !seen.unverified && seen.verified && !seen.otherAnswers, seen);
+    await c.close();
+  }
+
+  // ---- R17.b: quiz answers never leave the phone (URL, share link, share image) ----
+  {
+    const { c, p } = await open(base + "?" + DQ);
+    await runQuiz(p, { q1: ["bp", "sleep"], q2: ["cold"], q3: ["damp"], q4: ["low"], q5: ["late", "iced"], q6: ["tense", "quiet"], q7: ["hotspring"], q8: ["near"] });
+    const urls = [p.url()];
+    await p.click('#revealBody [data-action="openWhy"]'); urls.push(p.url());
+    await p.click('#resultBody [data-action="openCard"]'); urls.push(p.url());
+    await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
+    const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText(), story: (window.__healoa.storyPng(), window.__healoa.lastStoryText()), saved: localStorage.getItem("healoa.match.v1") }));
+    const L = ctx.HEALOA_LOCALES.zh.content.quiz;
+    const labels = Object.values(L).flatMap((q) => Object.values(Object.assign({}, q.opts, q.marketOpts)));
+    const blob = JSON.stringify([sh.share, sh.drawn, sh.story]) + decodeURIComponent(sh.share.url) + urls.join(" ");
+    const ids = ["bp", "sleep", "damp", "late", "iced", "tense", "quiet", "hotspring", "near", "q1", "q2", "q8"];
+    const leakedLabels = labels.filter((l) => blob.includes(l));
+    const leakedIds = ids.filter((id) => urls.concat(sh.share.url).some((u) => new RegExp(`[?&#=/]${id}\\b`).test(u.replace(/^https?:\/\/[^/]+/, ""))));
+    check("R17.b", "a full 8-answer match: answers kept only in localStorage (healoa.match.v1); page URLs, share link, share text, share card + 9:16 story text carry no quiz answer (label or id)",
+      leakedLabels.length === 0 && leakedIds.length === 0 && !!sh.saved && sh.saved.includes('"bp"'), { leakedLabels, leakedIds, url: sh.share.url });
     await c.close();
   }
 

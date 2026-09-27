@@ -6,6 +6,7 @@ import { chromium } from "playwright";
 import fs from "fs";
 import path from "path";
 import { startServer } from "./lib/server.mjs";
+import { toResult, runQuiz } from "./lib/flow.mjs";
 import { CONDITION_LABELS, CONDITION_IDS, DISCLAIMER, VERSION, scanRendered } from "./wording.mjs";
 
 const results = [];
@@ -53,16 +54,20 @@ async function buttonsHaveHandlers(p, label) {
 try {
   // ---------- Home ----------
   let p = await fresh();
-  check("home: headline exact", (await p.textContent("#homeTitle")) === "血压偏高、睡不好、怕冷……这个季节该怎么养？");
-  check("home: subline exact", (await p.textContent("#vHome .subline")) === "点一下你的情况，马上告诉你这个季节怎么吃、怎么动、去哪里养。");
-  const labels = await p.$$eval("#homeConds .cond-btn", (els) => els.map((e) => e.textContent));
-  check("home: ≤6 one-tap buttons with locked labels", labels.length <= 6 && JSON.stringify(labels) === JSON.stringify(CONDITION_LABELS), labels);
+  // v4 Phase 1 (D-27-05): one-sentence 「这个 App 做什么、给谁」 + 3-step 怎么用 + one big start button; the 6 one-tap buttons are gone.
+  check("home: headline exact", (await p.textContent("#homeTitle")) === "这个节气，哪里最适合你？");
+  check("home: one-sentence subline (what it does + for whom)", (await p.textContent("#vHome .subline")) === "按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方——给想顺着季节照顾自己的人。");
+  check("home: no one-tap condition grid any more (the quiz is the entry)", (await p.$$("#homeConds, #vHome .cond-btn")).length === 0);
+  check("home: 「怎么用」 title + start button 「开始配对（约 2 分钟）」 visible above the fold at 390×844", await p.evaluate(() => {
+    const b = document.getElementById("btnStart2"), r = b.getBoundingClientRect();
+    return document.getElementById("homeStepsTitle").textContent === "怎么用" && b.textContent === "开始配对（约 2 分钟）" && r.bottom <= window.innerHeight && r.height >= 56;
+  }));
   check("home: 3-step explainer", (await p.$$("#vHome .steps li")).length === 3);
   check("home: season auto from date (2026-09-26 → 秋)", (await p.getAttribute('#vHome [data-season="autumn"]', "class")).includes("on"));
   const pw = await fresh(base + "?date=2026-12-20");
   check("home: season auto from date (2026-12-20 → 冬)", (await pw.getAttribute('#vHome [data-season="winter"]', "class")).includes("on"));
   await pw.close();
-  check("home: no questionnaire on main path (quiz only behind secondary link)", (await p.isHidden("#vQuiz")) && (await p.isVisible('[data-action="openQuiz"]')));
+  check("home: quiz hidden until 「开始配对」 is tapped", (await p.isHidden("#vQuiz")) && (await p.isVisible('#btnStart2[data-action="openQuiz"]')));
   check("footer disclaimer exact", (await p.textContent("#disclaimer")) === DISCLAIMER);
   check("version label " + VERSION, (await p.getAttribute('meta[name="healoa-version"]', "content")) === VERSION && (await p.textContent("#verLabel")) === VERSION);
   check("tech notes are inside collapsible 「关于这份 Demo」", await p.evaluate(() => { const d = document.getElementById("about"); return d.tagName === "DETAILS" && !d.open && d.querySelector("summary").textContent === "关于这份 Demo"; }));
@@ -71,18 +76,23 @@ try {
   check("home: no horizontal overflow at 390px", (await overflow(p)) <= 0);
   await p.close();
 
-  // ---------- home → result ≤1 tap (each button) ----------
-  const oneTap = [];
-  for (const id of CONDITION_IDS) {
+  // ---------- home → quiz → flip reveal → 为什么是你 (v4 main line) ----------
+  {
     const q = await fresh();
-    await q.click(`#homeConds [data-cond="${id}"]`);
-    const v = await visibleView(q);
-    const cards = await q.$$eval("#resultBody .place-card", (els) => els.length);
-    oneTap.push({ id, view: v, cards });
+    await runQuiz(q, { q1: ["cold"], q2: ["cold"], q7: ["sea"], q8: ["far"] });
+    const cards = await q.$$eval("#revealBody .flip-card", (els) => els.length);
+    const backHidden = await q.$$eval("#revealBody .flip-card", (els) => els.every((e) => !e.classList.contains("flipped")));
+    await q.click("#revealBody .flip-card >> nth=0");
+    const one = await q.$$eval("#revealBody .flip-card.flipped", (els) => els.length);
+    await q.click('#revealBody [data-action="flipAll"]');
+    const all = await q.$$eval("#revealBody .flip-card.flipped", (els) => els.length);
+    const credit = (await q.textContent("#revealBody")).includes("Photo · Cindy Yang");
+    await q.click('#revealBody [data-action="openWhy"]');
+    const why = await q.$$eval("#resultBody .place-card", (els) => els.length);
+    check("home → quiz → flip reveal: 1–3 face-down cards, tap flips one, 「全部翻开」 flips all, photos keep Photo · Cindy Yang, 「看看为什么」 → places with reasons",
+      cards >= 1 && cards <= 3 && backHidden && one === 1 && all === cards && credit && why === cards, { cards, one, all, why });
     await q.close();
   }
-  check("home → result in exactly 1 tap for all 6 buttons (places shown immediately)", oneTap.every((x) => x.view === "result" && x.cards >= 1), oneTap);
-
   // ---------- result content per input ----------
   const snapshots = {};
   const urlLeaks = [];
@@ -92,7 +102,7 @@ try {
   for (const season of ["autumn", "winter"]) {
     for (const id of CONDITION_IDS) {
       const q = await fresh();
-      await q.click(`#homeConds [data-cond="${id}"]`);
+      await toResult(q, id);
       await q.click(`#vResult [data-action="season"][data-season="${season}"]`);
       await q.waitForLoadState("networkidle");
       const txt = await q.textContent("#resultBody");
@@ -108,11 +118,11 @@ try {
       for (const h of scanRendered(await allText(q), await pageLang(q))) domHits.push({ state: `place ${id}/${season}`, ...h });
       if ((await overflow(q)) > 0) overflowStates.push(`place ${id}/${season}`);
       if (id === "bp" && season === "winter") {
-        check("place card: photo + credit + 3 reasons with numbers + 当地吃 + 做什么 + 要注意", await q.evaluate(() => {
+        check("place card: photo + credit + 3 reasons with numbers + 当地吃 + 做什么 + 适合谁 + 要避开什么 + 在这里做一件事", await q.evaluate(() => {
           const b = document.getElementById("placeBody");
           const reasons = [...b.querySelectorAll(".reasons li")].map((l) => l.textContent);
           return !!b.querySelector(".place-hero img") && b.textContent.includes("Photo · Cindy Yang") && reasons.length === 3 && reasons.filter((r) => /\d/.test(r)).length >= 2 &&
-            b.textContent.includes("在这里可以吃") && b.textContent.includes("在这里做什么") && b.textContent.includes("要注意");
+            b.textContent.includes("在这里可以吃") && b.textContent.includes("在这里做什么") && b.textContent.includes("要避开什么") && b.textContent.includes("适合谁") && b.textContent.includes("在这里做一件事");
         }));
         check("place card: Cindy line slot renders nothing while empty", (await q.$$(".cindy-line")).length === 0);
       }
@@ -134,7 +144,7 @@ try {
 
   // ---------- real timer ----------
   p = await fresh();
-  await p.click('#homeConds [data-cond="bp"]');
+  await toResult(p, "bp");
   await p.click('#resultBody [data-action="openPractice"][data-practice="breath46"] >> nth=0');
   check("bp: every offered mode is hold-free (no 4-7-8; 睡前慢呼吸 吸4呼6 offered to everyone)", (await p.$$('#practiceModes [data-practice="breath478"]')).length === 0 && (await p.$$('#practiceModes [data-practice="breathNight"]')).length === 1);
   await p.click("#btnStart");
@@ -160,7 +170,7 @@ try {
 
   // completion with a controlled clock (deterministic; still time-delta based)
   p = await fresh(base + D, { clock: true });
-  await p.click('#homeConds [data-cond="sleep"]');
+  await toResult(p, "sleep");
   await p.click('#resultBody [data-action="openPractice"][data-practice="breathNight"] >> nth=0');
   check("睡不踏实: default practice is 睡前慢呼吸 吸4呼6 (10 轮 = 1:40, no breath hold)", (await p.textContent("#practiceClock")) === "1:40" && (await p.textContent("#practiceTitle")).includes("吸 4 呼 6"));
   await p.click("#btnStart");
@@ -174,8 +184,8 @@ try {
   await p.close();
 
   p = await fresh(base + D, { clock: true });
-  await p.click('#homeConds [data-cond="tense"]');
-  await p.click('#resultBody [data-action="openPractice"][data-practice="walk"] >> nth=0');
+  await toResult(p, "tense");
+  await p.click('#resultBody [data-action="openPractice"][data-practice="walk"]:not([data-place]) >> nth=0');
   await p.click("#btnStart");
   await p.clock.runFor(2000);
   const feet = await p.evaluate(() => ["footL", "footR"].map((i) => document.getElementById(i).classList.contains("on")));
@@ -185,14 +195,18 @@ try {
   // ---------- every visible button has a handler + actually does something ----------
   const setups = {
     home: async (q) => {},
-    result: async (q) => { await q.click('#homeConds [data-cond="cold"]'); },
-    place: async (q) => { await q.click('#homeConds [data-cond="cold"]'); await q.click('#resultBody [data-action="openPlace"] >> nth=0'); },
-    practice: async (q) => { await q.click('#homeConds [data-cond="tense"]'); await q.click('#resultBody [data-action="openPractice"] >> nth=0'); },
-    card: async (q) => { await q.click('#homeConds [data-cond="gut"]'); await q.click('#resultBody [data-action="openCard"]'); },
-    share: async (q) => { await q.click('#homeConds [data-cond="gut"]'); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); },
+    result: async (q) => { await toResult(q, "cold"); },
+    place: async (q) => { await toResult(q, "cold"); await q.click('#resultBody [data-action="openPlace"] >> nth=0'); },
+    practice: async (q) => { await toResult(q, "tense"); await q.click('#resultBody [data-action="openPractice"] >> nth=0'); },
+    card: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCard"]'); },
+    share: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); },
     quiz: async (q) => { await q.click('[data-action="openQuiz"]'); },
+    quizMulti: async (q) => { await q.click('[data-action="openQuiz"]'); await q.click('#quizBody [data-opt="cold"]'); },
+    reveal: async (q) => { await runQuiz(q, { q7: ["mountain"] }); },
+    places: async (q) => { await q.click('#vHome [data-action="openPlaces"]'); },
+    records: async (q) => { await q.evaluate(() => localStorage.setItem("healoa.log.v1", JSON.stringify([{ d: "2026-09-26", term: 17, place: "wudang", practice: "walk", note: "", at: 1 }]))); await q.click('#vHome [data-action="openRecords"]'); },
     shared: async (q) => { await q.goto(base + "?s=abc234&date=2026-09-26"); },
-    cardLine: async (q) => { await q.click('#homeConds [data-cond="gut"]'); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenLine"); },
+    cardLine: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenLine"); },
     sharedLine: async (q) => { await q.goto(base + "?s=abc234&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); },
     sharedLineWriting: async (q) => { await q.goto(base + "?s=abc235&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); await q.evaluate(() => localStorage.clear()); await q.click('[data-action="replyOpen"]'); await q.fill("#replyInput", "我也想慢一点。"); },
     sharedLineWrote: async (q) => { await q.goto(base + "?s=abc236&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); await q.evaluate(() => localStorage.clear()); await q.click('[data-action="replyOpen"]'); await q.fill("#replyInput", "我也想慢一点。"); await q.click('[data-action="replySave"]'); },
@@ -238,7 +252,7 @@ try {
   const shareLeaks = [];
   for (const id of CONDITION_IDS) {
     const q = await fresh();
-    await q.click(`#homeConds [data-cond="${id}"]`);
+    await toResult(q, id);
     await q.click('#resultBody [data-action="openCard"]');
     if (id === "bp") {
       check("season card: primary action is 「只留给自己」 and share is secondary", (await q.getAttribute("#btnKeep", "class")).includes("primary") && (await q.textContent("#btnKeep")) === "只留给自己" && (await q.getAttribute("#btnOpenShare", "class")).includes("text-link"));
@@ -262,7 +276,7 @@ try {
   check("share payload (URL, text, image-card text, QR link) has no body/feeling data — 6 conditions", shareLeaks.length === 0, shareLeaks.length ? shareLeaks : "url = …/?s=<6 random chars> only");
   {
     const q = await fresh();
-    await q.click('#homeConds [data-cond="bp"]');
+    await toResult(q, "bp");
     await q.click('#resultBody [data-action="openCard"]');
     await q.click("#btnOpenShare");
     await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
@@ -275,15 +289,15 @@ try {
   // ---------- shared link view ----------
   p = await fresh(base + "?s=abc234&date=2026-09-26");
   await p.reload(); // fresh() cleared localStorage after the first load; reload so the local "opened" event is kept
-  check("shared link: plain intro + one-tap entry", (await visibleView(p)) === "shared" && (await p.$$("#sharedConds .cond-btn")).length === 6 && (await p.textContent("#vShared")).includes("分享给了你"));
-  await p.click('#sharedConds [data-cond="quiet"]');
+  check("shared link: plain intro + one start button into the quiz", (await visibleView(p)) === "shared" && (await p.isVisible("#sharedStart")) && (await p.textContent("#vShared")).includes("分享给了你"));
+  await p.click("#sharedStart");
   const ev2 = await p.evaluate(() => window.__healoa.events().map((e) => e.e));
-  check("shared link: one tap → own result; opened + got_own_card logged locally; ?s removed from URL", (await visibleView(p)) === "result" && ev2.includes("opened") && ev2.includes("got_own_card") && !p.url().includes("s=abc234"), { ev2, url: p.url() });
+  check("shared link: start → own quiz; opened + got_own_card logged locally; ?s removed from URL", (await visibleView(p)) === "quiz" && ev2.includes("opened") && ev2.includes("got_own_card") && !p.url().includes("s=abc234"), { ev2, url: p.url() });
   await p.close();
 
   // ---------- return hint on next open ----------
   p = await fresh();
-  await p.click('#homeConds [data-cond="cold"]');
+  await toResult(p, "cold");
   await p.click('#resultBody [data-action="openCard"]');
   await p.click("#btnKeep");
   await p.goto(base + D);
@@ -292,14 +306,36 @@ try {
   check("return hint opens the saved card", (await visibleView(p)) === "card");
   await p.close();
 
-  // ---------- optional quiz ----------
+  // ---------- quiz mechanics (R17): one per screen, progress, multi-select, exclusive 「都还好」, back keeps answers, skip ----------
   p = await fresh();
-  await p.click('[data-action="openQuiz"]');
-  await p.click('[data-action="quizAnswer"][data-yes="1"]');
-  for (let i = 0; i < 4; i++) await p.click('[data-action="quizAnswer"][data-yes="0"]');
-  const sugg = await p.textContent("#quizBody");
-  await p.click('#quizBody [data-action="pickCond"] >> nth=0');
-  check("optional quiz suggests an entry and never blocks", sugg.includes("怕冷手脚凉") && (await visibleView(p)) === "result");
+  await p.click("#btnStart2");
+  const q1 = await p.evaluate(() => ({ prog: document.querySelector("#quizBody .quiz-prog").textContent, now: document.querySelector("#quizBody [role=progressbar]").getAttribute("aria-valuenow"), qs: document.querySelectorAll("#quizBody .quiz-q").length, opts: [...document.querySelectorAll("#quizBody .quiz-opt")].map((b) => b.getBoundingClientRect().height) }));
+  await p.click('#quizBody [data-opt="bp"]'); await p.click('#quizBody [data-opt="sleep"]');
+  const multi = await p.$$eval("#quizBody .quiz-opt.on", (els) => els.map((e) => e.dataset.opt));
+  await p.click('#quizBody [data-opt="fine"]');
+  const excl = await p.$$eval("#quizBody .quiz-opt.on", (els) => els.map((e) => e.dataset.opt));
+  await p.click('#quizBody [data-opt="bp"]');
+  await p.click('#quizBody [data-action="quizNext"]');
+  const q2 = await p.textContent("#quizBody .quiz-prog");
+  await p.click('#quizBody [data-opt="hot"]');
+  const q3 = await p.textContent("#quizBody .quiz-prog");
+  await p.click('#quizBody [data-action="quizPrev"]');
+  const kept = await p.$$eval("#quizBody .quiz-opt.on", (els) => els.map((e) => e.dataset.opt));
+  await p.click('#quizBody [data-action="quizSkip"]');
+  const afterSkip = await p.evaluate(() => JSON.stringify(window.__healoa.quiz().picks));
+  check("quiz: one question per screen, 第 1 题 / 共 8 题 + progress bar, big options (≥56px)", q1.qs === 1 && q1.prog === "第 1 题 / 共 8 题" && q1.now === "1" && q1.opts.length === 7 && q1.opts.every((h) => h >= 56), q1);
+  check("quiz: Q1 multi-select; 「都还好」 clears the others; tapping another clears 「都还好」", JSON.stringify(multi) === '["bp","sleep"]' && JSON.stringify(excl) === '["fine"]', { multi, excl });
+  check("quiz: single-choice question moves on by itself; 「上一题」 goes back with the answer kept; 「都不是 / 说不准」 skips", q2 === "第 2 题 / 共 8 题" && q3 === "第 3 题 / 共 8 题" && JSON.stringify(kept) === '["hot"]' && afterSkip.includes('"q2":[]'), { q2, q3, kept, afterSkip });
+  check("quiz: answers never in the URL", !/q\d|bp|sleep|hot/.test(new URL(p.url()).search.replace("date=2026-09-26", "")), p.url());
+  await p.close();
+  p = await fresh();
+  await runQuiz(p, { q1: ["bp"], q6: ["quiet"], q7: ["hotspring"] });
+  const saved = await p.evaluate(() => JSON.parse(localStorage.getItem("healoa.match.v1")));
+  check("quiz: finished match kept on this phone only (healoa.match.v1) with answers + top places", saved && JSON.stringify(saved.answers.q1) === '["bp"]' && saved.top.length >= 1, saved);
+  await p.goto(base + D);
+  check("next open: home offers 「上次配到」 + today's 3 minutes", (await p.isVisible("#homeLast")) && (await p.isVisible("#homeToday")));
+  await p.click("#homeLast");
+  check("「上次配到」 reopens the reveal", (await visibleView(p)) === "reveal");
   await p.close();
 
   // ---------- legacy links ----------

@@ -13,6 +13,7 @@ import { chromium } from "playwright";
 import fs from "fs";
 import path from "path";
 import { startServer } from "./lib/server.mjs";
+import { toResult, runQuiz } from "./lib/flow.mjs";
 import { CONDITION_IDS, CONDITION_LABELS, scanRendered, CJK_RE } from "./wording.mjs";
 
 const results = [];
@@ -48,7 +49,7 @@ try {
     return { ctx, p };
   }
   const text = (p) => p.evaluate(() => document.body.innerText);
-  const toCard = async (p, cond = "gut") => { await p.click(`#homeConds [data-cond="${cond}"]`); await p.click('#resultBody [data-action="openCard"]'); };
+  const toCard = async (p, cond = "gut") => { await toResult(p, cond); await p.click('#resultBody [data-action="openCard"]'); };
   const openShare = async (p) => { await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); };
   const imgDims = (p, sel) => p.evaluate((sel) => new Promise((res) => { const im = new Image(); im.onload = () => res([im.naturalWidth, im.naturalHeight]); im.onerror = () => res(null); im.src = document.querySelector(sel).src; }), sel);
   const clip = (p) => p.evaluate(() => navigator.clipboard.readText());
@@ -60,7 +61,9 @@ try {
     const seen = [];
     const probe = async (where) => { const t = await text(p); if (t.includes("留一句") || (await p.isVisible("#lineZone"))) seen.push(where); };
     await probe("home");
-    await p.click('#homeConds [data-cond="sleep"]'); await probe("result");
+    await p.click("#btnStart2"); await probe("quiz");
+    await runQuiz(p, { q1: ["sleep"], q7: ["mountain"] }, { start: null }); await probe("reveal");
+    await p.click('#revealBody [data-action="openWhy"]'); await probe("result");
     await p.click('#resultBody [data-action="openPlace"] >> nth=0'); await probe("place");
     await p.click('#vPlace [data-action="back"]');
     await p.click('#resultBody [data-action="openPractice"] >> nth=0'); await probe("practice");
@@ -68,7 +71,7 @@ try {
     await p.click('#resultBody [data-action="openCard"]');
     const onCard = await p.isVisible("#btnOpenLine") && (await p.textContent("#btnOpenLine")) === "留一句";
     const order = await p.evaluate(() => { const a = document.getElementById("cardPreview"), b = document.getElementById("lineZone"), c = document.getElementById("btnOpenShare"); return !!(a.compareDocumentPosition(b) & 4) && !!(b.compareDocumentPosition(c) & 4); });
-    check("「留一句」 appears only after the season card (not on home / result / place / practice); order: card → 留一句 → 发给一个人", seen.length === 0 && onCard && order, { seen, onCard, order });
+    check("「留一句」 appears only after the season card (not on home / quiz / reveal / result / place / practice); order: card → 留一句 → 发给一个人", seen.length === 0 && onCard && order, { seen, onCard, order });
     check("share entry reads 「发给一个人…」 and stays a secondary text link", (await p.textContent("#btnOpenShare")).startsWith("发给一个人") && (await p.getAttribute("#btnOpenShare", "class")).includes("text-link"));
     await ctx.close();
   }
@@ -124,8 +127,8 @@ try {
     const { ctx, p } = await open(url);
     await p.evaluate(() => localStorage.clear()); await p.reload();
     const v = await p.textContent("#sharedLine");
-    const beforeGrid = await p.evaluate(() => !!(document.getElementById("sharedLine").compareDocumentPosition(document.getElementById("sharedConds")) & 4));
-    check("recipient view shows the sender's line with 「在旁边也写一句」 and 「给自己也做一张」, above the six buttons", v.includes(LINE) && v.includes("在旁边也写一句") && v.includes("给自己也做一张") && beforeGrid, v);
+    const beforeGrid = await p.evaluate(() => !!(document.getElementById("sharedLine").compareDocumentPosition(document.getElementById("sharedStart")) & 4));
+    check("recipient view shows the sender's line with 「在旁边也写一句」 and 「给自己也配一次」, above the start button", v.includes(LINE) && v.includes("在旁边也写一句") && v.includes("给自己也配一次") && beforeGrid, v);
     await p.click('[data-action="replyOpen"]');
     await p.fill("#replyInput", "我也睡不踏实");
     await p.click('[data-action="replySave"]');
@@ -141,10 +144,10 @@ try {
     await p.goto(url);
     check("one-time: reopening the same link shows 「你已经在旁边写过一句了」 and no second reply button", (await p.textContent("#sharedLine")).includes("已经在旁边写过") && (await p.$$('[data-action="replyOpen"]')).length === 0);
     await p.click('[data-action="makeOwn"]');
-    const pulse = await p.evaluate(() => document.getElementById("sharedConds").classList.contains("pulse"));
-    await p.click('#sharedConds [data-cond="quiet"]');
-    check("给自己也做一张 → points to the six buttons → one tap gives the recipient's own result; sender's line/ids leave the URL",
-      pulse && (await p.isVisible("#vResult")) && !/[?&](s|l|r)=/.test(p.url()), p.url());
+    const inQuiz = await p.isVisible("#vQuiz");
+    await runQuiz(p, { q6: ["quiet"] }, { start: null });
+    check("给自己也配一次 → the recipient's own 2-minute match → own flip reveal; sender's line/ids leave the URL",
+      inQuiz && (await p.isVisible("#vReveal")) && !/[?&](s|l|r)=/.test(p.url()), p.url());
     await p.goto(local(link));
     const rv = await p.textContent("#sharedLine");
     check("reply view (sender opens the returned link): 「对方在你的旁边也写了一句」 with both lines; no further replies",
@@ -214,7 +217,7 @@ try {
   const zh = await platformRun("", "zh-CN");
   const zhT = zh.targets;
   check("zh share panel: native share first, then 微信 / 小红书 / 微博 / 抖音 / 复制链接; QR shown (zh keeps QR)",
-    JSON.stringify(zh.panel.ids) === '["wechat","xiaohongshu","weibo","douyin","copy"]' && !zh.panel.qrHidden && zh.panel.qrSvg && zh.drawn.includes("扫一扫，点一下你自己的情况") && ["微信", "小红书", "微博", "抖音", "复制链接"].every((w) => zh.panel.text.includes(w)), zh.panel);
+    JSON.stringify(zh.panel.ids) === '["wechat","xiaohongshu","weibo","douyin","copy"]' && !zh.panel.qrHidden && zh.panel.qrSvg && zh.drawn.includes("扫一扫，给自己也配一次") && ["微信", "小红书", "微博", "抖音", "复制链接"].every((w) => zh.panel.text.includes(w)), zh.panel);
   check("native share sheet: navigator.share with the PNG file + text + link (no body data)", zh.native.files.length === 1 && zh.native.files[0][1] === "image/png" && zh.native.files[0][2] > 10000 && zh.native.url === zh.share.url && !ALL_LABELS.some((l) => JSON.stringify(zh.native).includes(l)), zh.native);
   check("微信: saves the 4:5 card image (1080×1350) + copies the link + WeChat how-to", JSON.stringify(zhT.wechat.modal && zhT.wechat.modal.dims) === "[1080,1350]" && zhT.wechat.modal.download && zhT.wechat.clip === zh.share.url && zhT.wechat.modal.guide.includes("微信") && zhT.wechat.modal.guide.includes("链接也复制好了"), zhT.wechat);
   check("小红书: saves the card image + 小红书 how-to", JSON.stringify(zhT.xiaohongshu.modal && zhT.xiaohongshu.modal.dims) === "[1080,1350]" && zhT.xiaohongshu.modal.guide.includes("小红书"), zhT.xiaohongshu);
@@ -222,7 +225,7 @@ try {
   check("抖音: saves the 9:16 image (1080×1920) + 抖音 how-to", JSON.stringify(zhT.douyin.modal && zhT.douyin.modal.dims) === "[1080,1920]" && zhT.douyin.modal.guide.includes("抖音"), zhT.douyin);
   check("复制链接 copies the share link", zhT.copy.clip === zh.share.url && zhT.copy.note === "链接已复制。", zhT.copy);
   check("image dialog offers 「发送这张图」 (native file share) when the device supports it", zhT.xiaohongshu.modal.shareBtn && zhT.xiaohongshu.modal.sharedOk && zhT.xiaohongshu.modal.shared.files.length === 1);
-  check("zh 9:16 story image: 1080×1920 PNG (with QR in zh)", JSON.stringify(zh.story.dims) === "[1080,1920]" && zh.story.text.includes("扫一扫，点一下你自己的情况") && zh.story.name.endsWith(".png"));
+  check("zh 9:16 story image: 1080×1920 PNG (with QR in zh)", JSON.stringify(zh.story.dims) === "[1080,1920]" && zh.story.text.includes("扫一扫，给自己也配一次") && zh.story.name.endsWith(".png"));
 
   const en = await platformRun("en", "en-US");
   const enT = en.targets;
@@ -266,7 +269,7 @@ try {
   async function draftSweep(lang, uiLang, labels) {
     const { ctx, p } = await open(base + "?" + D + "&lang=" + lang, { lang: uiLang });
     const out = { hits: [], overflow: [], cjk: [] };
-    out.home = { headline: await p.textContent("#homeTitle"), labels: await p.$$eval("#homeConds .cond-btn", (els) => els.map((e) => e.dataset.cond + "=" + e.textContent)), badge: await p.textContent("#draftBadge"), lang: await p.evaluate(() => document.documentElement.lang) };
+    out.home = { headline: await p.textContent("#homeTitle"), start: await p.textContent("#btnStart2"), badge: await p.textContent("#draftBadge"), lang: await p.evaluate(() => document.documentElement.lang) };
     const scan = async (where) => {
       const t = await text(p);
       for (const h of scanRendered(t, lang)) out.hits.push({ where, ...h });
@@ -274,7 +277,15 @@ try {
       if ((await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)) > 0) out.overflow.push(where);
     };
     await scan("home");
-    await p.click('[data-action="openQuiz"]'); await scan("quiz"); await p.click('[data-action="goHome"]');
+    await p.click('[data-action="openQuiz"]');
+    out.home.labels = await p.$$eval('#quizBody .quiz-opt', (els) => els.map((e) => e.dataset.opt + "=" + e.textContent));
+    out.quiz = [];
+    for (let i = 0; i < 8; i++) { out.quiz.push(await p.textContent("#quizBody .quiz-q")); if (i === 7) out.q8 = await p.$$eval('#quizBody .quiz-opt', (els) => els.map((e) => e.dataset.opt + "=" + e.textContent)); await scan("quiz " + (i + 1)); await p.click('#quizBody [data-action="quizSkip"]'); }
+    out.reveal = await p.textContent("#revealBody"); await scan("reveal");
+    await p.click('#revealBody [data-action="openWhy"]'); out.why = await text(p); await scan("why");
+    await p.evaluate(() => window.__healoa.go("places", {}, true)); await scan("places");
+    await p.evaluate(() => window.__healoa.go("records", {}, true)); await scan("records");
+    await p.evaluate(() => window.__healoa.go("home", {}, true));
     for (const season of ["autumn", "winter"]) for (const id of CONDITION_IDS) {
       await p.evaluate(({ id, season }) => window.__healoa.go("result", { cond: id, season }, true), { id, season });
       if (id === "sleep" && season === "autumn") out.lead = await p.textContent("#resultBody .result-lead");
@@ -297,15 +308,18 @@ try {
     return out;
   }
   const enS = await draftSweep("en", "en-US", EN_LABELS);
-  check("en home: “What would feel good today?”; draft badge; <html lang=en>", enS.home.headline === "What would feel good today?" && enS.home.badge === "Draft preview" && enS.home.lang === "en", enS.home);
-  check("en options mapped to body states (Deep rest→sleep, Warmth→cold, Easy on the stomach→gut, Steady and calm→bp, Let go of tension→tense, Quiet→quiet)", JSON.stringify(enS.home.labels) === JSON.stringify(["sleep=Deep rest", "cold=Warmth", "gut=Easy on the stomach", "bp=Steady and calm", "tense=Let go of tension", "quiet=Quiet"]), enS.home.labels);
+  check("en home (US draft): “Where should you be this season?”; “Start the 2-minute match”; draft badge; <html lang=en>", enS.home.headline === "Where should you be this season?" && enS.home.start === "Start the 2-minute match" && enS.home.badge === "Draft preview" && enS.home.lang === "en", enS.home);
+  check("en quiz Q1 (plan v4 §3.2) keeps the body-state ids; the high-readings option uses the stand-in wording (pending Cindy + Muse), never “blood pressure”",
+    JSON.stringify(enS.home.labels) === JSON.stringify(["bp=My check-up readings run a little high", "sleep=I don't sleep through the night", "cold=My hands and feet run cold", "gut=My stomach is sensitive", "lowEnergy=Low on energy", "stiff=Stiff neck, shoulders or back", "fine=I feel pretty good"]) && !/blood pressure/i.test(enS.home.labels.join("|")), enS.home.labels);
+  check("en quiz: 8 US-phrased questions; Q8 = drive / a few nights / even Asia / staying home", enS.quiz.length === 8 && enS.quiz[1] === "Do you run hot or cold?" && JSON.stringify(enS.q8) === JSON.stringify(["drive=A weekend drive", "nights=A few nights away", "asia=A bigger trip — even Asia", "home=Staying home for now"]), { quiz: enS.quiz, q8: enS.q8 });
+  check("en reveal + why: °F, “Your match: …”, US framing note (every place is a longer trip from the US)", /°F/.test(enS.reveal + enS.why) && !/℃/.test(enS.reveal + enS.why) && enS.reveal.includes("Your match:") && enS.why.includes("every place here is in Asia"), enS.reveal.slice(0, 200));
   check("en result lead: “Here are a few places and ways to live that may fit this season.”", enS.lead === "Here are a few places and ways to live that may fit this season.", enS.lead);
   check("en leave-a-line: “Leave a line. Make this moment yours.”; recipient: “They added something beside yours.”", enS.lineLead === "Leave a line. Make this moment yours." && enS.reply.includes("They added something beside yours."), { lineLead: enS.lineLead, reply: enS.reply });
-  check(`en draft: every screen scanned with the en banned-word list (home, quiz, 12 results, 48 place pages, 12 cards, 6 practices, line, share, reply, about) → 0 hits`, enS.hits.length === 0, enS.hits.slice(0, 6));
+  check(`en draft: every screen scanned with the en banned-word list (home, 8 quiz screens, reveal, why, places, records, 12 results, 48 place pages, 12 cards, 6 practices, line, share, reply, about) → 0 hits`, enS.hits.length === 0, enS.hits.slice(0, 6));
   check("en draft: no untranslated Chinese on any screen; no horizontal overflow", enS.cjk.length === 0 && enS.overflow.length === 0, { cjk: enS.cjk.slice(0, 4), overflow: enS.overflow.slice(0, 4) });
   check("en share payload carries no body-state / feeling words", !ALL_LABELS.some((l) => enS.shareBlob.includes(l)) && !/sleep|stomach|tension/i.test(enS.shareBlob));
   const jaS = await draftSweep("ja", "ja-JP", JA_LABELS);
-  check("ja home: headline + 「下書き」 badge + same feeling-option structure", jaS.home.headline === "今日は、何があると心地いいですか？" && jaS.home.badge === "下書き" && jaS.home.lang === "ja" && JSON.stringify(jaS.home.labels) === JSON.stringify(["sleep", "cold", "gut", "bp", "tense", "quiet"].map((id) => id + "=" + JA_LABELS[id])), jaS.home);
+  check("ja home: headline + 「下書き」 badge; quiz Q1 has the same 7 option ids as zh", jaS.home.headline === "この節気、あなたに合う場所はどこ？" && jaS.home.badge === "下書き" && jaS.home.lang === "ja" && JSON.stringify(jaS.home.labels.map((x) => x.split("=")[0])) === JSON.stringify(["bp", "sleep", "cold", "gut", "lowEnergy", "stiff", "fine"]) && jaS.quiz.length === 8, jaS.home);
   check("ja draft: every screen scanned with the ja banned-word list → 0 hits; no horizontal overflow", jaS.hits.length === 0 && jaS.overflow.length === 0, { hits: jaS.hits.slice(0, 6), overflow: jaS.overflow.slice(0, 4) });
 
   check("no page errors / console errors during the merged-plan run", pageErrors.length === 0, pageErrors.slice(0, 5));

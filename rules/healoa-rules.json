@@ -11,7 +11,7 @@
     "$comment": "substring = any occurrence (CJK); word = whole word/phrase, case-insensitive (Latin). es list stays EMPTY until a native reviewer exists."
   },
   "scope": {
-    "customerCodeFiles": ["index.html", "app/data.js", "app/rules.js", "app/app.js", "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "scene-seed-legacy.html"],
+    "customerCodeFiles": ["index.html", "app/data.js", "app/rules.js", "app/kb.js", "app/match.js", "app/app.js", "app/i18n/i18n.js", "app/social.js", "app/share-targets.js", "scene-seed-legacy.html"],
     "localeFiles": { "zh": "app/i18n/zh.js", "en": "app/i18n/en.js", "ja": "app/i18n/ja.js", "es": "app/i18n/es.js" },
     "codeFilesScannedAs": "zh",
     "repoWideExclude": ["tests/", "rules/", "HEALOA_RULES.md"],
@@ -20,7 +20,7 @@
   "rules": [
     {
       "id": "R01",
-      "zh": "健康疗愈，不是治疗：客户界面不出现疾病名和医疗词，用温和的说法（血压偏高 / 睡不踏实 / 怕冷手脚凉 / 肠胃弱 / 心里绷得紧 / 想安静一点）。",
+      "zh": "健康疗愈，不是治疗：客户界面不出现疾病名和医疗词，用温和的说法（血压偏高 / 睡不踏实 / 怕冷手脚凉 / 肠胃弱 / 心里绷得紧 / 想安静一点；v4 起是配对小测的选项）。",
       "en": "Wellness, not treatment: no disease names or medical words on customer screens; use the gentle body-state labels.",
       "banned": {
         "zh": ["治疗", "诊断", "疗效", "降压", "降血压", "治失眠", "药", "患者", "医生", "病", "高血压", "失眠", "糖尿病", "抑郁", "焦虑症", "症状"],
@@ -123,9 +123,9 @@
     },
     {
       "id": "R09",
-      "zh": "主线顺序：身体 / 感受入口 → 季节 + 地点（带理由）→ 放松练习 → 本季养护卡。",
-      "en": "Main line order: body/feeling entry → season + places with reasons → relaxation practice → season care card.",
-      "order": ["home:#homeConds", "result:place reasons", "result:openPractice", "practice:openCard", "card:#cardPreview"],
+      "zh": "主线顺序（v4，D-27-05）：2 分钟配对（一屏一题）→ 翻牌看这个节气的 3 个地方 → 为什么是你（地点带理由 + 吃 / 做 / 避开）→ 走进一个地方做放松 → 本季养护卡 / 我的养护记录。",
+      "en": "Main line order (v4): 2-minute match (one question per screen) → flip reveal of 3 places for this solar term → why these places (reasons + eat / do / avoid) → step into one place and relax → season card / my care log.",
+      "order": ["home:#btnStart2", "quiz:one question per screen", "reveal:flip cards", "result:place reasons + eat/do/avoid", "place:action → practice", "practice:openCard / 我的养护记录", "card:#cardPreview"],
       "enforcedBy": ["rules:R09.a", "rules:R09.b"]
     },
     {
@@ -166,8 +166,8 @@
     },
     {
       "id": "R14",
-      "zh": "放松练习对每个人都安全：因为只能选一种情况，任何练习都不能靠「选了什么」来保护人。任何一步都不憋气超过 2 秒（不做 4-7-8 这类长憋气），用吸 4 呼 6 这类温和的长呼气。",
-      "en": "Every practice is safe for everyone: only one condition can be picked, so no practice may rely on it. No breath hold longer than 2 seconds anywhere (no 4-7-8); use gentle extended-exhale patterns such as in 4 / out 6.",
+      "zh": "放松练习对每个人都安全：不管小测里选了什么（v4 可以多选，也可以跳过），任何练习都不能靠「选了什么」来保护人。任何一步都不憋气超过 2 秒（不做 4-7-8 这类长憋气），用吸 4 呼 6 这类温和的长呼气。",
+      "en": "Every practice is safe for everyone: whatever was picked in the quiz (multi-select, skippable), no practice may rely on it. No breath hold longer than 2 seconds anywhere (no 4-7-8); use gentle extended-exhale patterns such as in 4 / out 6.",
       "maxHoldSec": 2,
       "holdDefinition": "a breath phase whose circle scale equals the previous phase's scale (cyclic), or a step text that says to pause / hold for N seconds",
       "banned": {
@@ -176,6 +176,31 @@
         "ja": ["4-7-8", "7秒止め"]
       },
       "enforcedBy": ["rules:R14.a", "rules:R14.b", "rules:R14.c"]
+    },
+    {
+      "id": "R15",
+      "zh": "所有地方从第一次打开就全部开放：有一个「所有地方」列表，列出每个有实拍照片的地方，都能点进去；没有锁、没有「即将开放」、不用先完成什么才能看（v4，D-27-05）。",
+      "en": "Every place is open from the first visit: an all-places list shows every place with a real photo and each one opens; no locks, no 'coming soon', nothing to complete first.",
+      "banned": {
+        "zh": ["即将开放", "敬请期待", "未开放", "已锁定", "锁住"],
+        "en": ["coming soon", "locked"],
+        "ja": ["近日公開", "ロック中"]
+      },
+      "enforcedBy": ["rules:R15.a", "rules:R15.b"]
+    },
+    {
+      "id": "R16",
+      "zh": "知识库的中医权重层在 Cindy 的资料到之前不生效：每个权重都是 null（按 0 算）；没有来源（sourceRef 指向已核对的资料）的吃 / 做 / 避开 / 适合谁句子一律不显示（v4，D-27-05）。",
+      "en": "The knowledge-base (TCM) layer is off until Cindy's materials arrive: every weight is null (counted as 0); an eat / do / avoid / suits sentence without a verified source is never displayed.",
+      "enforcedBy": ["rules:R16.a", "rules:R16.b"]
+    },
+    {
+      "id": "R17",
+      "zh": "配对小测：一屏一题，共 8 题；方案里写「可以选几个」的题（Q1 / Q5 / Q6 / Q7）可以多选，其余单选；每题都有「都不是 / 说不准」、能回上一题、有进度条；答案只存在手机本机，不进网址、分享链接、分享图（v4，D-27-05）。",
+      "en": "Matching quiz: one question per screen, 8 questions; multi-select where the plan says (Q1/Q5/Q6/Q7), single choice elsewhere; every question has skip, back and a progress bar; answers stay on the phone, never in the URL, share link or share image.",
+      "multiQuestions": ["q1", "q5", "q6", "q7"],
+      "questionCount": 8,
+      "enforcedBy": ["rules:R17.a", "rules:R17.b", "healing-v3:quiz mechanics"]
     }
   ]
 }

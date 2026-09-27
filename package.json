@@ -1,16 +1,17 @@
 {
   "name": "healoa-base-prototype-preview",
-  "version": "2026.9.27-w",
+  "version": "2026.9.27-x",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/static-checks.mjs && node tests/healing-v3.mjs && node tests/i18n.mjs && node tests/merged-plan.mjs && node tests/season.mjs && node tests/rules.mjs",
+    "test": "node tests/static-checks.mjs && node tests/match.mjs && node tests/healing-v3.mjs && node tests/i18n.mjs && node tests/merged-plan.mjs && node tests/season.mjs && node tests/rules.mjs",
     "test:rules": "node tests/rules.mjs",
     "test:static": "node tests/static-checks.mjs",
     "test:browser": "node tests/healing-v3.mjs",
     "test:i18n": "node tests/i18n.mjs",
     "test:merged": "node tests/merged-plan.mjs",
     "test:season": "node tests/season.mjs",
+    "test:match": "node tests/match.mjs",
     "golden:zh": "node tests/lib/capture-zh.mjs",
     "shots": "node tests/shots.mjs",
     "test:legacy": "node tests/legacy-scene-seed-p0.mjs"

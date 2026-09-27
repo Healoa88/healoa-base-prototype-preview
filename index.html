@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-09-27-w">
-<meta name="description" content="点一下你的情况，马上告诉你这个季节怎么吃、怎么动、去哪里养。">
+<meta name="healoa-version" content="v2026-09-27-x">
+<meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-09-27-w）</title>
-<link rel="stylesheet" href="app/app.css?v=2026-09-27-w">
+<title>HeaLoa · 顺着季节养（预览 v2026-09-27-x）</title>
+<link rel="stylesheet" href="app/app.css?v=2026-09-27-x">
 <script>
   /* Old Scene Seed links (#seed=…) keep working on the archived demo page. */
   if (/^#seed(Id)?=/.test(location.hash)) location.replace("scene-seed-legacy.html" + location.hash);
@@ -17,7 +17,7 @@
 <div id="app" class="app">
   <p class="draft-badge hidden" id="draftBadge" role="note"></p>
 
-  <!-- 首页 -->
+  <!-- 首页：一句话说清楚 + 3 步「怎么用」 + 一个开始按钮 -->
   <section id="vHome" class="view" data-view="home" aria-labelledby="homeTitle">
     <div class="brand"><span class="brand-name">HeaLoa</span><span class="brand-sub" data-i18n="brand.sub">顺着季节养</span></div>
     <div class="season-row">
@@ -27,17 +27,26 @@
         <button type="button" class="seg-btn" data-action="season" data-season="winter" data-i18n="season.winter">冬</button>
       </div>
     </div>
-    <h1 id="homeTitle" class="headline" data-i18n="home.headline">血压偏高、睡不好、怕冷……这个季节该怎么养？</h1>
-    <p class="subline" data-i18n="home.subline">点一下你的情况，马上告诉你这个季节怎么吃、怎么动、去哪里养。</p>
-    <div class="cond-grid" id="homeConds" role="group" aria-label="点一下你的情况" data-i18n-attr="aria-label:cond.groupAria"></div>
-    <p class="hint-line" data-i18n="home.hint">不用填表 · 不用注册 · 只存在你自己的手机上</p>
-    <button type="button" class="return-hint hidden" id="returnHint" data-action="openSavedCard"></button>
-    <ol class="steps" aria-label="三步" data-i18n-attr="aria-label:home.stepsAria">
-      <li><b>1</b><span data-i18n="home.step1">点一下你的情况</span></li>
-      <li><b>2</b><span data-i18n="home.step2">看这个季节：注意什么、吃什么、怎么动、去哪里养</span></li>
-      <li><b>3</b><span data-i18n="home.step3">跟着放松几分钟，存一张本季养护卡，只给自己看</span></li>
+    <p class="muted small hidden" id="homeTermExplain" data-i18n="home.termExplain">节气是中国传统历法里的 24 个小季节，大约半个月换一个。</p>
+    <h1 id="homeTitle" class="headline" data-i18n="home.headline">这个节气，哪里最适合你？</h1>
+    <p class="subline" data-i18n="home.subline">按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方——给想顺着季节照顾自己的人。</p>
+    <button type="button" class="return-hint hidden" id="homeRematch" data-action="rematch"></button>
+    <h2 class="steps-title" id="homeStepsTitle" data-i18n="home.stepsTitle">怎么用</h2>
+    <ol class="steps" aria-label="怎么用" data-i18n-attr="aria-label:home.stepsAria">
+      <li><b>1</b><span data-i18n="home.step1">花 2 分钟点几下，说说你最近的身体和心情</span></li>
+      <li><b>2</b><span data-i18n="home.step2">翻牌看这个节气适合你的 3 个地方和原因</span></li>
+      <li><b>3</b><span data-i18n="home.step3">走进一个地方，做几分钟放松，记下这一次</span></li>
     </ol>
-    <button type="button" class="text-link" data-action="openQuiz" data-i18n="home.quizLink">不知道点哪个？回答 5 个小问题（可以跳过）</button>
+    <button type="button" class="btn primary big" id="btnStart2" data-action="openQuiz" data-i18n="home.start">开始配对（约 2 分钟）</button>
+    <p class="hint-line" data-i18n="home.hint">不用注册 · 答案只留在你的手机里</p>
+    <button type="button" class="return-hint hidden" id="homeLast" data-action="openLastMatch"></button>
+    <button type="button" class="btn ghost hidden" id="homeToday" data-action="openToday" data-i18n="home.today">今天的 3 分钟 · 慢呼吸</button>
+    <button type="button" class="return-hint hidden" id="returnHint" data-action="openSavedCard"></button>
+    <div class="btn-row home-more" role="group" aria-label="更多" data-i18n-attr="aria-label:home.moreAria">
+      <button type="button" class="btn ghost" data-action="openPlaces" data-i18n="home.places">看看所有地方</button>
+      <button type="button" class="btn ghost" data-action="openRecords" data-i18n="home.records">我的养护记录</button>
+    </div>
+    <p class="note-line" id="homeNext"></p>
   </section>
 
   <!-- 分享链接打开 -->
@@ -46,17 +55,25 @@
     <p class="shared-kicker" data-i18n="shared.kicker">有人把 HeaLoa 分享给了你</p>
     <div id="sharedLine" class="shared-line hidden"></div>
     <h1 id="sharedTitle" class="headline" data-i18n="shared.headline">这个季节，身体怎么养、去哪里养？</h1>
-    <p class="subline" data-i18n="shared.subline">按季节给你的养生参考。点一下你自己的情况，马上看到你的本季建议，做一段放松，存一张养护卡。</p>
-    <div class="cond-grid" id="sharedConds" tabindex="-1" role="group" aria-label="点一下你的情况" data-i18n-attr="aria-label:cond.groupAria"></div>
-    <p class="hint-line" data-i18n="shared.hint">你的结果只看你自己点的 · 不用注册</p>
+    <p class="subline" data-i18n="shared.subline">花 2 分钟点几下，按你自己的身体和心情，配出这个节气适合你去放松的 3 个地方。</p>
+    <button type="button" class="btn primary big" id="sharedStart" data-action="startFromShared" data-i18n="shared.start">给自己也配一次（约 2 分钟）</button>
+    <p class="hint-line" data-i18n="shared.hint">你的答案只留在你自己的手机里 · 不用注册</p>
   </section>
 
-  <!-- 小测（可选） -->
+  <!-- 2 分钟配对小测：一屏一题 -->
   <section id="vQuiz" class="view hidden" data-view="quiz" aria-labelledby="quizTitle">
-    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
-    <h2 id="quizTitle" data-i18n="quiz.title">5 个小问题</h2>
-    <p class="muted" data-i18n="quiz.intro">只是帮你挑一个按钮，随时可以跳过。直接点首页的按钮也一样。</p>
+    <div class="topbar"><button type="button" class="back" data-action="goHome" data-i18n="nav.back">‹ 返回</button></div>
+    <h2 id="quizTitle" data-i18n="quiz.title">2 分钟配对</h2>
+    <p class="muted small" data-i18n="quiz.intro">一屏一题，点一点就行。答案只留在你的手机里，随时可以退出。</p>
     <div id="quizBody"></div>
+  </section>
+
+  <!-- 翻牌揭晓 -->
+  <section id="vReveal" class="view hidden" data-view="reveal" aria-labelledby="revealTitle">
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h2 id="revealTitle" class="result-title"></h2>
+    <p class="muted" data-i18n="reveal.lead">按你的回答和当下的节气算出来的，不是抽签。点一下牌，翻开看看。</p>
+    <div id="revealBody"></div>
   </section>
 
   <!-- 结果 -->
@@ -69,8 +86,15 @@
       </div>
     </div>
     <h2 id="resultTitle" class="result-title"></h2>
-    <div class="chip-row" id="resultConds" role="group" aria-label="换一个情况" data-i18n-attr="aria-label:result.condsAria"></div>
     <div id="resultBody"></div>
+  </section>
+
+  <!-- 所有地方（第一次来就全部打开） -->
+  <section id="vPlaces" class="view hidden" data-view="places" aria-labelledby="placesTitle">
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h2 id="placesTitle" class="result-title" data-i18n="places.title">所有地方</h2>
+    <p class="muted" data-i18n="places.lead">每个地方都开着，想看哪里就点哪里。</p>
+    <div id="placesBody"></div>
   </section>
 
   <!-- 地点 -->
@@ -103,6 +127,8 @@
         <p class="done-sub" data-i18n="practice.doneSub">这一段只为让你当场放松一下。感觉怎么样都可以。</p>
         <button type="button" class="btn primary" data-action="openCard" data-i18n="practice.keepCard">存下本季养护卡</button>
         <button type="button" class="btn ghost" data-action="practiceAgain" data-i18n="practice.again">再来一次</button>
+        <p class="done-sub hidden" id="doneLogged" data-i18n="practice.logged">这一次已经记在「我的养护记录」里，只在这台手机上。</p>
+        <button type="button" class="btn ghost" data-action="openRecords" data-i18n="practice.openRecords">看看我的养护记录</button>
       </div>
     </div>
   </section>
@@ -155,6 +181,14 @@
     </div>
   </section>
 
+  <!-- 我的养护记录（只在这台手机上） -->
+  <section id="vRecords" class="view hidden" data-view="records" aria-labelledby="recordsTitle">
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h2 id="recordsTitle" class="result-title" data-i18n="records.title">我的养护记录</h2>
+    <p class="muted" data-i18n="records.lead">只存在这台手机上，只给你自己看，可以随时删掉。</p>
+    <div id="recordsBody"></div>
+  </section>
+
   <!-- 图片弹层 -->
   <div id="imgModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="图片" data-i18n-attr="aria-label:modal.aria">
     <div class="modal-box">
@@ -176,26 +210,28 @@
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-27-w</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
-        <p data-i18n-html="about.how"><b>推荐怎么来的：</b>按季节、当地历史气候和你点的情况，用固定规则算出来；没有任何商家付费，也不随机。没有实拍照片的地方不进前三。</p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-27-x</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
         <p data-i18n-html="about.photos"><b>照片：</b>Photo · Cindy Yang。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
-        <p data-i18n-html="about.privacy"><b>隐私：</b>你点的情况只存在这台手机上（浏览器本地存储），不上传。分享图和分享链接里没有身体或感受信息，只有一个随机编号；你自己留的一句话只在你选择发送时才写进链接。本 Demo 没有服务器，正式版短链接会是 /s/编号。</p>
+        <p data-i18n-html="about.privacy"><b>隐私：</b>你的回答和养护记录只存在这台手机上（浏览器本地存储），不上传。分享图和分享链接里没有身体或感受信息，只有一个随机编号；你自己留的一句话只在你选择发送时才写进链接。本 Demo 没有服务器，正式版短链接会是 /s/编号。</p>
         <p data-i18n-html="about.timer"><b>计时：</b>放松练习按真实时间计时，暂停、继续、停止都准确；支持时会让屏幕保持常亮。</p>
       </div>
     </details>
   </footer>
 </div>
-<script src="vendor/qrcode.js?v=2026-09-27-w"></script>
-<script src="app/i18n/zh.js?v=2026-09-27-w"></script>
-<script src="app/i18n/en.js?v=2026-09-27-w"></script>
-<script src="app/i18n/ja.js?v=2026-09-27-w"></script>
-<script src="app/i18n/es.js?v=2026-09-27-w"></script>
-<script src="app/i18n/i18n.js?v=2026-09-27-w"></script>
-<script src="app/social.js?v=2026-09-27-w"></script>
-<script src="app/share-targets.js?v=2026-09-27-w"></script>
-<script src="app/data.js?v=2026-09-27-w"></script>
-<script src="app/rules.js?v=2026-09-27-w"></script>
-<script src="app/app.js?v=2026-09-27-w"></script>
+<script src="vendor/qrcode.js?v=2026-09-27-x"></script>
+<script src="app/i18n/zh.js?v=2026-09-27-x"></script>
+<script src="app/i18n/en.js?v=2026-09-27-x"></script>
+<script src="app/i18n/ja.js?v=2026-09-27-x"></script>
+<script src="app/i18n/es.js?v=2026-09-27-x"></script>
+<script src="app/i18n/i18n.js?v=2026-09-27-x"></script>
+<script src="app/social.js?v=2026-09-27-x"></script>
+<script src="app/share-targets.js?v=2026-09-27-x"></script>
+<script src="app/data.js?v=2026-09-27-x"></script>
+<script src="app/rules.js?v=2026-09-27-x"></script>
+<script src="app/kb.js?v=2026-09-27-x"></script>
+<script src="app/match.js?v=2026-09-27-x"></script>
+<script src="app/app.js?v=2026-09-27-x"></script>
 </body>
 </html>

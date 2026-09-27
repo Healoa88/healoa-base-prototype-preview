@@ -8,6 +8,7 @@
 import { chromium } from "playwright";
 import fs from "fs";
 import path from "path";
+import { toResult } from "./lib/flow.mjs";
 import { startServer } from "./lib/server.mjs";
 import { captureZh, diffGolden, GOLDEN } from "./lib/capture-zh.mjs";
 import { CONDITION_LABELS, scanRendered } from "./wording.mjs";
@@ -22,15 +23,15 @@ const D = "?date=2026-09-26";
 const pageErrors = [];
 let server, browser;
 try {
-  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-27-w) ----------
+  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-27-x: v4 Phase 1 flow) ----------
   const golden = JSON.parse(fs.readFileSync(GOLDEN, "utf8"));
   const now = await captureZh();
   const diff = diffGolden(golden, now);
   const n = (o) => Object.keys(o).length;
-  check(`zh identical to the v2026-09-27-w zh snapshot (intentional update: private card without condition text, 睡前慢呼吸 replaces 4-7-8, plain wording, solar-term dates): home, shared, quiz, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
+  check(`zh identical to the v2026-09-27-x zh snapshot (intentional update, D-27-05: v4 home + 怎么用, 8-question quiz, flip reveal, 为什么是你, all places, 我的养护记录): home, shared, quiz (8 screens), reveal, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
     diff.length === 0, diff.length ? diff.slice(0, 6) : "identical");
-  check("key zh screens contain the locked strings", golden.home.includes("血压偏高、睡不好、怕冷……这个季节该怎么养？") && now.home === golden.home &&
-    CONDITION_LABELS.every((l) => now.home.includes(l)) && now.result["bp/winter"].includes("这个季节先不选") && now.card["bp/autumn"].view.includes("只留给自己") && now.head.lang === "zh-CN");
+  check("key zh screens contain the locked strings", golden.home.includes("这个节气，哪里最适合你？") && now.home === golden.home &&
+    CONDITION_LABELS.every((l) => now.quiz.join("|").includes(l)) && now.result["bp/winter"].includes("这个季节先不选") && now.card["bp/autumn"].view.includes("只留给自己") && now.head.lang === "zh-CN");
 
   ({ server } = await startServer().then((x) => { globalThis.__base = x.base; return x; }));
   const base = globalThis.__base;
@@ -49,7 +50,7 @@ try {
   }
   const shot = (p) => p.evaluate(() => ({ lang: document.documentElement.lang, app: window.__healoa.lang, title: document.title, text: document.body.innerText, stored: localStorage.getItem("healoa.lang.v1") }));
   async function resultText(p) {
-    await p.click('#homeConds [data-cond="bp"]');
+    await toResult(p, "bp");
     await p.click('#vResult [data-action="season"][data-season="winter"]');
     return p.evaluate(() => document.body.innerText);
   }
@@ -81,16 +82,19 @@ try {
   }
   check("?lang=en / ?lang=ja open the DRAFT locales with a small 「Draft preview」/「下書き」 badge; switcher stays hidden; draft never remembered (next visit without ?lang → zh)", dr.every((x) => x.ok), dr);
   {
-    // ja draft home at 390px: the six buttons wrap only at phrase breaks — no button leaves 1–2 kana alone on its last line
+    // ja draft at 390px (v4): the home start button and every quiz option fit — no overflow, ≤2 lines, no last line of ≤1 character
     const { ctx, p } = await open(base + D + "&lang=ja");
-    const btns = await p.evaluate(() => [...document.querySelectorAll("#homeConds .cond-btn")].map((b) => {
+    const measure = () => p.evaluate(() => [...document.querySelectorAll("#btnStart2, #quizBody .quiz-opt")].filter((b) => b.offsetParent).map((b) => {
       const walker = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), rows = {};
       for (let n; (n = walker.nextNode());) for (let i = 0; i < n.data.length; i++) { const r = document.createRange(); r.setStart(n, i); r.setEnd(n, i + 1); const top = Math.round(r.getBoundingClientRect().top); rows[top] = (rows[top] || "") + n.data[i]; }
       const lines = Object.keys(rows).sort((a, b) => a - b).map((k) => rows[k]);
       return { label: b.textContent, lines, overflow: b.scrollWidth > b.clientWidth + 1 };
     }));
-    const bad = btns.filter((x) => x.lines.length > 2 || x.overflow || (x.lines.length === 2 && x.lines[1].length <= 2));
-    check("ja draft home (390px): 6 buttons wrap only at phrase breaks — ≤2 lines, no last line of ≤2 characters, no overflow", btns.length === 6 && bad.length === 0, btns.map((x) => x.lines.join(" / ")));
+    const btns = await measure();
+    await p.click("#btnStart2");
+    for (let i = 0; i < 8; i++) { btns.push(...(await measure())); await p.click('#quizBody [data-action="quizSkip"]'); }
+    const bad = btns.filter((x) => x.lines.length > 2 || x.overflow || (x.lines.length === 2 && x.lines[1].length <= 1));
+    check("ja draft (390px): start button + all quiz options fit — ≤2 lines, no 1-character last line, no overflow", btns.length > 30 && bad.length === 0, bad.length ? bad : btns.length + " buttons");
     await ctx.close();
   }
   {
@@ -110,7 +114,7 @@ try {
   {
     const { ctx, p } = await open(base + D);
     const home = await p.evaluate(() => ({ sw: document.getElementById("langSwitch").classList.contains("hidden") && document.getElementById("langSwitch").children.length === 0, foot: document.getElementById("socialFoot").classList.contains("hidden") }));
-    await p.click('#homeConds [data-cond="gut"]');
+    await toResult(p, "gut");
     await p.click('#resultBody [data-action="openCard"]');
     const card = await p.evaluate(() => ({ card: document.getElementById("socialCard").classList.contains("hidden"), follow: document.body.innerText.includes("关注我们") }));
     check("language switcher hidden (only 1 complete locale); 「关注我们」 hidden in footer + season card (no social entries)", home.sw && home.foot && card.card && !card.follow, { home, card });
@@ -128,15 +132,15 @@ try {
     await p.click('#langSwitch [data-lang="en"]');
     await p.waitForFunction(() => window.__healoa && window.__healoa.lang === "en");
     const s = await shot(p);
-    const title = await p.textContent("#homeTitle"), sub = await p.textContent("#vHome .subline"), c1 = await p.textContent('#homeConds [data-cond="bp"]'), c2 = await p.textContent('#homeConds [data-cond="sleep"]');
+    const title = await p.textContent("#homeTitle"), sub = await p.textContent("#vHome .subline"), [c1, c2] = await p.evaluate(() => ["bp", "sleep"].map((id) => window.HEALOA_DATA.CONDITIONS.find((c) => c.id === id).label));
     check("switching to the fixture locale: ?lang=en in URL, <html lang=en>, remembered, translated keys used, missing keys fall back to zh (strings + content)",
-      p.url().includes("lang=en") && s.lang === "en" && s.stored === "en" && title === "FIXTURE headline" && s.title.startsWith("FIXTURE v2026") && sub === "点一下你的情况，马上告诉你这个季节怎么吃、怎么动、去哪里养。" && c1 === "FIXTURE-bp" && c2 === "睡不踏实",
+      p.url().includes("lang=en") && s.lang === "en" && s.stored === "en" && title === "FIXTURE headline" && s.title.startsWith("FIXTURE v2026") && sub === "按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方——给想顺着季节照顾自己的人。" && c1 === "FIXTURE-bp" && c2 === "睡不踏实",
       { url: p.url(), lang: s.lang, stored: s.stored, title, sub, c1, c2 });
     await p.goto(base + D);
     check("remembered choice applies without ?lang", (await p.evaluate(() => window.__healoa.lang)) === "en" && (await p.textContent("#homeTitle")) === "FIXTURE headline");
     await p.goto(base + D + "&lang=zh");
     const back = await shot(p);
-    check("?lang=zh switches back and is remembered", back.app === "zh" && back.lang === "zh-CN" && back.stored === "zh" && (await p.textContent("#homeTitle")) === "血压偏高、睡不好、怕冷……这个季节该怎么养？", { app: back.app, stored: back.stored });
+    check("?lang=zh switches back and is remembered", back.app === "zh" && back.lang === "zh-CN" && back.stored === "zh" && (await p.textContent("#homeTitle")) === "这个节气，哪里最适合你？", { app: back.app, stored: back.stored });
     await ctx.close();
   }
 
@@ -148,7 +152,7 @@ try {
   {
     const { ctx, p } = await open(base + D, { routes: { "**/app/social.js*": fixtureSocial } });
     const foot = await p.evaluate(() => { const el = document.getElementById("socialFoot"); return { hidden: el.classList.contains("hidden"), text: el.innerText, links: [...el.querySelectorAll("a")].map((a) => ({ href: a.getAttribute("href"), target: a.target, rel: a.rel, action: a.getAttribute("data-action") })) }; });
-    await p.click('#homeConds [data-cond="cold"]');
+    await toResult(p, "cold");
     await p.click('#resultBody [data-action="openCard"]');
     const card = await p.evaluate(() => { const el = document.getElementById("socialCard"); return { hidden: el.classList.contains("hidden"), text: el.innerText, n: el.querySelectorAll("a").length }; });
     check("with entries (fixture): 「关注我们」 row in footer + season card; only https links; opens in new tab with noopener",
@@ -160,7 +164,7 @@ try {
   // ---------- 6. native share (navigator.share) ----------
   {
     const { ctx, p } = await open(base + D, { init: () => { window.__shared = []; Object.defineProperty(navigator, "share", { configurable: true, value: (d) => { window.__shared.push({ title: d.title, text: d.text, url: d.url, files: (d.files || []).length }); return Promise.resolve(); } }); } });
-    await p.click('#homeConds [data-cond="sleep"]');
+    await toResult(p, "sleep");
     await p.click('#resultBody [data-action="openCard"]');
     await p.click("#btnOpenShare");
     await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
