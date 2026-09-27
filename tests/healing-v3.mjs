@@ -6,7 +6,7 @@ import { chromium } from "playwright";
 import fs from "fs";
 import path from "path";
 import { startServer } from "./lib/server.mjs";
-import { BANNED_CUSTOMER_WORDS, BANNED_ANYWHERE, CONDITION_LABELS, CONDITION_IDS, DISCLAIMER, VERSION, scanText } from "./wording.mjs";
+import { CONDITION_LABELS, CONDITION_IDS, DISCLAIMER, VERSION, scanRendered } from "./wording.mjs";
 
 const results = [];
 function check(name, ok, detail) {
@@ -32,6 +32,8 @@ async function fresh(url = base + D, opts = {}) {
 const visibleView = (p) => p.evaluate(() => [...document.querySelectorAll("[data-view]")].filter((v) => !v.classList.contains("hidden")).map((v) => v.dataset.view).join(","));
 const overflow = (p) => p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 const allText = (p) => p.evaluate(() => document.body.innerText);
+// Rendered-page banned-word scan uses the rules of the locale the page is actually showing (tests/wording.mjs).
+const pageLang = (p) => p.evaluate(() => window.__healoa.lang);
 
 async function buttonsHaveHandlers(p, label) {
   const bad = await p.evaluate(() => {
@@ -94,13 +96,13 @@ try {
       snapshots[`${id}/${season}`] = txt;
       const href = q.url();
       if (CONDITION_IDS.some((c) => new RegExp(`[?&#/=]${c}\\b`).test(href)) || CONDITION_LABELS.some((l) => decodeURIComponent(href).includes(l))) urlLeaks.push(href);
-      for (const h of scanText(await allText(q), [...BANNED_CUSTOMER_WORDS, ...BANNED_ANYWHERE])) domHits.push({ state: `${id}/${season}`, ...h });
+      for (const h of scanRendered(await allText(q), await pageLang(q))) domHits.push({ state: `${id}/${season}`, ...h });
       const imgs = await q.$$eval("#resultBody .place-card img", (els) => els.map((e) => ({ src: e.getAttribute("src"), ok: e.complete && e.naturalWidth > 0 })));
       photoTop.push({ state: `${id}/${season}`, n: imgs.length, allLoaded: imgs.every((i) => i.ok) });
       if ((await overflow(q)) > 0) overflowStates.push(`result ${id}/${season}`);
       // place detail for the first top place
       await q.click('#resultBody [data-action="openPlace"] >> nth=0');
-      for (const h of scanText(await allText(q), [...BANNED_CUSTOMER_WORDS, ...BANNED_ANYWHERE])) domHits.push({ state: `place ${id}/${season}`, ...h });
+      for (const h of scanRendered(await allText(q), await pageLang(q))) domHits.push({ state: `place ${id}/${season}`, ...h });
       if ((await overflow(q)) > 0) overflowStates.push(`place ${id}/${season}`);
       if (id === "bp" && season === "winter") {
         check("place card: photo + credit + 3 reasons with numbers + 当地吃 + 做什么 + 要注意", await q.evaluate(() => {
@@ -124,7 +126,7 @@ try {
   check("result: 本季要留意 / 吃喝 / 怎么动 / 去哪里养 / 先不选 sections present", ["本季要留意", "吃喝", "怎么动", "这个季节去哪里养", "这个季节先不选"].every((s) => bw.includes(s)));
   check("top places (1–3) all have a loaded real photo", photoTop.every((x) => x.n >= 1 && x.n <= 3 && x.allLoaded), photoTop.filter((x) => !(x.n >= 1 && x.n <= 3 && x.allLoaded)));
   check("URL never carries the condition (id or label)", urlLeaks.length === 0, urlLeaks);
-  check("rendered DOM banned-word scan (12 results + 12 place cards)", domHits.length === 0, domHits.length ? domHits.slice(0, 8) : "0 hits");
+  check("rendered DOM banned-word scan, locale-aware (zh rules; 12 results + 12 place cards)", domHits.length === 0, domHits.length ? domHits.slice(0, 8) : "0 hits");
   check("no horizontal overflow in any result/place state", overflowStates.length === 0, overflowStates);
 
   // ---------- real timer ----------

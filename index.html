@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-09-27-s">
+<meta name="healoa-version" content="v2026-09-27-t">
 <meta name="description" content="点一下你的情况，马上告诉你这个季节注意什么、吃什么、怎么动、去哪里养。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-09-27-s）</title>
-<link rel="stylesheet" href="app/app.css?v=2026-09-27-s">
+<title>HeaLoa · 顺着季节养（预览 v2026-09-27-t）</title>
+<link rel="stylesheet" href="app/app.css?v=2026-09-27-t">
 <script>
   /* Old Scene Seed links (#seed=…) keep working on the archived demo page. */
   if (/^#seed(Id)?=/.test(location.hash)) location.replace("scene-seed-legacy.html" + location.hash);
@@ -18,62 +18,62 @@
 
   <!-- 首页 -->
   <section id="vHome" class="view" data-view="home" aria-labelledby="homeTitle">
-    <div class="brand"><span class="brand-name">HeaLoa</span><span class="brand-sub">顺着季节养</span></div>
+    <div class="brand"><span class="brand-name">HeaLoa</span><span class="brand-sub" data-i18n="brand.sub">顺着季节养</span></div>
     <div class="season-row">
-      <span class="season-now" id="homeSeasonNow">今天 · 秋</span>
-      <div class="seg" role="group" aria-label="切换季节">
-        <button type="button" class="seg-btn" data-action="season" data-season="autumn">秋</button>
-        <button type="button" class="seg-btn" data-action="season" data-season="winter">冬</button>
+      <span class="season-now" id="homeSeasonNow"></span>
+      <div class="seg" role="group" aria-label="切换季节" data-i18n-attr="aria-label:season.switchAria">
+        <button type="button" class="seg-btn" data-action="season" data-season="autumn" data-i18n="season.autumn">秋</button>
+        <button type="button" class="seg-btn" data-action="season" data-season="winter" data-i18n="season.winter">冬</button>
       </div>
     </div>
-    <h1 id="homeTitle" class="headline">血压偏高、睡不好、怕冷……这个季节该怎么养？</h1>
-    <p class="subline">点一下你的情况，马上告诉你这个季节注意什么、吃什么、怎么动、去哪里养</p>
-    <div class="cond-grid" id="homeConds" role="group" aria-label="点一下你的情况"></div>
-    <p class="hint-line">不用问卷 · 不用注册 · 只存在你的手机上</p>
+    <h1 id="homeTitle" class="headline" data-i18n="home.headline">血压偏高、睡不好、怕冷……这个季节该怎么养？</h1>
+    <p class="subline" data-i18n="home.subline">点一下你的情况，马上告诉你这个季节注意什么、吃什么、怎么动、去哪里养</p>
+    <div class="cond-grid" id="homeConds" role="group" aria-label="点一下你的情况" data-i18n-attr="aria-label:cond.groupAria"></div>
+    <p class="hint-line" data-i18n="home.hint">不用问卷 · 不用注册 · 只存在你的手机上</p>
     <button type="button" class="return-hint hidden" id="returnHint" data-action="openSavedCard"></button>
-    <ol class="steps" aria-label="三步">
-      <li><b>1</b><span>点一下你的情况</span></li>
-      <li><b>2</b><span>马上看到这个季节：注意什么、吃什么、怎么动、去哪里养</span></li>
-      <li><b>3</b><span>跟着放松几分钟，存下本季养护卡（只留给自己）</span></li>
+    <ol class="steps" aria-label="三步" data-i18n-attr="aria-label:home.stepsAria">
+      <li><b>1</b><span data-i18n="home.step1">点一下你的情况</span></li>
+      <li><b>2</b><span data-i18n="home.step2">马上看到这个季节：注意什么、吃什么、怎么动、去哪里养</span></li>
+      <li><b>3</b><span data-i18n="home.step3">跟着放松几分钟，存下本季养护卡（只留给自己）</span></li>
     </ol>
-    <button type="button" class="text-link" data-action="openQuiz">不知道点哪个？1 分钟小测（可跳过）</button>
+    <button type="button" class="text-link" data-action="openQuiz" data-i18n="home.quizLink">不知道点哪个？1 分钟小测（可跳过）</button>
   </section>
 
   <!-- 分享链接打开 -->
   <section id="vShared" class="view hidden" data-view="shared" aria-labelledby="sharedTitle">
-    <div class="brand"><span class="brand-name">HeaLoa</span><span class="brand-sub">顺着季节养</span></div>
-    <p class="shared-kicker">有人把这个 App 分享给你</p>
-    <h1 id="sharedTitle" class="headline">这个季节，怎么养身体、去哪里养？</h1>
-    <p class="subline">HeaLoa 按季节给你养生参考。点一下你自己的情况，马上得到你的本季建议、放松练习和养护卡。</p>
-    <div class="cond-grid" id="sharedConds" role="group" aria-label="点一下你的情况"></div>
-    <p class="hint-line">不会带入分享人的任何信息 · 不用注册</p>
+    <div class="brand"><span class="brand-name">HeaLoa</span><span class="brand-sub" data-i18n="brand.sub">顺着季节养</span></div>
+    <p class="shared-kicker" data-i18n="shared.kicker">有人把这个 App 分享给你</p>
+    <h1 id="sharedTitle" class="headline" data-i18n="shared.headline">这个季节，怎么养身体、去哪里养？</h1>
+    <p class="subline" data-i18n="shared.subline">HeaLoa 按季节给你养生参考。点一下你自己的情况，马上得到你的本季建议、放松练习和养护卡。</p>
+    <div class="cond-grid" id="sharedConds" role="group" aria-label="点一下你的情况" data-i18n-attr="aria-label:cond.groupAria"></div>
+    <p class="hint-line" data-i18n="shared.hint">不会带入分享人的任何信息 · 不用注册</p>
   </section>
 
   <!-- 小测（可选） -->
   <section id="vQuiz" class="view hidden" data-view="quiz" aria-labelledby="quizTitle">
-    <div class="topbar"><button type="button" class="back" data-action="back">‹ 返回</button></div>
-    <h2 id="quizTitle">1 分钟小测</h2>
-    <p class="muted">简版，仅供参考。随时可以跳过，直接点首页的按钮也一样。</p>
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h2 id="quizTitle" data-i18n="quiz.title">1 分钟小测</h2>
+    <p class="muted" data-i18n="quiz.intro">简版，仅供参考。随时可以跳过，直接点首页的按钮也一样。</p>
     <div id="quizBody"></div>
   </section>
 
   <!-- 结果 -->
   <section id="vResult" class="view hidden" data-view="result" aria-labelledby="resultTitle">
     <div class="topbar">
-      <button type="button" class="back" data-action="back">‹ 返回</button>
-      <div class="seg" role="group" aria-label="切换季节">
-        <button type="button" class="seg-btn" data-action="season" data-season="autumn">秋</button>
-        <button type="button" class="seg-btn" data-action="season" data-season="winter">冬</button>
+      <button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button>
+      <div class="seg" role="group" aria-label="切换季节" data-i18n-attr="aria-label:season.switchAria">
+        <button type="button" class="seg-btn" data-action="season" data-season="autumn" data-i18n="season.autumn">秋</button>
+        <button type="button" class="seg-btn" data-action="season" data-season="winter" data-i18n="season.winter">冬</button>
       </div>
     </div>
     <h2 id="resultTitle" class="result-title"></h2>
-    <div class="chip-row" id="resultConds" role="group" aria-label="换一个情况"></div>
+    <div class="chip-row" id="resultConds" role="group" aria-label="换一个情况" data-i18n-attr="aria-label:result.condsAria"></div>
     <div id="resultBody"></div>
   </section>
 
   <!-- 地点 -->
   <section id="vPlace" class="view hidden" data-view="place">
-    <div class="topbar"><button type="button" class="back" data-action="back">‹ 返回</button></div>
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
     <div id="placeBody"></div>
   </section>
 
@@ -81,52 +81,53 @@
   <section id="vPractice" class="view hidden" data-view="practice">
     <div class="practice-bg" id="practiceBg"></div>
     <div class="practice-inner">
-      <div class="topbar light"><button type="button" class="back" data-action="back">‹ 返回</button><span class="credit-inline">Photo · Cindy Yang</span></div>
-      <div class="chip-row light" id="practiceModes" role="group" aria-label="选择练习"></div>
+      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><span class="credit-inline">Photo · Cindy Yang</span></div>
+      <div class="chip-row light" id="practiceModes" role="group" aria-label="选择练习" data-i18n-attr="aria-label:practice.modesAria"></div>
       <h2 class="practice-title" id="practiceTitle"></h2>
       <p class="practice-intro" id="practiceIntro"></p>
-      <div class="breath-wrap" id="breathWrap" aria-hidden="true"><div class="breath-circle" id="breathCircle"></div><div class="walk-feet hidden" id="walkFeet"><span id="footL">左</span><span id="footR">右</span></div></div>
-      <p class="cue" id="practiceCue" aria-live="polite">准备好就点「开始」</p>
+      <div class="breath-wrap" id="breathWrap" aria-hidden="true"><div class="breath-circle" id="breathCircle"></div><div class="walk-feet hidden" id="walkFeet"><span id="footL" data-i18n="practice.footL">左</span><span id="footR" data-i18n="practice.footR">右</span></div></div>
+      <p class="cue" id="practiceCue" aria-live="polite" data-i18n="practice.ready">准备好就点「开始」</p>
       <p class="countdown" id="practiceClock">3:00</p>
       <div class="opt-row" id="practiceOpts"></div>
       <div class="controls">
-        <button type="button" class="btn primary" id="btnStart" data-action="practiceStart">开始</button>
-        <button type="button" class="btn ghost hidden" id="btnPause" data-action="practicePause">暂停</button>
-        <button type="button" class="btn ghost hidden" id="btnStop" data-action="practiceStop">停止</button>
+        <button type="button" class="btn primary" id="btnStart" data-action="practiceStart" data-i18n="practice.start">开始</button>
+        <button type="button" class="btn ghost hidden" id="btnPause" data-action="practicePause" data-i18n="practice.pause">暂停</button>
+        <button type="button" class="btn ghost hidden" id="btnStop" data-action="practiceStop" data-i18n="practice.stop">停止</button>
       </div>
       <p class="practice-safe" id="practiceSafe"></p>
-      <p class="wake-note hidden" id="wakeNote">练习时屏幕会保持常亮</p>
+      <p class="wake-note hidden" id="wakeNote" data-i18n="practice.wakeNote">练习时屏幕会保持常亮</p>
       <div class="done-panel hidden" id="donePanel">
-        <p class="done-title" id="doneTitle">做完了</p>
-        <p class="done-sub">这一段只为当场放松。感觉怎么样都可以。</p>
-        <button type="button" class="btn primary" data-action="openCard">存下本季养护卡</button>
-        <button type="button" class="btn ghost" data-action="practiceAgain">再来一次</button>
+        <p class="done-title" id="doneTitle" data-i18n="practice.done">做完了</p>
+        <p class="done-sub" data-i18n="practice.doneSub">这一段只为当场放松。感觉怎么样都可以。</p>
+        <button type="button" class="btn primary" data-action="openCard" data-i18n="practice.keepCard">存下本季养护卡</button>
+        <button type="button" class="btn ghost" data-action="practiceAgain" data-i18n="practice.again">再来一次</button>
       </div>
     </div>
   </section>
 
   <!-- 本季养护卡 -->
   <section id="vCard" class="view hidden" data-view="card" aria-labelledby="cardTitle">
-    <div class="topbar"><button type="button" class="back" data-action="back">‹ 返回</button></div>
-    <h2 id="cardTitle">本季养护卡</h2>
-    <p class="muted">默认只留给你自己，存在这台手机上。</p>
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h2 id="cardTitle" data-i18n="card.title">本季养护卡</h2>
+    <p class="muted" data-i18n="card.privateNote">默认只留给你自己，存在这台手机上。</p>
     <div id="cardPreview" class="care-card"></div>
-    <label class="toggle-line"><input type="checkbox" id="cardShowCond" data-action="toggleCardCond"> 在我自己的卡上写出我的情况</label>
+    <label class="toggle-line"><input type="checkbox" id="cardShowCond" data-action="toggleCardCond"> <span data-i18n="card.showCond">在我自己的卡上写出我的情况</span></label>
     <div class="stack">
-      <button type="button" class="btn primary" data-action="keepCard" id="btnKeep">只留给自己</button>
-      <button type="button" class="btn ghost" data-action="savePng">存成图片</button>
+      <button type="button" class="btn primary" data-action="keepCard" id="btnKeep" data-i18n="card.keep">只留给自己</button>
+      <button type="button" class="btn ghost" data-action="savePng" data-i18n="card.savePng">存成图片</button>
     </div>
     <p class="saved-note hidden" id="savedNote" role="status"></p>
+    <div class="social-row hidden" id="socialCard"></div>
     <div class="share-zone">
-      <button type="button" class="text-link" data-action="openShare" id="btnOpenShare">分享给别人（卡上不含你的身体情况）</button>
+      <button type="button" class="text-link" data-action="openShare" id="btnOpenShare" data-i18n="share.open">分享给别人（卡上不含你的身体情况）</button>
       <div id="sharePanel" class="share-panel hidden">
-        <p class="muted">分享卡只写季节和这个 App 是做什么的，不写你的身体情况和感受；链接里只有一个随机编号。</p>
-        <img id="shareImg" class="share-img" alt="分享图预览">
-        <div class="share-row"><div id="shareQr" class="qr" aria-label="二维码"></div><div class="share-link-box"><p class="muted small">链接</p><p id="shareLink" class="share-link"></p></div></div>
+        <p class="muted" data-i18n="share.panelNote">分享卡只写季节和这个 App 是做什么的，不写你的身体情况和感受；链接里只有一个随机编号。</p>
+        <img id="shareImg" class="share-img" alt="分享图预览" data-i18n-attr="alt:share.imgAlt">
+        <div class="share-row"><div id="shareQr" class="qr" aria-label="二维码" data-i18n-attr="aria-label:share.qrAria"></div><div class="share-link-box"><p class="muted small" data-i18n="share.linkLabel">链接</p><p id="shareLink" class="share-link"></p></div></div>
         <div class="stack">
-          <button type="button" class="btn primary" data-action="shareSend">发送</button>
-          <button type="button" class="btn ghost" data-action="shareCopy">复制链接</button>
-          <button type="button" class="btn ghost" data-action="shareSaveImg">存分享图</button>
+          <button type="button" class="btn primary" data-action="shareSend" data-i18n="share.send">发送</button>
+          <button type="button" class="btn ghost" data-action="shareCopy" data-i18n="share.copy">复制链接</button>
+          <button type="button" class="btn ghost" data-action="shareSaveImg" data-i18n="share.saveImg">存分享图</button>
         </div>
         <p class="saved-note hidden" id="shareNote" role="status"></p>
       </div>
@@ -134,35 +135,43 @@
   </section>
 
   <!-- 图片弹层 -->
-  <div id="imgModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="图片">
+  <div id="imgModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="图片" data-i18n-attr="aria-label:modal.aria">
     <div class="modal-box">
-      <img id="modalImg" alt="养护卡图片">
-      <p class="muted small">手机上可以长按图片保存到相册。</p>
+      <img id="modalImg" alt="养护卡图片" data-i18n-attr="alt:modal.imgAlt">
+      <p class="muted small" data-i18n="modal.longPress">手机上可以长按图片保存到相册。</p>
       <div class="stack">
-        <a class="btn primary" id="modalDownload" download="healoa-card.png" href="#" data-action="downloadImg">下载图片</a>
-        <button type="button" class="btn ghost" data-action="closeModal">关闭</button>
+        <a class="btn primary" id="modalDownload" download="healoa-card.png" href="#" data-action="downloadImg" data-i18n="modal.download">下载图片</a>
+        <button type="button" class="btn ghost" data-action="closeModal" data-i18n="modal.close">关闭</button>
       </div>
     </div>
   </div>
 
   <footer class="site-foot">
-    <p class="disclaimer" id="disclaimer">这是顺应季节的养生参考，身体不适请以专业意见为准</p>
+    <p class="disclaimer" id="disclaimer" data-i18n="disclaimer">这是顺应季节的养生参考，身体不适请以专业意见为准</p>
+    <div class="social-row hidden" id="socialFoot"></div>
+    <div class="lang-switch hidden" id="langSwitch" role="group" aria-label="语言" data-i18n-attr="aria-label:lang.switchAria"></div>
     <details class="about" id="about">
-      <summary>关于这份 Demo</summary>
+      <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p>预览版本 <b id="verLabel">v2026-09-27-s</b> · 可点原型，不是正式 App。</p>
-        <p><b>推荐怎么来的：</b>按季节、当地历史气候和你点的情况，用固定规则算出来；没有任何商家付费，也不随机。没有实拍照片的地方不进前三。</p>
-        <p><b>气候数字：</b>历史气候均值，不是天气预报。Climate data: NASA POWER (CC BY 4.0)，2001–2020 年月均值；网格海拔较粗（例如武当山网格约 398 米，山上实际更高更冷），上线前会人工核对。</p>
-        <p><b>照片：</b>Photo · Cindy Yang。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
-        <p><b>隐私：</b>你点的情况只存在这台手机上（浏览器本地存储），不上传。分享图和分享链接里没有身体或感受信息，只有一个随机编号。本 Demo 没有服务器，正式版短链接会是 /s/编号。</p>
-        <p><b>计时：</b>放松练习按真实时间计时，暂停、继续、停止都准确；支持时会让屏幕保持常亮。</p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-27-t</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p data-i18n-html="about.how"><b>推荐怎么来的：</b>按季节、当地历史气候和你点的情况，用固定规则算出来；没有任何商家付费，也不随机。没有实拍照片的地方不进前三。</p>
+        <p data-i18n-html="about.climate"><b>气候数字：</b>历史气候均值，不是天气预报。Climate data: NASA POWER (CC BY 4.0)，2001–2020 年月均值；网格海拔较粗（例如武当山网格约 398 米，山上实际更高更冷），上线前会人工核对。</p>
+        <p data-i18n-html="about.photos"><b>照片：</b>Photo · Cindy Yang。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
+        <p data-i18n-html="about.privacy"><b>隐私：</b>你点的情况只存在这台手机上（浏览器本地存储），不上传。分享图和分享链接里没有身体或感受信息，只有一个随机编号。本 Demo 没有服务器，正式版短链接会是 /s/编号。</p>
+        <p data-i18n-html="about.timer"><b>计时：</b>放松练习按真实时间计时，暂停、继续、停止都准确；支持时会让屏幕保持常亮。</p>
       </div>
     </details>
   </footer>
 </div>
-<script src="vendor/qrcode.js?v=2026-09-27-s"></script>
-<script src="app/data.js?v=2026-09-27-s"></script>
-<script src="app/rules.js?v=2026-09-27-s"></script>
-<script src="app/app.js?v=2026-09-27-s"></script>
+<script src="vendor/qrcode.js?v=2026-09-27-t"></script>
+<script src="app/i18n/zh.js?v=2026-09-27-t"></script>
+<script src="app/i18n/en.js?v=2026-09-27-t"></script>
+<script src="app/i18n/ja.js?v=2026-09-27-t"></script>
+<script src="app/i18n/es.js?v=2026-09-27-t"></script>
+<script src="app/i18n/i18n.js?v=2026-09-27-t"></script>
+<script src="app/social.js?v=2026-09-27-t"></script>
+<script src="app/data.js?v=2026-09-27-t"></script>
+<script src="app/rules.js?v=2026-09-27-t"></script>
+<script src="app/app.js?v=2026-09-27-t"></script>
 </body>
 </html>

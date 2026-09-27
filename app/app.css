@@ -182,3 +182,9 @@ body.practicing .site-foot { display: none; }
 .safety li { margin: 4px 0; }
 .home-card ul { list-style: none; padding: 0; margin: 0; }
 .home-card li { margin: 6px 0; }
+
+/* i18n foundation (v2026-09-27-t): language switcher + social row. Both stay hidden until there is content. */
+.lang-switch { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 4px 0 8px; }
+.social-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; margin: 8px 0; font-size: 15px; }
+.social-title { color: var(--muted); }
+.social-link { color: inherit; min-height: 44px; display: inline-flex; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
