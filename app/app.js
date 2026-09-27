@@ -1,11 +1,12 @@
-/* HeaLoa · 顺着季节养 · app (v2026-09-27-s)
- * Main path: home (one tap) → result (season × condition) → relaxation (real timer) → 本季养护卡 (private by default).
+/* HeaLoa · app (v2026-09-27-t)
+ * Main path: home (one tap) → result (season × condition) → relaxation (real timer) → season care card (private by default).
+ * Customer-facing text: only through t(key, vars) from app/i18n/<locale>.js (default zh). No hard-coded copy here (checked by tests).
  * Privacy: the chosen condition never goes into the URL, the share card, the share link or any payload.
  * Every button uses data-action and is handled by ACTIONS (checked by tests).
  */
 (function () {
   "use strict";
-  var D = window.HEALOA_DATA, R = window.HEALOA_RULES;
+  var D = window.HEALOA_DATA, R = window.HEALOA_RULES, I18N = window.HEALOA_I18N, t = I18N.t;
   var $ = function (id) { return document.getElementById(id); };
   var LS_CARD = "healoa.card.v1", LS_EVENTS = "healoa.events.v1";
 
@@ -93,12 +94,12 @@
   }
   function renderHome() {
     var S = D.SEASONS[state.season];
-    $("homeSeasonNow").textContent = state.season === naturalSeason ? "今天 · " + term + "前后 · " + S.label : "提前看" + S.label + "天";
+    $("homeSeasonNow").textContent = state.season === naturalSeason ? t("home.seasonToday", { term: term, season: S.label }) : t("home.seasonAhead", { season: S.label });
     condButtons($("homeConds"));
     var saved = lsGet(LS_CARD);
     var hint = $("returnHint");
     if (saved && condById(saved.cond) && D.SEASONS[saved.season]) {
-      hint.textContent = "你上次存了一张" + D.SEASONS[saved.season].label + "季养护卡 · 点这里打开";
+      hint.textContent = t("home.returnHint", { season: D.SEASONS[saved.season].label });
       hint.classList.remove("hidden");
     } else hint.classList.add("hidden");
   }
@@ -110,19 +111,19 @@
     var body = $("quizBody");
     if (quiz.i < D.QUIZ.length) {
       var q = D.QUIZ[quiz.i];
-      body.innerHTML = '<p class="quiz-prog">第 ' + (quiz.i + 1) + " 题 / 共 " + D.QUIZ.length + " 题</p>" +
+      body.innerHTML = '<p class="quiz-prog">' + esc(t("quiz.progress", { n: quiz.i + 1, total: D.QUIZ.length })) + "</p>" +
         '<p class="quiz-q">' + esc(q.q) + "</p>" +
-        '<div class="btn-row"><button type="button" class="btn primary" data-action="quizAnswer" data-yes="1">是</button>' +
-        '<button type="button" class="btn ghost" data-action="quizAnswer" data-yes="0">不太是</button></div>' +
-        '<button type="button" class="text-link" data-action="goHome">跳过，回首页直接点</button>';
+        '<div class="btn-row"><button type="button" class="btn primary" data-action="quizAnswer" data-yes="1">' + esc(t("quiz.yes")) + "</button>" +
+        '<button type="button" class="btn ghost" data-action="quizAnswer" data-yes="0">' + esc(t("quiz.no")) + "</button></div>" +
+        '<button type="button" class="text-link" data-action="goHome">' + esc(t("quiz.skip")) + "</button>";
       return;
     }
     var picks = D.QUIZ.filter(function (x) { return quiz.yes[x.cond]; }).map(function (x) { return x.cond; });
     if (!picks.length) picks = ["quiet"];
-    body.innerHTML = '<p class="quiz-q">可以先看：</p><div class="stack">' + picks.map(function (id) {
+    body.innerHTML = '<p class="quiz-q">' + esc(t("quiz.suggest")) + '</p><div class="stack">' + picks.map(function (id) {
       return '<button type="button" class="btn primary" data-action="pickCond" data-cond="' + id + '">' + esc(condById(id).label) + "</button>";
-    }).join("") + '</div><p class="muted small">这是简版小测，只是帮你挑一个入口，结果不保存。</p>' +
-      '<button type="button" class="text-link" data-action="goHome">回首页</button>';
+    }).join("") + '</div><p class="muted small">' + esc(t("quiz.note")) + "</p>" +
+      '<button type="button" class="text-link" data-action="goHome">' + esc(t("quiz.home")) + "</button>";
   }
 
   /* ---------- result ---------- */
@@ -132,64 +133,64 @@
     var rec = R.recommend(state.cond, state.season);
     var care = D.CARE[state.cond][state.season];
     var prac = D.PRACTICES[D.PRACTICE_DEFAULT[state.cond]];
-    $("resultTitle").textContent = S.label + " · " + c.label;
+    $("resultTitle").textContent = t("result.title", { season: S.label, cond: c.label });
     $("resultConds").innerHTML = D.CONDITIONS.map(function (x) {
       return '<button type="button" class="chip' + (x.id === state.cond ? " on" : "") + '" data-action="pickCond" data-cond="' + x.id + '">' + esc(x.label) + "</button>";
     }).join("");
     var h = "";
-    var seasonLine = state.season === naturalSeason ? "现在是" + term + "前后 · " + S.label + "季" : "提前看" + S.label + "天（" + S.months + "）";
-    h += '<div class="block" id="blkNote"><h3>本季要留意</h3><p class="muted small">' + esc(seasonLine) + "</p><ul>" +
+    var seasonLine = state.season === naturalSeason ? t("result.seasonToday", { term: term, season: S.label }) : t("result.seasonAhead", { season: S.label, months: S.months });
+    h += '<div class="block" id="blkNote"><h3>' + esc(t("result.noteTitle")) + '</h3><p class="muted small">' + esc(seasonLine) + "</p><ul>" +
       care.note.map(function (n) { return '<li><span class="tag">' + esc(n.tag) + "</span>" + esc(n.text) + "</li>"; }).join("") + "</ul></div>";
 
-    h += '<h3 class="sec-title">这个季节去哪里养</h3><p class="sec-sub">按' + S.label + "季历史气候和你的情况排出来 · 都有实拍照片</p>";
-    rec.top.forEach(function (t, i) {
-      var p = R.placeById(t.id);
-      h += '<article class="place-card" data-place="' + t.id + '">' +
-        '<div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '" loading="lazy"><span class="rank">第 ' + (i + 1) + ' 选</span><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
+    h += '<h3 class="sec-title">' + esc(t("result.placesTitle")) + '</h3><p class="sec-sub">' + esc(t("result.placesSub", { season: S.label })) + "</p>";
+    rec.top.forEach(function (tp, i) {
+      var p = R.placeById(tp.id);
+      h += '<article class="place-card" data-place="' + tp.id + '">' +
+        '<div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '" loading="lazy"><span class="rank">' + esc(t("result.rank", { n: i + 1 })) + '</span><span class="credit">' + esc(D.CREDIT) + "</span></div>" +
         '<div class="place-main"><p class="place-name">' + esc(p.name) + "</p>" +
         '<p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
-        '<p class="reason1">' + esc(t.reasons[0]) + "</p>" +
-        '<button type="button" class="btn ghost small" data-action="openPlace" data-place="' + t.id + '">看这个地方 · 理由和做法</button></div></article>';
+        '<p class="reason1">' + esc(tp.reasons[0]) + "</p>" +
+        '<button type="button" class="btn ghost small" data-action="openPlace" data-place="' + tp.id + '">' + esc(t("result.openPlace")) + "</button></div></article>";
     });
-    h += '<div class="home-card" id="blkHome"><h3>去不了远方？在家这样做</h3><ul>' +
+    h += '<div class="home-card" id="blkHome"><h3>' + esc(t("result.homeTitle")) + "</h3><ul>" +
       D.HOME_PLAN[state.cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") +
-      '</ul><div class="btn-row"><button type="button" class="btn ghost" data-action="openPractice" data-practice="soak">泡脚计时 10 分钟</button>' +
+      '</ul><div class="btn-row"><button type="button" class="btn ghost" data-action="openPractice" data-practice="soak">' + esc(t("result.soakBtn")) + "</button>" +
       '<button type="button" class="btn ghost" data-action="openPractice" data-practice="' + prac.id + '">' + esc(prac.short) + "</button></div></div>";
 
     if (rec.skip.length) {
-      h += '<div class="block" id="blkSkip"><h3>这个季节先不选</h3><ul class="skip-list">' + rec.skip.map(function (s) {
-        return '<li><span class="skip-name">' + esc(s.name) + "</span>：" + esc(s.reason) + "</li>";
+      h += '<div class="block" id="blkSkip"><h3>' + esc(t("result.skipTitle")) + '</h3><ul class="skip-list">' + rec.skip.map(function (s) {
+        return '<li><span class="skip-name">' + esc(s.name) + "</span>" + esc(t("punct.colon")) + esc(s.reason) + "</li>";
       }).join("") + "</ul></div>";
     }
     if (rec.more.length) {
-      h += '<div class="block" id="blkMore"><h3>还有这些地方</h3><p class="muted small">照片陆续补上，补齐之前不排进前三。</p><ul class="more-list">' + rec.more.map(function (m) {
+      h += '<div class="block" id="blkMore"><h3>' + esc(t("result.moreTitle")) + '</h3><p class="muted small">' + esc(t("result.moreSub")) + '</p><ul class="more-list">' + rec.more.map(function (m) {
         var p = R.placeById(m.id);
-        return "<li><b>" + esc(p.name) + '</b><span class="pending">照片待补</span>：' + esc(m.line) + "</li>";
+        return "<li><b>" + esc(p.name) + '</b><span class="pending">' + esc(t("result.photoPending")) + "</span>" + esc(t("punct.colon")) + esc(m.line) + "</li>";
       }).join("") + "</ul></div>";
     }
-    h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">先放松一下 · ' + esc(prac.label) + "</button></div>";
+    h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">' + esc(t("result.relaxCta", { label: prac.label })) + "</button></div>";
 
-    h += '<div class="block" id="blkEat"><h3>吃喝</h3><ul>' +
-      "<li><b>可以多吃：</b>" + esc(care.eat.more) + "</li>" +
-      "<li><b>可以少一点：</b>" + esc(care.eat.less) + "</li>" +
-      "<li><b>记住一句：</b>" + esc(care.eat.tip) + "</li>" +
-      "<li><b>喝点什么：</b>" + esc(care.eat.drink) + "</li></ul>" +
-      '<p class="muted small">茶饮孕期、长期身体状况请先听专业意见。</p></div>';
-    h += '<div class="block" id="blkMove"><h3>怎么动</h3><ul>' + care.move.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul>" +
-      '<p class="muted small">跟着做（简单样品，站着坐着都可以）：</p><div class="btn-row">' +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="walk">慢走节奏</button>' +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="baduanjin1">八段锦第一式</button>' +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="taiji1">太极起势</button>' +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="breath46">慢呼吸 3 分钟</button></div></div>';
-    h += '<div class="safety" id="blkSafety"><b>要注意：</b>' + esc(care.safety) + "</div>";
-    h += '<div class="stack"><button type="button" class="btn primary" data-action="openCard">生成本季养护卡</button></div>';
-    h += '<p class="src-note">地点气候：历史气候均值，不是天气预报 · Climate data: NASA POWER (CC BY 4.0) · 照片 ' + esc(D.CREDIT) + "</p>";
+    h += '<div class="block" id="blkEat"><h3>' + esc(t("result.eatTitle")) + "</h3><ul>" +
+      "<li><b>" + esc(t("result.eatMore")) + "</b>" + esc(care.eat.more) + "</li>" +
+      "<li><b>" + esc(t("result.eatLess")) + "</b>" + esc(care.eat.less) + "</li>" +
+      "<li><b>" + esc(t("result.eatTip")) + "</b>" + esc(care.eat.tip) + "</li>" +
+      "<li><b>" + esc(t("result.eatDrink")) + "</b>" + esc(care.eat.drink) + "</li></ul>" +
+      '<p class="muted small">' + esc(t("result.eatNote")) + "</p></div>";
+    h += '<div class="block" id="blkMove"><h3>' + esc(t("result.moveTitle")) + "</h3><ul>" + care.move.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul>" +
+      '<p class="muted small">' + esc(t("result.moveFollow")) + '</p><div class="btn-row">' +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="walk">' + esc(t("result.moveWalk")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="baduanjin1">' + esc(t("result.moveBaduanjin")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="taiji1">' + esc(t("result.moveTaiji")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="breath46">' + esc(t("result.moveBreath")) + "</button></div></div>";
+    h += '<div class="safety" id="blkSafety"><b>' + esc(t("result.caution")) + "</b>" + esc(care.safety) + "</div>";
+    h += '<div class="stack"><button type="button" class="btn primary" data-action="openCard">' + esc(t("result.cardCta")) + "</button></div>";
+    h += '<p class="src-note">' + esc(t("result.srcNote", { credit: D.CREDIT })) + "</p>";
     $("resultBody").innerHTML = h;
   }
   function cindyLineHtml(p) {
     /* Cindy's own signed line. Empty until she provides it → renders nothing. Never generated. */
     if (!p.cindyLine) return "";
-    return '<p class="cindy-line">“' + esc(p.cindyLine) + "” —— Cindy</p>";
+    return '<p class="cindy-line">' + esc(t("place.cindyLine", { line: p.cindyLine })) + "</p>";
   }
 
   /* ---------- place ---------- */
@@ -201,20 +202,20 @@
     var h = '<div class="place-hero"><div class="photo"><img src="' + esc(p.photo) + '" alt="' + esc(p.alt) + '"><span class="credit">' + esc(D.CREDIT) + "</span></div></div>";
     h += '<h2 class="place-title">' + esc(p.name) + '</h2><p class="place-area">' + esc(p.area) + "</p>";
     h += '<p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p);
-    if (skip) h += '<div class="safety"><b>这个季节先不选：</b>' + esc(skip) + "</div>";
-    h += '<div class="block"><h3>' + (skip ? S.label + "季的气候" : "为什么" + S.label + "季适合") + '</h3><ol class="reasons">' + rs.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ol></div>";
-    h += '<div class="block"><h3>在这里可以吃</h3><ul>' + p.food.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
-    h += '<div class="block"><h3>在这里做什么</h3><ul>' + p.todo.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
+    if (skip) h += '<div class="safety"><b>' + esc(t("place.skipLabel")) + "</b>" + esc(skip) + "</div>";
+    h += '<div class="block"><h3>' + esc(t(skip ? "place.climateSkip" : "place.climateFit", { season: S.label })) + '</h3><ol class="reasons">' + rs.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ol></div>";
+    h += '<div class="block"><h3>' + esc(t("place.eatTitle")) + "</h3><ul>" + p.food.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
+    h += '<div class="block"><h3>' + esc(t("place.todoTitle")) + "</h3><ul>" + p.todo.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     var cautions = p.caution.slice();
-    if (p.attrs.hotspring) cautions.unshift("泡汤：水温 41℃ 以下，每次 10 分钟以内，起身要慢。");
-    h += '<div class="safety"><b>要注意：</b><ul>' + cautions.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
+    if (p.attrs.hotspring) cautions.unshift(t("place.hotspringCaution"));
+    h += '<div class="safety"><b>' + esc(t("result.caution")) + "</b><ul>" + cautions.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     if (p.gallery && p.gallery.length) {
       h += '<div class="gallery">' + p.gallery.map(function (g) { return '<div class="photo"><img src="' + esc(g) + '" alt="' + esc(p.name) + '" loading="lazy"><span class="credit">' + esc(D.CREDIT) + "</span></div>"; }).join("") + "</div>";
     }
-    h += '<div class="home-card"><h3>去不了？在家这样做</h3><ul>' + D.HOME_PLAN[cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
+    h += '<div class="home-card"><h3>' + esc(t("place.homeTitle")) + "</h3><ul>" + D.HOME_PLAN[cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     var prac = D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
-    h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">先放松一下 · ' + esc(prac.short) + "</button></div>";
-    h += '<p class="src-note">历史气候均值，不是天气预报 · Climate data: NASA POWER (CC BY 4.0) · 网格海拔约 ' + D.CLIMATE[p.climate].elev + " 米（较粗，待人工核对）</p>";
+    h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">' + esc(t("result.relaxCta", { label: prac.short })) + "</button></div>";
+    h += '<p class="src-note">' + esc(t("place.srcNote", { elev: D.CLIMATE[p.climate].elev })) + "</p>";
     $("placeBody").innerHTML = h;
   }
 
@@ -250,26 +251,26 @@
     var opts = "";
     if (p.durations && p.kind !== "guided") {
       opts += p.durations.map(function (d) {
-        var label = p.rounds ? (Math.round(d / 19)) + " 轮" : Math.round(d / 60) + " 分钟";
+        var label = p.rounds ? t("practice.rounds", { n: Math.round(d / 19) }) : t("practice.minutes", { n: Math.round(d / 60) });
         return '<button type="button" class="chip' + (d === T.duration ? " on" : "") + '" data-action="practiceOpt" data-duration="' + d + '">' + label + "</button>";
       }).join("");
     }
     if (p.kind === "walk") {
       opts += p.cadences.map(function (c) {
-        return '<button type="button" class="chip' + (c === T.cadence ? " on" : "") + '" data-action="practiceOpt" data-cadence="' + c + '">每分钟 ' + c + " 步</button>";
+        return '<button type="button" class="chip' + (c === T.cadence ? " on" : "") + '" data-action="practiceOpt" data-cadence="' + c + '">' + esc(t("practice.cadence", { n: c })) + "</button>";
       }).join("");
-      opts += '<button type="button" class="chip' + (T.beep ? " on" : "") + '" data-action="practiceBeep">节拍声' + (T.beep ? "：开" : "：关") + "</button>";
+      opts += '<button type="button" class="chip' + (T.beep ? " on" : "") + '" data-action="practiceBeep">' + esc(t(T.beep ? "practice.beepOn" : "practice.beepOff")) + "</button>";
     }
     $("practiceOpts").innerHTML = opts;
-    var safe = "不憋气硬撑；如有头晕、胸闷，马上停下。";
-    if (p.kind === "soak") safe = (state.cond && D.CARE[state.cond] ? D.CARE[state.cond][state.season].safety + " " : "") + "泡完擦干，穿好袜子。";
-    if (p.kind === "walk") safe = "走平路，量力而行；如有头晕、胸闷，马上停下。";
+    var safe = t("practice.safeDefault");
+    if (p.kind === "soak") safe = (state.cond && D.CARE[state.cond] ? D.CARE[state.cond][state.season].safety + " " : "") + t("practice.safeSoakTail");
+    if (p.kind === "walk") safe = t("practice.safeWalk");
     $("practiceSafe").textContent = safe;
     $("walkFeet").classList.toggle("hidden", p.kind !== "walk");
     $("breathCircle").classList.toggle("hidden", p.kind === "walk");
     if (!T.running) {
       $("practiceClock").textContent = mmss(durationOf(p));
-      $("practiceCue").textContent = p.kind === "guided" ? "准备好就点「开始」，跟着文字慢慢做" : "准备好就点「开始」";
+      $("practiceCue").textContent = t(p.kind === "guided" ? "practice.readyGuided" : "practice.ready");
       $("breathCircle").style.transform = "scale(.55)";
       $("donePanel").classList.toggle("hidden", !T.done);
     }
@@ -278,10 +279,10 @@
   function updateControls() {
     var running = T.running;
     $("btnStart").classList.toggle("hidden", running);
-    $("btnStart").textContent = T.done ? "再开始一次" : "开始";
+    $("btnStart").textContent = t(T.done ? "practice.startAgain" : "practice.start");
     $("btnPause").classList.toggle("hidden", !running);
     $("btnStop").classList.toggle("hidden", !running);
-    $("btnPause").textContent = T.paused ? "继续" : "暂停";
+    $("btnPause").textContent = t(T.paused ? "practice.resume" : "practice.pause");
     document.querySelector("#vPractice .controls").classList.toggle("running", running);
     Array.prototype.forEach.call(document.querySelectorAll('#practiceOpts .chip, #practiceModes .chip'), function (b) { b.disabled = running; });
   }
@@ -291,14 +292,14 @@
     var p = practice(), e = elapsedMs() / 1000, dur = durationOf(p), remain = dur - e;
     $("practiceClock").textContent = mmss(remain);
     if (p.kind === "breath") {
-      var cycle = p.phases.reduce(function (a, x) { return a + x.sec; }, 0), t = e % cycle, acc = 0, prevScale = p.phases[p.phases.length - 1].scale;
+      var cycle = p.phases.reduce(function (a, x) { return a + x.sec; }, 0), tc = e % cycle, acc = 0, prevScale = p.phases[p.phases.length - 1].scale;
       for (var i = 0; i < p.phases.length; i++) {
         var ph = p.phases[i];
-        if (t < acc + ph.sec) {
-          var k = (t - acc) / ph.sec, from = prevScale, to = ph.scale;
+        if (tc < acc + ph.sec) {
+          var k = (tc - acc) / ph.sec, from = prevScale, to = ph.scale;
           var s = 0.55 + 0.45 * (from + (to - from) * ease(k));
           $("breathCircle").style.transform = "scale(" + s.toFixed(3) + ")";
-          $("practiceCue").textContent = ph.name + " " + Math.ceil(ph.sec - (t - acc));
+          $("practiceCue").textContent = t("practice.breathCue", { phase: ph.name, n: Math.ceil(ph.sec - (tc - acc)) });
           break;
         }
         acc += ph.sec; prevScale = ph.scale;
@@ -311,16 +312,16 @@
         $("footR").classList.toggle("on", beat % 2 === 1);
         if (T.beep) click();
       }
-      $("practiceCue").textContent = Math.floor(beat / 3) % 2 === 0 ? "吸气 · 走三步" : "呼气 · 走三步";
+      $("practiceCue").textContent = t(Math.floor(beat / 3) % 2 === 0 ? "practice.walkIn" : "practice.walkOut");
     } else if (p.kind === "soak") {
       var sPulse = 0.55 + 0.2 * (0.5 + 0.5 * Math.sin(e / 5 * Math.PI));
       $("breathCircle").style.transform = "scale(" + sPulse.toFixed(3) + ")";
-      $("practiceCue").textContent = remain <= 60 ? "还有 1 分钟，准备擦干" : "泡着，慢慢呼吸";
+      $("practiceCue").textContent = t(remain <= 60 ? "practice.soakLast" : "practice.soakOn");
     } else if (p.kind === "guided") {
       var a2 = 0;
       for (var j = 0; j < p.steps.length; j++) {
         if (e < a2 + p.steps[j].sec || j === p.steps.length - 1) {
-          $("practiceCue").textContent = "第 " + (j + 1) + " / " + p.steps.length + " 步 · " + p.steps[j].text;
+          $("practiceCue").textContent = t("practice.guidedStep", { n: j + 1, total: p.steps.length, text: p.steps[j].text });
           break;
         }
         a2 += p.steps[j].sec;
@@ -362,7 +363,7 @@
   }
   function timerPause() {
     if (!T.running) return;
-    if (!T.paused) { T.paused = true; T.pauseAt = performance.now(); cancelAnimationFrame(T.raf); $("practiceCue").textContent = "已暂停"; }
+    if (!T.paused) { T.paused = true; T.pauseAt = performance.now(); cancelAnimationFrame(T.raf); $("practiceCue").textContent = t("practice.paused"); }
     else { T.pausedTotal += performance.now() - T.pauseAt; T.paused = false; wakeOn(); loop(); }
     updateControls();
   }
@@ -375,17 +376,45 @@
       T.done = true;
       logEvent("practice_completed");
       $("practiceClock").textContent = "0:00";
-      $("practiceCue").textContent = "做完了";
-      $("doneTitle").textContent = "做完了 · 这一段 " + mmss(durationOf(p));
+      $("practiceCue").textContent = t("practice.done");
+      $("doneTitle").textContent = t("practice.doneTitle", { time: mmss(durationOf(p)) });
       $("donePanel").classList.remove("hidden");
     } else {
       T.done = false;
       $("practiceClock").textContent = mmss(durationOf(p));
-      $("practiceCue").textContent = "已停止（练了 " + mmss(spent) + "）。想再来就点「开始」";
+      $("practiceCue").textContent = t("practice.stopped", { time: mmss(spent) });
       $("breathCircle").style.transform = "scale(.55)";
     }
     T.startAt = 0;
     if (state.view === "practice") updateControls();
+  }
+
+  /* ---------- language switcher + social links (both render nothing until there is something to show) ---------- */
+  function renderLangSwitch() {
+    var el = $("langSwitch");
+    if (!el) return;
+    var codes = I18N.completeLocales();
+    if (codes.length < 2) { el.innerHTML = ""; el.classList.add("hidden"); return; }
+    el.innerHTML = codes.map(function (c) {
+      var m = (window.HEALOA_LOCALES[c] || {}).meta || {};
+      return '<button type="button" class="chip' + (c === I18N.lang ? " on" : "") + '" data-action="setLang" data-lang="' + esc(c) + '" lang="' + esc(m.htmlLang || c) + '">' + esc(m.name || c) + "</button>";
+    }).join("");
+    el.classList.remove("hidden");
+  }
+  /* app/social.js: { <locale>: [{ platform, url, label }] }. Only https links; empty list → the row stays hidden. */
+  function socialEntries() {
+    var all = window.HEALOA_SOCIAL || {}, list = all[I18N.lang] || [];
+    return list.filter(function (x) { return x && typeof x.url === "string" && /^https:\/\/[^\s"'<>]+$/.test(x.url) && x.label; });
+  }
+  function renderSocial(id) {
+    var el = $(id);
+    if (!el) return;
+    var list = socialEntries();
+    if (!list.length) { el.innerHTML = ""; el.classList.add("hidden"); return; }
+    el.innerHTML = '<span class="social-title">' + esc(t("social.follow")) + "</span>" + list.map(function (x) {
+      return '<a class="social-link" data-action="openSocial" data-platform="' + esc(x.platform || "") + '" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">' + esc(x.label) + "</a>";
+    }).join("");
+    el.classList.remove("hidden");
   }
 
   /* ---------- care card ---------- */
@@ -394,10 +423,14 @@
     var rec = R.recommend(cond, season), top = rec.top[0], place = top ? R.placeById(top.id) : null;
     var care = D.CARE[cond][season], prac = D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
     return {
-      seasonLine: S.label + "季" + (season === naturalSeason ? " · " + term + "前后" : "（" + S.months + "）"),
-      head: (state.cardShowCond ? condById(cond).label : "按你的情况") + " · 这个" + S.label + "天这样养",
+      seasonLine: season === naturalSeason ? t("card.seasonToday", { season: S.label, term: term }) : t("card.seasonAhead", { season: S.label, months: S.months }),
+      head: t("card.head", { who: state.cardShowCond ? condById(cond).label : t("card.whoAnon"), season: S.label }),
       place: place ? { name: place.name, photo: place.photo, reason: top.reasons[0] } : null,
-      items: ["吃：" + care.eat.tip + "多吃" + care.eat.more.split("、").slice(0, 3).join("、") + "。", "动：" + care.move[0], "放松：" + prac.label + "，想起来就做一段。"],
+      items: [
+        t("card.itemEat", { tip: care.eat.tip, foods: care.eat.more.split(t("punct.listSep")).slice(0, 3).join(t("punct.listSep")) }),
+        t("card.itemMove", { move: care.move[0] }),
+        t("card.itemRelax", { label: prac.label })
+      ],
       safety: care.safety
     };
   }
@@ -408,14 +441,15 @@
     var h = "";
     if (m.place) h += '<div class="photo"><img src="' + esc(m.place.photo) + '" alt="' + esc(m.place.name) + '"><span class="credit">' + esc(D.CREDIT) + "</span></div>";
     h += '<div class="care-body"><p class="care-season">' + esc(m.seasonLine) + '</p><p class="care-head">' + esc(m.head) + "</p>";
-    if (m.place) h += "<p><b>适合去：</b>" + esc(m.place.name) + '<br><span class="muted small">' + esc(m.place.reason) + "</span></p>";
+    if (m.place) h += "<p><b>" + esc(t("card.placeLabel")) + "</b>" + esc(m.place.name) + '<br><span class="muted small">' + esc(m.place.reason) + "</span></p>";
     h += "<ol>" + m.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ol>";
-    h += '<p class="care-safe">' + esc(m.safety) + '</p><p class="care-foot">' + esc(D.DISCLAIMER) + " · HeaLoa</p></div>";
+    h += '<p class="care-safe">' + esc(m.safety) + '</p><p class="care-foot">' + esc(t("card.foot", { disclaimer: D.DISCLAIMER })) + "</p></div>";
     $("cardPreview").innerHTML = h;
     $("savedNote").classList.add("hidden");
     $("sharePanel").classList.add("hidden");
     $("shareNote").classList.add("hidden");
-    $("btnOpenShare").textContent = "分享给别人（卡上不含你的身体情况）";
+    $("btnOpenShare").textContent = t("share.open");
+    renderSocial("socialCard");
   }
 
   /* ---------- canvas helpers ---------- */
@@ -432,7 +466,7 @@
     var r = Math.max(w / im.width, h / im.height), sw = w / r, sh = h / r;
     ctx.drawImage(im, (im.width - sw) / 2, (im.height - sh) / 2, sw, sh, x, y, w, h);
   }
-  var FONT = '"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei",sans-serif';
+  var FONT = I18N.meta().canvasFont || "sans-serif";
   function wrap(ctx, text, x, y, maxW, lh, log) {
     var line = "", lines = [];
     for (var i = 0; i < text.length; i++) {
@@ -457,11 +491,11 @@
     ctx.fillStyle = "#2f5d50"; ctx.font = "bold 38px " + FONT; ctx.fillText(m.seasonLine, X, y); y += 70;
     ctx.fillStyle = "#26241f"; ctx.font = "bold 56px " + FONT; y = wrap(ctx, m.head, X, y, MW, 70); y += 20;
     ctx.font = "40px " + FONT;
-    if (m.place) { y = wrap(ctx, "适合去：" + m.place.name, X, y, MW, 56); ctx.fillStyle = "#5f5a50"; ctx.font = "32px " + FONT; y = wrap(ctx, m.place.reason, X, y, MW, 46) + 20; }
+    if (m.place) { y = wrap(ctx, t("card.placeLabel") + m.place.name, X, y, MW, 56); ctx.fillStyle = "#5f5a50"; ctx.font = "32px " + FONT; y = wrap(ctx, m.place.reason, X, y, MW, 46) + 20; }
     ctx.fillStyle = "#26241f"; ctx.font = "40px " + FONT;
     m.items.forEach(function (it, i) { y = wrap(ctx, (i + 1) + ". " + it, X, y, MW, 56) + 10; });
     ctx.fillStyle = "#7a3b12"; ctx.font = "32px " + FONT; y = wrap(ctx, m.safety, X, y + 10, MW, 46);
-    ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, D.DISCLAIMER + " · HeaLoa", X, H - 60, MW, 40);
+    ctx.fillStyle = "#5f5a50"; ctx.font = "28px " + FONT; wrap(ctx, t("card.foot", { disclaimer: D.DISCLAIMER }), X, H - 60, MW, 40);
     return c.toDataURL("image/png");
   }
 
@@ -477,12 +511,12 @@
     var S = D.SEASONS[state.season];
     return {
       url: state.shareUrl,
-      title: "HeaLoa · 顺着季节养",
-      text: "这个" + S.label + "天怎么养、去哪里养？点一下自己的情况就能看。",
+      title: t("share.title"),
+      text: t("share.text", { season: S.label }),
       card: {
-        brand: "HeaLoa · 顺着季节养",
-        head: "这个" + S.label + "天，顺着季节慢下来",
-        sub: "点一下你的情况，马上看这个季节注意什么、吃什么、怎么动、去哪里养",
+        brand: t("share.cardBrand"),
+        head: t("share.cardHead", { season: S.label }),
+        sub: t("share.cardSub"),
         photo: D.SEASON_PHOTO[state.season],
         credit: D.CREDIT,
         foot: D.DISCLAIMER
@@ -507,7 +541,8 @@
     ctx.fillStyle = "#fff"; ctx.fillRect(qx - 12, qy - 12, size + 24, size + 24);
     ctx.fillStyle = "#111";
     for (var r = 0; r < n; r++) for (var cc = 0; cc < n; cc++) if (q.isDark(r, cc)) ctx.fillRect(qx + cc * cell, qy + r * cell, Math.ceil(cell), Math.ceil(cell));
-    ctx.fillStyle = "#26241f"; ctx.font = "bold 34px " + FONT; ctx.fillText("扫码，点一下你自己的情况", qx + size + 40, qy + 60); log.push("扫码，点一下你自己的情况");
+    var scan = t("share.scanCta");
+    ctx.fillStyle = "#26241f"; ctx.font = "bold 34px " + FONT; ctx.fillText(scan, qx + size + 40, qy + 60); log.push(scan);
     ctx.fillStyle = "#5f5a50"; ctx.font = "26px " + FONT; wrap(ctx, share.url.replace(/^https?:\/\//, ""), qx + size + 40, qy + 110, W - (qx + size + 40) - 50, 36, log);
     ctx.font = "24px " + FONT; ctx.fillText(card.foot, X, H - 40); log.push(card.foot);
     lastShareCardText = log;
@@ -581,20 +616,20 @@
     keepCard: function () {
       var ok = lsSet(LS_CARD, { cond: state.cond, season: state.season, showCond: !!state.cardShowCond, savedAt: Date.now() });
       if (ok) logEvent("card_kept");
-      note("savedNote", ok ? "已存在这台手机上，只有你看得到。下次打开 HeaLoa，首页会提醒你。" : "这台手机不允许本地保存，可以点「存成图片」。");
+      note("savedNote", t(ok ? "card.kept" : "card.keepFailed"));
     },
     savePng: function () {
-      privatePng().then(function (url) { openModal(url, "healoa-本季养护卡.png"); });
+      privatePng().then(function (url) { openModal(url, t("card.pngName")); });
     },
     openShare: function () {
       if (!$("sharePanel").classList.contains("hidden")) {
         $("sharePanel").classList.add("hidden");
-        $("btnOpenShare").textContent = "分享给别人（卡上不含你的身体情况）";
+        $("btnOpenShare").textContent = t("share.open");
         return;
       }
       var share = buildShare();
       $("sharePanel").classList.remove("hidden");
-      $("btnOpenShare").textContent = "收起分享";
+      $("btnOpenShare").textContent = t("share.close");
       $("shareLink").textContent = share.url;
       $("shareQr").innerHTML = qrSvg(share.url);
       sharePng(share).then(function (url) { shareImgData = url; $("shareImg").src = url; });
@@ -604,23 +639,32 @@
       var payload = { title: share.title, text: share.text, url: share.url };
       if (navigator.share) {
         try { if (shareImgData && navigator.canShare && navigator.canShare({ files: [dataUrlToFile(shareImgData, "healoa.png")] })) payload.files = [dataUrlToFile(shareImgData, "healoa.png")]; } catch (e) {}
-        navigator.share(payload).then(function () { logEvent("shared"); note("shareNote", "已打开发送。发不发、发给谁，由你决定。"); }, function () {});
+        navigator.share(payload).then(function () { logEvent("shared"); note("shareNote", t("share.sent")); }, function () {});
       } else {
         copyText(share.text + " " + share.url).then(function (ok) {
           if (ok) logEvent("shared");
-          note("shareNote", ok ? "这台设备不能直接发送，已复制链接和一句介绍，粘贴给对方就行。" : "复制没成功，可以长按上面的链接手动复制。");
+          note("shareNote", t(ok ? "share.copiedWithText" : "share.copyFailed"));
         });
       }
     },
     shareCopy: function () {
       var share = buildShare();
-      copyText(share.url).then(function (ok) { if (ok) logEvent("shared"); note("shareNote", ok ? "链接已复制。" : "复制没成功，可以长按上面的链接手动复制。"); });
+      copyText(share.url).then(function (ok) { if (ok) logEvent("shared"); note("shareNote", t(ok ? "share.copied" : "share.copyFailed")); });
     },
     shareSaveImg: function () {
-      var go2 = function (url) { openModal(url, "healoa-分享卡.png"); };
+      var go2 = function (url) { openModal(url, t("share.pngName")); };
       if (shareImgData) go2(shareImgData); else sharePng(buildShare()).then(go2);
     },
     closeModal: function () { $("imgModal").classList.add("hidden"); },
+    setLang: function (el) {
+      var code = el.getAttribute("data-lang");
+      if (!code || code === I18N.lang || !I18N.isComplete(code)) return;
+      I18N.setLang(code);
+      var p = new URLSearchParams(location.search);
+      p.set("lang", code); p.delete("s");
+      location.href = location.pathname + "?" + p.toString();
+    },
+    openSocial: function () { /* default <a target=_blank> behaviour */ return true; },
     downloadImg: function () { /* default <a download> behaviour */ return true; }
   };
   document.addEventListener("click", function (ev) {
@@ -641,12 +685,15 @@
   var sid = params.get("s");
   var initial = sid && /^[a-z0-9]{4,16}$/.test(sid) ? "shared" : "home";
   if (initial === "shared") logEvent("opened");
+  I18N.applyDom(document, { version: D.VERSION });
+  renderLangSwitch();
+  renderSocial("socialFoot");
   show(initial); render();
   try { history.replaceState(snapshot(), "", location.pathname + location.search); } catch (e) {}
 
   /* test / debug surface (no personal data leaves the device) */
   window.__healoa = {
-    version: D.VERSION, state: state, actions: ACTIONS, go: go, buildShare: buildShare,
+    version: D.VERSION, lang: I18N.lang, state: state, actions: ACTIONS, go: go, buildShare: buildShare,
     elapsedMs: elapsedMs, timer: T, events: function () { return lsGet(LS_EVENTS) || []; },
     lastShareCardText: function () { return lastShareCardText.slice(); },
     cardModel: cardModel

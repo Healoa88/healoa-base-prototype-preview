@@ -42,7 +42,8 @@ export async function captureZh({ query = "" } = {}) {
     return p;
   }
   const bodyText = (p) => p.evaluate(() => document.body.innerText);
-  const attrs = (p) => p.evaluate(() => [...document.querySelectorAll("[aria-label],[alt],[title]")].map((e) => [e.id || e.className || e.tagName, e.getAttribute("aria-label"), e.getAttribute("alt"), e.getAttribute("title")]));
+    /* New i18n slots (#langSwitch, #socialFoot, #socialCard) did not exist in v2026-09-27-s; they are hidden and asserted separately. */
+  const attrs = (p) => p.evaluate(() => [...document.querySelectorAll("[aria-label],[alt],[title]")].filter((e) => !e.closest("#langSwitch, #socialFoot, #socialCard")).map((e) => [e.id || e.className || e.tagName, e.getAttribute("aria-label"), e.getAttribute("alt"), e.getAttribute("title")]));
   try {
     // home (autumn + winter)
     let p = await fresh(base + Q("2026-09-26"));

@@ -1,10 +1,11 @@
-/* HeaLoa · rule-based recommendation (v2026-09-27-s)
+/* HeaLoa · rule-based recommendation (v2026-09-27-t)
  * Deterministic: same (condition, season) → same result. No randomness, no paid ranking.
  * Places without a photo are never in the top 3.
+ * All wording comes from the active locale via t(key) (app/i18n/<locale>.js); no customer text is hard-coded here.
  */
 (function (root) {
   "use strict";
-  var D = root.HEALOA_DATA;
+  var D = root.HEALOA_DATA, t = root.HEALOA_I18N.t;
 
   function fmt(n) { return (n < 0 ? "−" + Math.abs(n) : String(n)); }
   function deg(n) { return fmt(n) + "℃"; }
@@ -15,23 +16,24 @@
   }
   function climateOf(place, season) { return D.CLIMATE[place.climate][season]; }
 
-  /* Returns a reason string if the place is「这个季节先不选」for this condition, else null. */
+  /* Returns a reason string if the place should be skipped this season for this condition, else null. */
   function skipReason(place, cond, season) {
     var c = climateOf(place, season), S = D.SEASONS[season];
     var minT = Math.min.apply(null, c.months), minIdx = c.months.indexOf(minT);
     var hs = place.attrs.hotspring;
-    var seasonAvg = S.label + "季平均 " + deg(c.t);
-    if (c.pr >= 8) return seasonAvg + "，日均降水 " + c.pr + " 毫米，正是雨季，出门不方便。";
-    if (c.t < -10 && cond !== "quiet") return seasonAvg + "，最冷的月份 " + deg(minT) + "，太冷，进出屋冷热变化大。";
+    var avg = t("rules.seasonAvg", { season: S.label, t: deg(c.t) });
+    var month = S.monthNames[minIdx], min = deg(minT);
+    if (c.pr >= 8) return t("rules.skipRain", { avg: avg, pr: c.pr });
+    if (c.t < -10 && cond !== "quiet") return t("rules.skipFrigid", { avg: avg, min: min });
     if (cond === "bp") {
-      if (hs && c.t < 0) return "室外" + seasonAvg + "、泉水热，冷热反差大，血压偏高的人这个季节先不选。";
-      if (c.t < 8) return seasonAvg + (minT < 0 ? "，" + S.monthNames[minIdx] + "降到 " + deg(minT) : "") + "，偏冷，血压偏高的人先去暖和、温差小的地方。";
-      if (minT < 0) return seasonAvg + "，" + S.monthNames[minIdx] + "降到 " + deg(minT) + "，降温快。";
+      if (hs && c.t < 0) return t("rules.skipBpHotspring", { avg: avg });
+      if (c.t < 8) return t("rules.skipBpCold", { avg: avg, dip: minT < 0 ? t("rules.dipTo", { month: month, min: min }) : "" });
+      if (minT < 0) return t("rules.skipBpDrop", { avg: avg, month: month, min: min });
     }
-    if (cond === "cold" && !hs && (c.t < 5 || minT < 0)) return seasonAvg + "，" + S.monthNames[minIdx] + " " + deg(minT) + "，怕冷的人这个季节先不选。";
-    if (cond === "gut" && c.t < 5) return seasonAvg + "，偏冷，肠胃弱的人先选暖一点的地方。";
-    if ((cond === "gut" || cond === "sleep") && !hs && minT < 0) return seasonAvg + "，" + S.monthNames[minIdx] + "已降到 " + deg(minT) + "，早晚冷，夜里更冷。";
-    if ((cond === "sleep" || cond === "gut") && c.t > 26 && c.pr > 4) return seasonAvg + "、湿度 " + c.rh + "%、日均降水 " + c.pr + " 毫米，湿热多雨，" + (cond === "sleep" ? "夜里闷。" : "容易贪凉吃冰。");
+    if (cond === "cold" && !hs && (c.t < 5 || minT < 0)) return t("rules.skipColdHands", { avg: avg, month: month, min: min });
+    if (cond === "gut" && c.t < 5) return t("rules.skipGutCold", { avg: avg });
+    if ((cond === "gut" || cond === "sleep") && !hs && minT < 0) return t("rules.skipNightCold", { avg: avg, month: month, min: min });
+    if ((cond === "sleep" || cond === "gut") && c.t > 26 && c.pr > 4) return t("rules.skipHumid", { avg: avg, rh: c.rh, pr: c.pr, tail: t(cond === "sleep" ? "rules.humidTailSleep" : "rules.humidTailGut") });
     return null;
   }
 
@@ -48,32 +50,34 @@
     return 0;
   }
 
-  function tempWord(t) {
-    if (t >= 24) return "暖和，不用在冷风里进进出出";
-    if (t >= 15) return "不冷不热";
-    if (t >= 8) return "偏凉，出门加件外套";
-    if (t >= 0) return "偏冷，屋里要暖";
-    return "室外冷，出门要穿厚";
+  function tempWord(tc) {
+    if (tc >= 24) return t("rules.tempWarm");
+    if (tc >= 15) return t("rules.tempMild");
+    if (tc >= 8) return t("rules.tempCool");
+    if (tc >= 0) return t("rules.tempChilly");
+    return t("rules.tempCold");
   }
 
   /* Three reasons, two of them with real climate numbers. */
   function reasons(place, cond, season) {
     var c = climateOf(place, season), S = D.SEASONS[season];
     var first = c.months[0], last = c.months[2], spread = Math.max.apply(null, c.months) - Math.min.apply(null, c.months);
-    var r1 = S.label + "季（" + S.months + "）平均 " + deg(c.t) + "、湿度 " + c.rh + "%：" + tempWord(c.t) + "。";
-    var r2 = S.monthNames[0] + " " + deg(first) + " → " + S.monthNames[2] + " " + deg(last) +
-      (spread >= 8 ? "，季节里降温明显，要跟着加衣" : "，季节里温度稳定") +
-      "；日均降水 " + c.pr + " 毫米" + (c.pr < 1 ? "，少雨，适合每天出门走走。" : c.pr > 4 ? "，雨多，带伞，多安排屋里的活动。" : "。");
+    var r1 = t("rules.reason1", { season: S.label, months: S.months, t: deg(c.t), rh: c.rh, word: tempWord(c.t) });
+    var r2 = t("rules.reason2", {
+      m1: S.monthNames[0], t1: deg(first), m3: S.monthNames[2], t3: deg(last),
+      trend: t(spread >= 8 ? "rules.trendBig" : "rules.trendStable"),
+      pr: c.pr, rain: t(c.pr < 1 ? "rules.rainLow" : c.pr > 4 ? "rules.rainHigh" : "rules.rainMid")
+    });
     var r3 = place.fit[cond] || "";
     return r3 ? [r1, r2, r3] : [r1, r2];
   }
 
   function shortLine(place, cond, season) {
     var c = climateOf(place, season), S = D.SEASONS[season];
-    var line = S.label + "季平均 " + deg(c.t) + "、湿度 " + c.rh + "%";
-    if (place.attrs.hotspring) line += "，有温泉（41℃ 以下、10 分钟以内）";
-    if (place.highAltitude) line += "，海拔约 2000 米，出发前先听专业意见";
-    return line + "。";
+    var extra = "";
+    if (place.attrs.hotspring) extra += t("rules.shortHotspring");
+    if (place.highAltitude) extra += t("rules.shortAltitude");
+    return t("rules.short", { season: S.label, t: deg(c.t), rh: c.rh, extra: extra });
   }
 
   function recommend(cond, season) {
