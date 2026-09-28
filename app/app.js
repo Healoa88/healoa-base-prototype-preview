@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -127,7 +127,7 @@
   }
   function cleanSearch() {
     var p = new URLSearchParams(location.search);
-    p.delete("s"); p.delete("l"); p.delete("r");
+    p.delete("s"); p.delete("l"); p.delete("r"); p.delete("imm");
     var s = p.toString();
     return s ? "?" + s : "";
   }
@@ -1183,19 +1183,91 @@
    * Drag, move the mouse or tilt the phone: near parts of the photo move more than far ones. WebGL; without it a plain
    * photo with a gentle drift. Slot for a World Labs Marble world (D.IMMERSIVE[id].world3d) stays empty until Cindy decides. */
   var IMM = { gl: null, raf: 0, tx: 0, ty: 0, x: 0, y: 0, t0: 0, place: null, gyro: false, drag: null };
-  function immStop() { cancelAnimationFrame(IMM.raf); IMM.raf = 0; window.removeEventListener("deviceorientation", immOrient); }
+  function immStop() { cancelAnimationFrame(IMM.raf); IMM.raf = 0; window.removeEventListener("deviceorientation", immOrient); w3dStop(); }
   function immOrient(e) { if (e.gamma == null) return; IMM.gyro = true; IMM.tx = Math.max(-1, Math.min(1, e.gamma / 25)); IMM.ty = Math.max(-1, Math.min(1, ((e.beta || 45) - 45) / 25)); }
   function renderImmersive() {
     var p = R.placeById(state.placeId), cfg = p && D.IMMERSIVE[p.id];
     if (!cfg) { go("places", null, true); return; }
     $("immTitle").textContent = p.name;
-    $("immHint").textContent = t("imm.hint");
-    $("btnImmGyro").classList.toggle("hidden", !("DeviceOrientationEvent" in window));
     renderMusicBtns();
-    immStart(cfg);
+    var w = cfg.world3d, has3d = !!(w && w.spz);
+    $("btnImmMode").classList.toggle("hidden", !has3d);
+    if (has3d && W3D.mode !== "2d" && can3d()) immStart3d(cfg);
+    else immStart(cfg, has3d && W3D.mode !== "2d" ? "noWebgl" : "");
   }
-  function immStart(cfg) {
+
+  /* ---------- 3D world view (v2026-09-28-b): World Labs Marble world from Cindy's photo, Spark + three.js ----------
+   * Only when D.IMMERSIVE[id].world3d.spz is set. Needs WebGL2 and a not-too-weak phone; otherwise, or when loading fails
+   * or takes too long, the 2.5D photo view below is used. Files live in the repo (no expiring links). */
+  var W3D = { mode: null, view: null, seq: 0, timer: 0, hold: 0 };
+  function can3d() {
+    try {
+      if (params.get("no3d") === "1") return false;
+      var nav = navigator, mem = nav.deviceMemory, cores = nav.hardwareConcurrency;
+      if ((mem && mem < 2) || (cores && cores < 3)) return false;
+      var c = document.createElement("canvas"), g = c.getContext("webgl2");
+      if (!g) return false;
+      var lose = g.getExtension("WEBGL_lose_context"); if (lose) lose.loseContext();
+      return true;
+    } catch (e) { return false; }
+  }
+  function w3dPick(w) {
+    var nav = navigator, low = (nav.deviceMemory && nav.deviceMemory <= 3) || (nav.connection && nav.connection.saveData) || params.get("q3d") === "low";
+    return (low && w.spzLow) || w.spz;
+  }
+  function w3dUi(on) {
+    $("vImmersive").classList.toggle("is3d", on);
+    $("imm3d").classList.toggle("hidden", !on);
+    $("imm3dCtl").classList.toggle("hidden", !on);
+    $("imm3dNote").classList.toggle("hidden", !on);
+    $("immCanvas").classList.toggle("hidden", on);
+    if (on) $("immFallback").classList.add("hidden");
+    $("btnImmGyro").classList.toggle("hidden", on || !("DeviceOrientationEvent" in window));
+    $("immHint").textContent = t(on ? "imm3d.hint" : "imm.hint");
+    var b = $("btnImmMode"); b.setAttribute("data-mode", on ? "2d" : "3d"); b.textContent = t(on ? "imm3d.to2d" : "imm3d.to3d");
+  }
+  function w3dLoad(frac, show) {
+    $("imm3dLoad").classList.toggle("hidden", !show);
+    if (show) { $("imm3dBar").style.width = Math.round(frac * 100) + "%"; $("imm3dPct").textContent = t("imm3d.loading", { pct: Math.round(frac * 100) }); }
+  }
+  function w3dStop() {
+    clearTimeout(W3D.timer); W3D.seq++;
+    if (W3D.view) { try { W3D.view.stop(); } catch (e) {} W3D.view = null; }
+    if ($("vImmersive")) { $("vImmersive").classList.remove("is3d"); $("imm3dLoad").classList.add("hidden"); }
+  }
+  function immStart3d(cfg) {
     immStop();
+    var w = cfg.world3d, seq = ++W3D.seq, t0 = performance.now();
+    w3dUi(true); w3dLoad(0, true);
+    var fail = function (why) {
+      if (seq !== W3D.seq) return;
+      w3dStop(); W3D.fail = why; w3dUi(false); $("immHint").textContent = t("imm3d.fallback");
+      immStart(cfg, why);
+    };
+    W3D.timer = setTimeout(function () { if (!W3D.ready) fail("timeout"); }, w.timeoutMs || 90000);
+    W3D.ready = false; W3D.fail = null;
+    import(new URL("app/world3d.js?v=" + D.VERSION, document.baseURI).href).then(function (mod) {
+      if (seq !== W3D.seq) return;
+      W3D.view = mod.start($("imm3d"), { spz: w3dPick(w), scale: w.scale, yaw: w.yaw, pitch: w.pitch, fov: w.fov, maxWalk: w.maxWalk, sky: w.sky, keepFrame: params.get("shots") === "1" }, {
+        progress: function (f) { if (seq === W3D.seq && !W3D.ready) w3dLoad(f * 0.97, true); },
+        ready: function () { if (seq !== W3D.seq) return; W3D.ready = true; W3D.loadMs = Math.round(performance.now() - t0); clearTimeout(W3D.timer); w3dLoad(1, false); },
+        error: function () { fail("load"); }
+      });
+    }, function () { fail("module"); });
+  }
+  (function () {
+    function hold(e) { var b = e.target.closest && e.target.closest(".imm3d-walk"); if (!b || !W3D.view) return; W3D.hold = performance.now(); W3D.view.walk(+b.getAttribute("data-dir")); }
+    function release() { if (W3D.hold && W3D.view) W3D.view.walk(0); W3D.held = W3D.hold ? performance.now() - W3D.hold : 0; W3D.hold = 0; }
+    document.addEventListener("pointerdown", hold);
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (n) { document.addEventListener(n, release); });
+  })();
+
+  function immStart(cfg, why) {
+    immStop();
+    $("immHint").textContent = t(why ? "imm3d.fallback" : "imm.hint");
+    $("btnImmGyro").classList.toggle("hidden", !("DeviceOrientationEvent" in window));
+    $("vImmersive").classList.remove("is3d"); $("imm3d").classList.add("hidden"); $("imm3dCtl").classList.add("hidden"); $("imm3dNote").classList.add("hidden");
+    if (cfg.world3d && cfg.world3d.spz) { var b = $("btnImmMode"); b.setAttribute("data-mode", "3d"); b.textContent = t("imm3d.to3d"); b.classList.toggle("hidden", !!why && why !== "user"); }
     var cv = $("immCanvas"), wrapEl = $("immStage"), fallback = $("immFallback");
     fallback.style.backgroundImage = "url('" + D.sized(cfg.photo, 828) + "')"; fallback.style.backgroundPosition = D.focal(cfg.photo);
     Promise.all([loadImg(cfg.photo), loadImg(cfg.depth)]).then(function (ims) {
@@ -1466,6 +1538,13 @@
       try { localStorage.removeItem(LS_REMIND); } catch (e) {}
       clearTimeout(remindTimer); renderRemind(); note("remindNote", t("remind.off"));
     },
+    immMode: function (el) {
+      var p = R.placeById(state.placeId), cfg = p && D.IMMERSIVE[p.id];
+      if (!cfg) return;
+      if (el.getAttribute("data-mode") === "2d") { W3D.mode = "2d"; immStart(cfg, "user"); $("immHint").textContent = t("imm.hint"); }
+      else { W3D.mode = "3d"; if (can3d()) immStart3d(cfg); }
+    },
+    imm3dStep: function (el) { /* a tap (not a hold) takes one small step */ if (W3D.view && !W3D.hold && !(W3D.held > 250)) { W3D.view.walk(+el.getAttribute("data-dir")); setTimeout(function () { if (W3D.view && !W3D.hold) W3D.view.walk(0); }, 350); } },
     openImmersive: function (el) { go("immersive", { placeId: el.getAttribute("data-place") || state.placeId }); },
     /* iOS asks for permission before the page may read the tilt; other phones just start sending it. */
     immGyro: function () {
@@ -1575,9 +1654,17 @@
   scheduleNotify();
   show(initial); render();
   try { history.replaceState(snapshot(), "", location.pathname + location.search); } catch (e) {}
+  /* deep link straight into a place's immersive view: ?imm=wudang (a place id only; nothing about the person) */
+  (function () {
+    var q = params.get("imm");
+    if (initial === "home" && q && D.IMMERSIVE[q] && R.placeById(q)) go("immersive", { placeId: q });
+    var any3d = Object.keys(D.IMMERSIVE).some(function (k) { return D.IMMERSIVE[k].world3d && D.IMMERSIVE[k].world3d.spz; });
+    if ($("aboutWorld3d")) $("aboutWorld3d").classList.toggle("hidden", !any3d);
+  })();
 
   /* test / debug surface (no personal data leaves the device) */
   window.__healoa = {
+    w3d: function () { return { mode: W3D.mode, ready: !!W3D.ready, fail: W3D.fail || null, loadMs: W3D.loadMs || null, view: W3D.view ? W3D.view.state() : null }; }, w3dView: function () { return W3D.view; },
     version: D.VERSION, lang: I18N.lang, state: state, actions: ACTIONS, go: go, buildShare: buildShare,
     elapsedMs: elapsedMs, timer: T, events: function () { return lsGet(LS_EVENTS) || []; },
     lastShareCardText: function () { return lastShareCardText.slice(); },
