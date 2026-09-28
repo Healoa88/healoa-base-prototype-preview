@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-09-27-y">
+<meta name="healoa-version" content="v2026-09-28-a">
 <meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-09-27-y）</title>
-<link rel="stylesheet" href="app/app.css?v=2026-09-27-y">
+<title>HeaLoa · 顺着季节养（预览 v2026-09-28-a）</title>
+<link rel="stylesheet" href="app/app.css?v=2026-09-28-a">
 <script>
   /* Old Scene Seed links (#seed=…) keep working on the archived demo page. */
   if (/^#seed(Id)?=/.test(location.hash)) location.replace("scene-seed-legacy.html" + location.hash);
@@ -20,10 +20,10 @@
   <!-- 首页：一句话说清楚 + 3 步「怎么用」 + 一个开始按钮 -->
   <section id="vHome" class="view" data-view="home" aria-labelledby="homeTitle">
     <div class="home-hero">
-      <img id="homeHeroImg" class="home-hero-img" alt="" src="assets/places/wudang/02-terrace-sunrise.jpg">
-      <div id="homeAtmo"></div>
+      <img id="homeHeroImg" class="home-hero-img" alt="" fetchpriority="high" src="assets/places/wudang/02-terrace-sunrise.jpg" srcset="assets/places/wudang/02-terrace-sunrise-w480.webp 480w, assets/places/wudang/02-terrace-sunrise-w828.webp 828w, assets/places/wudang/02-terrace-sunrise-wfull.webp 1170w" sizes="(min-width: 760px) 430px, 100vw">
       <div class="home-hero-text">
         <div class="brand light"><span class="brand-name">HeaLoa</span><span class="brand-sub" data-i18n="brand.sub">顺着季节养</span></div>
+        <p class="greet hidden" id="homeGreet"></p>
         <h1 id="homeTitle" class="headline" data-i18n="home.headline">这个节气，哪里最适合你？</h1>
         <p class="subline" data-i18n="home.subline">按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方——给想顺着季节照顾自己的人。</p>
       </div>
@@ -60,7 +60,7 @@
     <div class="brand"><span class="brand-name">HeaLoa</span><span class="brand-sub" data-i18n="brand.sub">顺着季节养</span></div>
     <p class="shared-kicker" data-i18n="shared.kicker">有人把 HeaLoa 分享给了你</p>
     <div id="sharedLine" class="shared-line hidden"></div>
-    <h1 id="sharedTitle" class="headline" data-i18n="shared.headline">这个季节，身体怎么养、去哪里养？</h1>
+    <h1 id="sharedTitle" class="headline" data-i18n="shared.headline">这个节气，哪里最适合你？</h1>
     <p class="subline" data-i18n="shared.subline">花 2 分钟点几下，按你自己的身体和心情，配出这个节气适合你去放松的 3 个地方。</p>
     <button type="button" class="btn primary big" id="sharedStart" data-action="startFromShared" data-i18n="shared.start">给自己也配一次（约 2 分钟）</button>
     <p class="hint-line" data-i18n="shared.hint">你的答案只留在你自己的手机里 · 不用注册</p>
@@ -76,9 +76,16 @@
 
   <!-- 翻牌揭晓 -->
   <section id="vReveal" class="view hidden" data-view="reveal" aria-labelledby="revealTitle">
-    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
-    <h2 id="revealTitle" class="result-title"></h2>
-    <p class="muted" data-i18n="reveal.lead">按你的回答和当下的节气算出来的，不是抽签。点一下牌，翻开看看。</p>
+    <div class="rv-hero">
+      <img id="revealHeroImg" class="rv-hero-img" alt="">
+      <div class="topbar light over"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnRevealSound" data-action="toggleMusic" aria-pressed="false" data-i18n="sound.off">声音：关</button></div>
+      <div class="rv-hero-text">
+        <p class="rv-term" id="revealTerm"></p>
+        <p class="rv-greet" id="revealGreet"></p>
+        <h2 id="revealTitle" class="rv-title"></h2>
+      </div>
+    </div>
+    <p class="muted rv-lead" data-i18n="reveal.lead">按你的回答和当下的节气算出来的，不是抽签。点一下牌，翻开看看。</p>
     <div id="revealBody"></div>
   </section>
 
@@ -105,7 +112,7 @@
 
   <!-- 地点 -->
   <section id="vPlace" class="view hidden" data-view="place">
-    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <div class="topbar light over"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
     <div id="placeBody"></div>
   </section>
 
@@ -138,6 +145,10 @@
         <p class="done-sub hidden" id="doneLogged" data-i18n="practice.logged">这一次已经记在「我的养护记录」里，只在这台手机上。</p>
         <button type="button" class="btn ghost" data-action="openRecords" data-i18n="practice.openRecords">看看我的养护记录</button>
         <button type="button" class="btn ghost" data-action="openRemind" data-i18n="remind.openDone">要不要每天轻轻提醒一下？</button>
+      </div>
+      <div class="done-panel hidden" id="stopPanel">
+        <p class="done-sub" data-i18n="practice.stoppedNote">停下也没关系。想留下这一季的安排，可以存一张卡。</p>
+        <button type="button" class="btn ghost" data-action="openCard" data-i18n="practice.keepCard">存下本季养护卡</button>
       </div>
       <p class="copyright copyright-inline" data-i18n="copyright">本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
     </div>
@@ -262,7 +273,7 @@
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-27-y</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-28-a</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
         <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
         <p data-i18n-html="about.photos"><b>照片：</b>本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
@@ -274,18 +285,18 @@
     </details>
   </footer>
 </div>
-<script src="vendor/qrcode.js?v=2026-09-27-y"></script>
-<script src="app/i18n/zh.js?v=2026-09-27-y"></script>
-<script src="app/i18n/en.js?v=2026-09-27-y"></script>
-<script src="app/i18n/ja.js?v=2026-09-27-y"></script>
-<script src="app/i18n/es.js?v=2026-09-27-y"></script>
-<script src="app/i18n/i18n.js?v=2026-09-27-y"></script>
-<script src="app/social.js?v=2026-09-27-y"></script>
-<script src="app/share-targets.js?v=2026-09-27-y"></script>
-<script src="app/data.js?v=2026-09-27-y"></script>
-<script src="app/rules.js?v=2026-09-27-y"></script>
-<script src="app/kb.js?v=2026-09-27-y"></script>
-<script src="app/match.js?v=2026-09-27-y"></script>
-<script src="app/app.js?v=2026-09-27-y"></script>
+<script src="vendor/qrcode.js?v=2026-09-28-a"></script>
+<script src="app/i18n/zh.js?v=2026-09-28-a"></script>
+<script src="app/i18n/en.js?v=2026-09-28-a"></script>
+<script src="app/i18n/ja.js?v=2026-09-28-a"></script>
+<script src="app/i18n/es.js?v=2026-09-28-a"></script>
+<script src="app/i18n/i18n.js?v=2026-09-28-a"></script>
+<script src="app/social.js?v=2026-09-28-a"></script>
+<script src="app/share-targets.js?v=2026-09-28-a"></script>
+<script src="app/data.js?v=2026-09-28-a"></script>
+<script src="app/rules.js?v=2026-09-28-a"></script>
+<script src="app/kb.js?v=2026-09-28-a"></script>
+<script src="app/match.js?v=2026-09-28-a"></script>
+<script src="app/app.js?v=2026-09-28-a"></script>
 </body>
 </html>

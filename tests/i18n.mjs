@@ -23,12 +23,12 @@ const D = "?date=2026-09-26";
 const pageErrors = [];
 let server, browser;
 try {
-  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-27-y: photo-first redesign, copyright line, 9:16 share, reminder, music, more quiz options, D-27-06) ----------
+  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-28-a: solar-term greeting, full-bleed reveal hero, sound chip, stop panel, D-28-01; before that v2026-09-27-y: photo-first redesign, copyright line, 9:16 share, reminder, music, more quiz options, D-27-06) ----------
   const golden = JSON.parse(fs.readFileSync(GOLDEN, "utf8"));
   const now = await captureZh();
   const diff = diffGolden(golden, now);
   const n = (o) => Object.keys(o).length;
-  check(`zh identical to the v2026-09-27-y zh snapshot (intentional update, D-27-06 photo-first + copyright + 9:16 share + reminder + music + more options; D-27-05: v4 home + 怎么用, 8-question quiz, flip reveal, 为什么是你, all places, 我的养护记录): home, shared, quiz (8 screens), reveal, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
+  check(`zh identical to the v2026-09-28-a zh snapshot (intentional update, D-28-01 solar-term greeting + reveal hero + sound chip + stop panel; D-27-06 photo-first + copyright + 9:16 share + reminder + music + more options; D-27-05: v4 home + 怎么用, 8-question quiz, flip reveal, 为什么是你, all places, 我的养护记录): home, shared, quiz (8 screens), reveal, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
     diff.length === 0, diff.length ? diff.slice(0, 6) : "identical");
   check("key zh screens contain the locked strings", golden.home.includes("这个节气，哪里最适合你？") && now.home === golden.home &&
     CONDITION_LABELS.every((l) => now.quiz.join("|").includes(l)) && now.result["bp/winter"].includes("这个季节先不选") && now.card["bp/autumn"].view.includes("只留给自己") && now.head.lang === "zh-CN");

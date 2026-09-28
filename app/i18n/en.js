@@ -34,6 +34,12 @@
       "imm.gyro": "Look around by turning your phone",
       "music.on": "Music: on",
       "music.off": "Music: off",
+      "greet.sep": " · ",
+      "reveal.summary": "Your places for the {term}: {places}",
+      "reveal.open": "Tap the photo to step inside ›",
+      "sound.on": "Sound: on",
+      "sound.off": "Sound: off",
+      "practice.stoppedNote": "Stopping early is fine. You can still keep your season card.",
       "music.noteSynth": "A soft tone made live on your phone.",
       "music.noteTrack": "Relaxing music picked by Cindy.",
       "remind.open": "Remind me to take 3 minutes each day (optional)",
@@ -81,19 +87,19 @@
       "social.follow": "Follow us",
 
       "home.headline": "Where should you be this season?",
-      "home.subline": "A 2-minute match that picks 3 calm places for this season from how your body and mood have been lately — for anyone who'd like to live a little more with the seasons.",
+      "home.subline": "A few quick taps about how you've been feeling, and we'll match you with 3 calm places for this season.",
       "home.hint": "No sign-up · Your answers stay on your phone",
       "home.stepsAria": "How it works",
       "home.step1": "Tap through a 2-minute match about how you've been feeling",
       "home.step2": "Flip your 3 places for this season and see why",
       "home.step3": "Step inside one, take a few calm minutes, and keep a note of it",
-      "home.seasonToday": "Today · around the {term} · {season}",
+      "home.seasonToday": "{season} · around the {term}",
       "home.seasonAhead": "Looking ahead to {season}",
       "home.seasonPending": "Today · around the {term} · {now}. {now} ideas are still being prepared — here is {season} for now",
       "home.returnHint": "You saved a {season} card last time · Tap to open it",
 
       "shared.kicker": "Someone shared HeaLoa with you",
-      "shared.headline": "How to live well this season, and where to go",
+      "shared.headline": "Where should you be this season?",
       "shared.subline": "Tap through a 2-minute match and get 3 calm places for this season, picked from how you've been feeling.",
       "shared.hint": "Your answers stay on your own phone · No sign-up",
 
@@ -104,7 +110,7 @@
 
       "result.condsAria": "Pick another",
       "result.title": "{season} · Why these places",
-      "result.seasonToday": "Now · around the {term} · {season}",
+      "result.seasonToday": "{season} · around the {term}",
       "result.seasonAhead": "Looking ahead to {season} ({months})",
       "result.lead": "Here are a few places and ways to live that may fit this season.",
       "result.noteTitle": "Keep in mind this season",
@@ -196,7 +202,7 @@
       "card.keepFailed": "This phone won't let us save here. Try “Save as image” instead.",
       "card.pngName": "healoa-season-card.png",
 
-      "share.open": "Send it to someone (nothing about your body is on the card)",
+      "share.open": "Share with someone (nothing personal is on it)",
       "share.close": "Hide sharing",
       "share.lead": "Send it to someone you'd like to share this moment with.",
       "share.panelNote": "The card only shows the season and what this app does — nothing about your body or what you picked. The link carries just a random code.",
@@ -277,11 +283,11 @@
       "quiz.prev": "‹ Previous",
       "quiz.exit": "Stop for now and go home",
       "reveal.title": "{season} · around the {term}",
-      "reveal.lead": "Worked out from your answers and the current mini-season — not luck. Tap a card to flip it.",
+      "reveal.lead": "Based on your answers and the season — not luck. Tap a card to turn it over.",
       "reveal.front": "Card {n}",
-      "reveal.tap": "Tap to flip",
+      "reveal.tap": "Tap to turn over",
       "reveal.match": "{season} · Your match: {kind}",
-      "reveal.flipAll": "Flip them all",
+      "reveal.flipAll": "Turn them all over",
       "reveal.why": "See why",
       "reveal.fewer": "From your answers, {n} of our places fit this season. The others are set aside for now — the reasons are on the next page.",
       "reveal.none": "From your answers, staying home fits best this season. The reasons are on the next page.",
@@ -290,7 +296,7 @@
       "result.whyLabel": "Why you",
       "result.eatLabel": "Eat: ",
       "result.doLabel": "Do: ",
-      "result.avoidLabel": "Skip: ",
+      "result.avoidLabel": "Heads-up: ",
       "result.enter": "Step inside",
       "result.redo": "Match again",
       "result.nextTerm": "The next mini-season, {next}, starts {date}. Come back then and match again — your places change with it.",
@@ -394,6 +400,8 @@
         winter: { label: "Winter", months: "Dec–Feb", monthNames: ["Dec", "Jan", "Feb"] }
       },
       solarTerms: ["Minor Cold", "Major Cold", "Start of Spring", "Rain Water", "Awakening of Insects", "Spring Equinox", "Clear and Bright", "Grain Rain", "Start of Summer", "Grain Buds", "Grain in Ear", "Summer Solstice", "Minor Heat", "Major Heat", "Start of Autumn", "End of Heat", "White Dew", "Autumn Equinox", "Cold Dew", "Frost's Descent", "Start of Winter", "Minor Snow", "Major Snow", "Winter Solstice"],
+      /* v2026-09-28-a: one quiet line per solar term (weather / nature only, no advice; same order as solarTerms) */
+      termGreetings: ["Deep winter. Stay warm and take it slow.","The coldest stretch of the year — and the closest to spring.","The air softens, and the days get brighter.","Soft rain, and the ground starts to wake up.","The first spring thunder. Everything starts to stir.","Day and night in balance — a good time to even out your pace.","Clear skies and fresh green. Get outside for a bit.","More rain, and the flowers are at their best.","Longer days and easy evening breezes.","The grain fills out. A little contentment is just right.","A busy season. Save a few slow minutes for yourself.","The longest day of the year. Find some shade and sit a while.","It's warming up. Early mornings and evenings are best for getting out.","The hottest stretch. Slow down and find somewhere cool.","Still warm, but mornings and evenings are turning cool.","The heat is easing, and the sky feels higher.","Dew on the grass in the morning. Bring a light jacket.","Day and night in balance. Fall at its best — nice for a slow walk.","The dew turns cold, and the hills grow deeper in color every day.","Maybe frost in the morning. Sunny afternoons are made for sitting in the sun.","Winter begins, and a lit window feels extra warm.","The first snow up north. Have something warm and stay cozy.","More snow. It's quiet outside, and easy to feel quiet inside.","The longest night of the year. From here, the days get a little longer."],
       places: {
         wudang: {
           name: "Wudang Mountains · Mountain Stay",
@@ -708,9 +716,9 @@
         q8: { q: "What's realistic this season?", hint: "Pick one", opts: {}, marketOpts: { drive: "A weekend drive", nights: "A few nights away", asia: "A bigger trip — even Asia", home: "Staying home for now" } }
       },
       placeActions: {
-        wudang: { label: "Slow walk on the courtyard steps · 10 min", short: "Slow step walk", intro: "Picture the stone steps of the courtyard and walk slowly to a left · right beat: three steps breathing in, three steps breathing out. A hallway or any room works too." },
+        wudang: { label: "Slow walk on the courtyard steps · 10 min", short: "Courtyard walk", intro: "Picture the stone steps of the courtyard and walk slowly to a left · right beat: three steps breathing in, three steps breathing out. A hallway or any room works too." },
         pattaya: { label: "Slow breathing by the bay · in 4, out 6 · 3 min", short: "Bayside breathing", intro: "Look out at the evening bay and follow the circle: breathe in through your nose for 4 seconds as it grows, out for 6 as it shrinks — like waves coming and going. No holding your breath." },
-        onsen: { label: "Foot-soak timer · 10 min (below 106°F)", short: "Foot-soak timer", intro: "Like sitting at a footbath in the hot-spring town: water below 106°F (warm to the touch, never hot), 10 minutes at most. Rinse your hands and feet first, and stand up slowly." },
+        onsen: { label: "Foot-soak timer · 10 min (105°F or cooler)", short: "Foot-soak timer", intro: "Like sitting at a footbath in the hot-spring town: water 105°F (41°C) or cooler (warm to the touch, never hot), 10 minutes at most. Rinse your hands and feet first, and stand up slowly." },
         harbin: { label: "Warm drink, snow view · slow breathing 3 min", short: "Snow-view breathing", intro: "Hold a warm drink, look out the window and follow the circle: breathe in for 4 seconds as it grows, out for 6 as it shrinks. No holding your breath." }
       },
       placeActivities: {

@@ -1,4 +1,4 @@
-/* HeaLoa · content structure (v2026-09-27-y)
+/* HeaLoa · content structure (v2026-09-28-a)
  * Language-neutral data only: ids, climate numbers, photos, attributes, timings.
  * Every customer-facing string comes from the active locale (app/i18n/<locale>.js, default zh)
  * via window.HEALOA_I18N.content() and is merged here, so HEALOA_DATA keeps the same shape as before.
@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-09-27-y";
+  var VERSION = "v2026-09-28-a";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -84,6 +84,17 @@
     "assets/places/forest/path/01-leaf-tunnel.jpg": { w: 787, h: 1400, fx: 50, fy: 62 }
   };
   function focal(src) { var m = PHOTO_META[src]; return m ? m.fx + "% " + m.fy + "%" : "50% 50%"; }
+  /* v2026-09-28-a: compressed responsive copies of every photo above (tools/make_sizes.py): <name>-w480 / -w828 / -w1200.webp
+   * (only widths below the original) + <name>-wfull.webp (original size). The JPG stays as the <img src> fallback and for the
+   * 1080×1920 exports. srcset(src) → the srcset string; sized(src, w) → the smallest copy at least w px wide (CSS backgrounds). */
+  var SIZES = [480, 828, 1200];
+  function sizeList(src) {
+    var m = PHOTO_META[src]; if (!m) return [];
+    var base = src.replace(/\.jpg$/, "");
+    return SIZES.filter(function (w) { return w < m.w; }).map(function (w) { return { w: w, src: base + "-w" + w + ".webp" }; }).concat([{ w: m.w, src: base + "-wfull.webp" }]);
+  }
+  function srcset(src) { return sizeList(src).map(function (x) { return x.src + " " + x.w + "w"; }).join(", "); }
+  function sized(src, w) { var l = sizeList(src); for (var i = 0; i < l.length; i++) if (l[i].w >= w) return l[i].src; return l.length ? l[l.length - 1].src : src; }
 
   /* Places. `photo: null` = no photo in the repo yet → not shown anywhere (v4: no "coming soon" list either).
    * v4 matching fields: scenes (main scene first; used for scene answers + top-3 diversity), region (distance answer),
@@ -251,6 +262,12 @@
     autumn: "assets/places/wudang/02-terrace-sunrise.jpg",
     winter: "assets/places/harbin/01-night-snow-roofs.jpg"
   };
+  /* v2026-09-28-a: the reveal opens on a quiet season photo that is not one of the places (so the first card is still a
+   * surprise): autumn = mist and sun over the Wudang ridges, winter = the snowy birch path to the cabin. */
+  var REVEAL_PHOTO = {
+    autumn: "assets/places/wudang/05-mist-rays.jpg",
+    winter: "assets/places/cabin/02-cabin-through-birch.jpg"
+  };
   var SEASON_WIDE = {
     autumn: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
     winter: "assets/places/harbin/02-night-lanterns-snowman.jpg"
@@ -277,11 +294,13 @@
   root.HEALOA_DATA = {
     VERSION: VERSION, CONDITIONS: CONDITIONS, SEASONS: SEASONS, SOLAR_TERMS: SOLAR_TERMS,
     CLIMATE: CLIMATE, PLACES: PLACES, CARE: CARE, PRACTICES: PRACTICES,
-    PRACTICE_DEFAULT: PRACTICE_DEFAULT, DISCLAIMER: DISCLAIMER, PHOTO_META: PHOTO_META, focal: focal,
-    HOME_PLAN: HOME_PLAN, QUIZ: QUIZ, SEASON_PHOTO: SEASON_PHOTO, SEASON_WIDE: SEASON_WIDE, MUSIC: MUSIC, IMMERSIVE: IMMERSIVE,
+    PRACTICE_DEFAULT: PRACTICE_DEFAULT, DISCLAIMER: DISCLAIMER, PHOTO_META: PHOTO_META, focal: focal, srcset: srcset, sized: sized,
+    HOME_PLAN: HOME_PLAN, QUIZ: QUIZ, SEASON_PHOTO: SEASON_PHOTO, REVEAL_PHOTO: REVEAL_PHOTO, SEASON_WIDE: SEASON_WIDE, MUSIC: MUSIC, IMMERSIVE: IMMERSIVE,
     PLACE_ACTIVITIES: PLACE_ACTIVITIES,
     SOLAR_TERM_DATES: SOLAR_TERM_DATES, SEASON_START_TERM: SEASON_START_TERM, SEASON_NAMES: SEASON_NAMES,
     CARE_GENERIC: C.careGeneric, MAX_HOLD_SEC: MAX_HOLD_SEC,
-    PLACE_ACTIONS: PLACE_ACTIONS, HOME_REGION: HOME_REGION, MONTHS: C.monthShort, ASIA_LINE: C.asiaLine || ""
+    PLACE_ACTIONS: PLACE_ACTIONS, HOME_REGION: HOME_REGION, MONTHS: C.monthShort, ASIA_LINE: C.asiaLine || "",
+    /* v2026-09-28-a: one quiet line per solar term (weather / nature only, no advice), order = content.solarTerms */
+    TERM_GREETINGS: C.termGreetings || []
   };
 })(typeof window !== "undefined" ? window : globalThis);
