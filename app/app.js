@@ -1,4 +1,5 @@
-/* HeaLoa · app (v2026-09-27-y · v4 Phase 1 + Cindy feedback 2026-09-27: 9:16 share, copyright line, reminder, music, more options, 2.5D)
+/* HeaLoa · app (v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+ *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
  * (computed by app/match.js, not drawn by lot) → 「为什么是你」 (reasons, eat / do / avoid) → place page → one real
@@ -25,8 +26,12 @@
   function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 
-  /* Validation events only: shared / opened / got_own_card / practice_completed / card_kept / quiz_done / flip_seen / rematch /
-   * place_action_done. Never carries body or feeling data or quiz answers. */
+  /* Validation events only (local, never sent). Never carries body or feeling data or quiz answers.
+   * Names follow plan v3 §3 (audit D.3 #12, v2026-09-28-a): the v3 core events are EVENTS_CORE; everything else is a
+   * supplementary event of later plans (card_kept, quiz_done, flip_seen, rematch, place_action_done). v2 names
+   * (share_sent / recipient_open / recipient_own_result) are not used. */
+  var EVENTS_CORE = ["shared", "opened", "got_own_card", "practice_completed"];
+  var EVENTS_EXTRA = ["card_kept", "quiz_done", "flip_seen", "rematch", "place_action_done"];
   function logEvent(name) {
     var ev = lsGet(LS_EVENTS) || [];
     ev.push({ e: name, t: Date.now() });
@@ -88,7 +93,7 @@
     });
     document.body.classList.toggle("practicing", view === "practice" || view === "immersive");
     if (view !== "immersive" && state.view === "immersive") immStop();
-    if (view !== "practice" && view !== "immersive" && MUS.playing) musicStop();
+    if (view !== "practice" && view !== "immersive" && view !== "reveal" && MUS.playing) musicStop();
     state.view = view;
     setBackdrop();
     window.scrollTo(0, 0);
@@ -165,10 +170,10 @@
     $("homeSeasonNow").textContent = state.season === naturalSeason ? t("home.seasonToday", { term: term, season: S.label }) :
       !D.SEASONS[naturalSeason] ? t("home.seasonPending", { term: term, now: D.SEASON_NAMES[naturalSeason], season: S.label }) : t("home.seasonAhead", { season: S.label });
     $("homeTermExplain").classList.toggle("hidden", !I18N.meta().explainTerms);
-    var hero = $("homeHeroImg"), hsrc = D.SEASON_PHOTO[state.season];
-    if (hero.getAttribute("src") !== hsrc) hero.setAttribute("src", hsrc);
-    hero.style.objectPosition = D.focal(hsrc);
-    $("homeAtmo").innerHTML = atmoHtml();
+    setHeroImg($("homeHeroImg"), D.SEASON_PHOTO[state.season]);
+    var g = termGreeting(termIndex);
+    $("homeGreet").innerHTML = g ? "<b>" + esc(term) + "</b>" + esc(t("greet.sep")) + esc(g) : "";
+    $("homeGreet").classList.toggle("hidden", !g);
     var saved = lsGet(LS_MATCH), okSaved = saved && Array.isArray(saved.top) && saved.top.length && saved.answers;
     var re = $("homeRematch"), last = $("homeLast"), today3 = $("homeToday");
     if (okSaved && saved.termIndex !== termIndex) { re.textContent = t("home.rematch", { term: term }); re.classList.remove("hidden"); } else re.classList.add("hidden");
@@ -253,37 +258,85 @@
   }
 
   /* ---------- photos: art direction (focal point per photo, never stretched), no overlay credit (R10) ---------- */
-  function img(src, alt, lazy) {
-    return '<img src="' + esc(src) + '" alt="' + esc(alt || "") + '" style="object-position:' + D.focal(src) + '"' + (lazy ? ' loading="lazy"' : "") + ">";
+  /* srcset = compressed WebP copies (tools/make_sizes.py); sizes = how wide the photo is drawn (default: full phone width,
+   * or the 430px frame on desktop). lazy → loading="lazy"; the first photo of a page gets fetchpriority="high". */
+  var SZ_FULL = "(min-width: 760px) 430px, (orientation: landscape) and (max-height: 540px) 430px, 100vw";
+  function img(src, alt, lazy, sizes) {
+    var set = D.srcset(src);
+    return '<img src="' + esc(src) + '" alt="' + esc(alt || "") + '" style="object-position:' + D.focal(src) + '"' + (set ? ' srcset="' + esc(set) + '" sizes="' + esc(sizes || SZ_FULL) + '"' : "") + (lazy ? ' loading="lazy" decoding="async"' : ' fetchpriority="high"') + ">";
   }
-  /* Season atmosphere: a few drifting leaves (autumn) or snowflakes (winter); decorative only, off with reduced motion. */
-  function atmoHtml() {
-    var n = 14, h = '<div class="atmo atmo-' + esc(state.season) + '" aria-hidden="true">';
-    for (var i = 0; i < n; i++) h += '<i style="left:' + ((i * 37) % 100) + "%;animation-delay:" + (-(i * 1.7) % 12).toFixed(1) + "s;animation-duration:" + (9 + (i * 5) % 7) + 's"></i>';
-    return h + "</div>";
+  function setHeroImg(el, src) {
+    if (el.getAttribute("src") !== src) { el.setAttribute("srcset", D.srcset(src)); el.setAttribute("sizes", SZ_FULL); el.setAttribute("src", src); }
+    el.style.objectPosition = D.focal(src);
   }
+  /* Solar-term greeting: one quiet line about the weather / nature of the current term (content.termGreetings, 24 lines;
+   * nature only, no advice). */
+  function termGreeting(i) { return (D.TERM_GREETINGS && D.TERM_GREETINGS[i]) || ""; }
+  /* v2026-09-28-a: the drifting leaves / snowflakes layer is gone (small coloured dots drifting over the text read as
+   * the "stray squares" Cindy rejected). The mood now comes from the full-bleed photo, a slow push-in and the pacing. */
 
-  /* ---------- flip reveal of the top 3 (computed, not drawn by lot) ---------- */
+  /* ---------- flip reveal of the top 3 (computed, not drawn by lot) ----------
+   * v2026-09-28-a pacing: a full-bleed season photo with the solar-term greeting comes in first (slow push-in), then the
+   * three face-down cards rise one after another. A tap turns a card slowly (1.1 s), the photo settles in and the text
+   * rises after the turn; 「全部翻开」 turns them one by one. Once all are open, one quiet line names the places.
+   * Cards are rendered once per visit; flips only toggle classes, so every turn really animates. Tapping an open card
+   * opens that place. Optional ambient sound (same opt-in switch as the practice music, off by default, R19) adds a soft
+   * synthesised chime per turn. */
   var flipped = {};
   function renderReveal() {
-    var m = currentMatch(), S = D.SEASONS[state.season];
-    $("revealTitle").textContent = t("reveal.title", { season: S.label, term: termName(m.termIndex) });
-    var h = atmoHtml();
+    var m = currentMatch(), S = D.SEASONS[state.season], ti = m.termIndex;
+    setHeroImg($("revealHeroImg"), D.REVEAL_PHOTO[state.season] || D.SEASON_PHOTO[state.season]);
+    $("revealTitle").textContent = t("reveal.title", { season: S.label, term: termName(ti) });
+    var g = termGreeting(ti);
+    $("revealGreet").textContent = g; $("revealGreet").classList.toggle("hidden", !g);
+    $("revealTerm").textContent = termName(ti);
+    var fimg = "url('" + D.sized(D.REVEAL_PHOTO[state.season] || D.SEASON_PHOTO[state.season], 480) + "')";
+    var h = "";
     if (m.top.length === 0) h += '<p class="reveal-note">' + esc(t("reveal.none")) + "</p>";
     else if (m.top.length < 3) h += '<p class="reveal-note">' + esc(t("reveal.fewer", { n: m.top.length })) + "</p>";
     h += '<div class="flip-list">' + m.top.map(function (e, i) {
       var p = R.placeById(e.id), on = !!flipped[i];
-      return '<div class="flip-card' + (on ? " flipped" : "") + '" role="button" tabindex="0" data-action="flip" data-i="' + i + '" data-place="' + e.id + '" aria-pressed="' + (on ? "true" : "false") + '" style="--d:' + (i * 0.18) + 's">' +
-        '<div class="flip-inner"><div class="flip-face flip-front" aria-hidden="' + (on ? "true" : "false") + '"><span class="flip-glow"></span><span class="flip-n">' + esc(t("reveal.front", { n: i + 1 })) + '</span><span class="flip-tap">' + esc(t("reveal.tap")) + "</span></div>" +
-        '<div class="flip-face flip-back" aria-hidden="' + (on ? "false" : "true") + '"><div class="photo">' + img(p.photo, p.alt) + "</div>" +
-        '<div class="flip-text"><p class="flip-match">' + esc(t("reveal.match", { season: S.label, kind: kindOf(p) })) + '</p><p class="flip-name">' + esc(p.name) + '</p><p class="flip-reason">' + esc(e.reasons[0]) + "</p></div></div></div></div>";
+      return '<div class="flip-card' + (on ? " flipped" : "") + '" role="button" tabindex="0" data-action="flip" data-i="' + i + '" data-place="' + e.id + '" aria-pressed="' + (on ? "true" : "false") + '" style="--d:' + (0.9 + i * 0.22).toFixed(2) + 's">' +
+        '<div class="flip-inner"><div class="flip-face flip-front" aria-hidden="' + (on ? "true" : "false") + '"><span class="ff-bg" style="background-image:' + esc(fimg) + '"></span><span class="ff-frame"></span>' +
+        '<span class="ff-season">' + esc(S.label) + '</span><span class="flip-n">' + esc(t("reveal.front", { n: i + 1 })) + '</span><span class="flip-tap">' + esc(t("reveal.tap")) + "</span></div>" +
+        '<div class="flip-face flip-back" aria-hidden="' + (on ? "false" : "true") + '"><div class="photo">' + img(p.photo, p.alt, i > 0) + "</div>" +
+        '<div class="flip-text"><p class="flip-match">' + esc(t("reveal.match", { season: S.label, kind: kindOf(p) })) + '</p><p class="flip-name">' + esc(p.name) + '</p><p class="flip-reason">' + esc(e.reasons[0]) + '</p><p class="flip-open">' + esc(t("reveal.open")) + "</p></div></div></div></div>";
     }).join("") + "</div>";
-    var all = m.top.length && m.top.every(function (_, i) { return flipped[i]; });
-    h += '<div class="stack">' + (m.top.length && !all ? '<button type="button" class="btn ghost" data-action="flipAll">' + esc(t("reveal.flipAll")) + "</button>" : "") +
+    var names = m.top.map(function (e) { return R.placeById(e.id).name; }).join(t("punct.listSep"));
+    if (m.top.length) h += '<p class="rv-summary" id="revealSummary">' + esc(t("reveal.summary", { term: termName(ti), places: names })) + "</p>";
+    h += '<div class="stack">' + (m.top.length ? '<button type="button" class="btn ghost" data-action="flipAll" id="btnFlipAll">' + esc(t("reveal.flipAll")) + "</button>" : "") +
       '<button type="button" class="btn primary" data-action="openWhy">' + esc(t("reveal.why")) + "</button></div>" +
       '<button type="button" class="text-link" data-action="openQuiz">' + esc(t("reveal.redo")) + "</button>";
     $("revealBody").innerHTML = h;
+    renderMusicBtns();
+    updateReveal();
+  }
+  function updateReveal() {
+    var cards = document.querySelectorAll("#revealBody .flip-card"), all = cards.length > 0;
+    Array.prototype.forEach.call(cards, function (c) {
+      var i = +c.getAttribute("data-i"), on = !!flipped[i];
+      c.classList.toggle("flipped", on); c.setAttribute("aria-pressed", on ? "true" : "false");
+      c.querySelector(".flip-front").setAttribute("aria-hidden", on ? "true" : "false");
+      c.querySelector(".flip-back").setAttribute("aria-hidden", on ? "false" : "true");
+      if (!on) all = false;
+    });
+    var fa = $("btnFlipAll"); if (fa) fa.classList.toggle("hidden", all);
     $("vReveal").classList.toggle("all-open", !!all);
+  }
+  /* A soft two-partial bell, synthesised (no recording). Only when the user has switched sound on. */
+  function chime(delay) {
+    if (!MUS.on || D.MUSIC.src) return;
+    try {
+      var ctx = MUS.ctx || (MUS.ctx = new (window.AudioContext || window.webkitAudioContext)());
+      if (ctx.resume) ctx.resume();
+      var t0 = ctx.currentTime + (delay || 0);
+      [[659.25, 0.05], [987.77, 0.022]].forEach(function (f) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = f[0];
+        g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(f[1], t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+        o.connect(g); g.connect(ctx.destination); o.start(t0); o.stop(t0 + 2.7);
+      });
+    } catch (e) {}
   }
 
   /* ---------- 为什么是你 (result) ---------- */
@@ -365,7 +418,8 @@
     var cond = state.cond || "quiet", S = D.SEASONS[state.season], m = currentMatch();
     var rs = R.reasons(p, cond, state.season), skip = null;
     m.excluded.forEach(function (x) { if (x.id === p.id) skip = x.reason; });
-    var h = '<div class="place-hero"><div class="photo">' + img(p.photo, p.alt) + '<div class="hero-text"><h2 class="place-title">' + esc(p.name) + '</h2><p class="place-area">' + esc(p.area) + "</p></div></div></div>";
+    /* full-bleed hero under the back button (v2026-09-28-a); the name and one feeling line sit on the photo */
+    var h = '<div class="place-hero"><div class="photo">' + img(p.photo, p.alt) + '<div class="hero-text"><p class="place-area">' + esc(p.area) + '</p><h2 class="place-title">' + esc(p.name) + "</h2></div></div></div>";
     h += '<p class="place-benefit feel-line">' + esc(p.benefit) + "</p>" + cindyLineHtml(p);
     if (D.IMMERSIVE[p.id]) h += '<button type="button" class="btn immersive-btn" data-action="openImmersive" data-place="' + p.id + '"><span class="imm-ico" aria-hidden="true"></span>' + esc(t("imm.open")) + "</button>";
     /* 在这里可以做的事: the main action first, then more (existing practices only, each with a photo of this place). */
@@ -374,7 +428,7 @@
       h += '<div class="block action-block" id="blkAction"><h3>' + esc(t("place.actionTitle")) + '</h3><p class="muted small">' + esc(t("place.actionsLead", { n: acts.length })) + '</p><div class="act-list">' +
         acts.map(function (a, i) {
           return '<button type="button" class="act-card' + (i === 0 ? " main" : "") + '" data-action="openPractice" data-practice="' + a.practice + '" data-place="' + p.id + '" data-act="' + i + '">' +
-            '<span class="act-photo">' + img(a.photo, "", true) + '</span><span class="act-text"><b>' + esc(a.label) + '</b><span class="act-go">' + esc(t("place.actGo")) + "</span></span></button>";
+            '<span class="act-photo">' + img(a.photo, "", true, "112px") + '</span><span class="act-text"><b>' + esc(a.label) + '</b><span class="act-go">' + esc(t("place.actGo")) + "</span></span></button>";
         }).join("") + "</div></div>";
     }
     /* 适合谁: the existing approved per-state lines, only for states this place is not ruled out for this season. */
@@ -387,7 +441,7 @@
     h += '<div class="block"><h3>' + esc(t("place.eatTitle")) + "</h3><ul>" + p.food.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     h += '<div class="block"><h3>' + esc(t("place.todoTitle")) + "</h3><ul>" + p.todo.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     if (p.gallery && p.gallery.length) {
-      h += '<div class="gallery">' + p.gallery.map(function (g) { return '<div class="photo">' + img(g, p.name, true) + "</div>"; }).join("") + "</div>";
+      h += '<div class="gallery">' + p.gallery.map(function (g) { return '<div class="photo">' + img(g, p.name, true, "(min-width: 760px) 210px, 50vw") + "</div>"; }).join("") + "</div>";
     }
     h += '<div class="home-card"><h3>' + esc(t("place.homeTitle")) + "</h3><ul>" + D.HOME_PLAN[cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     h += '<button type="button" class="text-link" data-action="openPlaces">' + esc(t("place.allPlaces")) + "</button>";
@@ -398,8 +452,8 @@
   /* ---------- all places: every place with a real photo is open from the first visit ---------- */
   function openPlaceList() { return D.PLACES.filter(function (p) { return !!p.photo; }); }
   function renderPlaces() {
-    $("placesBody").innerHTML = '<div class="places-grid">' + openPlaceList().map(function (p) {
-      return '<article class="place-card" data-place="' + p.id + '"><div class="photo tall">' + img(p.photo, p.alt, true) + '<p class="photo-name">' + esc(p.name) + "</p></div>" +
+    $("placesBody").innerHTML = '<div class="places-grid">' + openPlaceList().map(function (p, i) {
+      return '<article class="place-card" data-place="' + p.id + '"><div class="photo tall">' + img(p.photo, p.alt, i > 0) + '<p class="photo-name">' + esc(p.name) + "</p></div>" +
         '<div class="place-main"><p class="place-area">' + esc(p.area) + '</p><p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
         '<button type="button" class="btn ghost small" data-action="openPlace" data-place="' + p.id + '">' + esc(t("places.open")) + "</button></div></article>";
     }).join("") + "</div>";
@@ -485,7 +539,8 @@
   function renderPractice() {
     var p = practice();
     if (!T.running) { T.duration = p.kind === "guided" ? durationOf(p) : (T.durationFor === p.id ? T.duration : p.defaultDuration); T.durationFor = p.id; }
-    $("practiceBg").style.backgroundImage = "url('" + p.photo + "')";
+    $("practiceBg").style.backgroundImage = "url('" + D.sized(p.photo, 828) + "')";
+    $("practiceBg").style.backgroundPosition = D.focal(p.photo);
     $("practiceModes").innerHTML = modeList().map(function (id) {
       var x = D.PRACTICES[id];
       return '<button type="button" class="chip' + (id === p.id ? " on" : "") + '" data-action="practiceMode" data-practice="' + id + '">' + esc(x.short) + "</button>";
@@ -507,17 +562,22 @@
     }
     $("practiceOpts").innerHTML = opts;
     var safe = t("practice.safeDefault");
-    if (p.kind === "soak") safe = (state.cond && D.CARE[state.cond] ? D.CARE[state.cond][state.season].safety + " " : "") + t("practice.safeSoakTail");
+    /* soak: only the soak safety lines (audit P1-8: the condition's own safety sentence was about something else) */
+    if (p.kind === "soak") safe = t("place.hotspringCaution") + " " + t("practice.safeSoakTail");
     if (p.kind === "walk") safe = t("practice.safeWalk");
     $("practiceSafe").textContent = safe;
     renderMusicBtns();
     $("walkFeet").classList.toggle("hidden", p.kind !== "walk");
     $("breathCircle").classList.toggle("hidden", p.kind === "walk");
+    /* guided moves (八段锦 / 太极 / 坐着): no unrelated still circle (audit D.2 #23) — the step text is the guide */
+    $("breathWrap").classList.toggle("hidden", p.kind === "guided");
+    $("vPractice").classList.toggle("guided", p.kind === "guided");
     if (!T.running) {
       $("practiceClock").textContent = mmss(durationOf(p));
       $("practiceCue").textContent = t(p.kind === "guided" ? "practice.readyGuided" : "practice.ready");
       $("breathCircle").style.transform = "scale(.55)";
       $("donePanel").classList.toggle("hidden", !T.done);
+      $("stopPanel").classList.toggle("hidden", T.done || !T.stoppedEarly);
     }
     updateControls();
   }
@@ -600,7 +660,7 @@
     var p = practice();
     T.running = true; T.paused = false; T.done = false; T.pausedTotal = 0; T.lastBeat = -1;
     T.startAt = performance.now();
-    $("donePanel").classList.add("hidden");
+    $("donePanel").classList.add("hidden"); $("stopPanel").classList.add("hidden"); T.stoppedEarly = false;
     cancelAnimationFrame(T.raf); clearInterval(T.iv);
     T.iv = setInterval(tick, 250);
     if (p.kind === "walk" && T.beep) click();
@@ -634,6 +694,8 @@
       $("practiceClock").textContent = mmss(durationOf(p));
       $("practiceCue").textContent = t("practice.stopped", { time: mmss(spent) });
       $("breathCircle").style.transform = "scale(.55)";
+      /* stopped early: the card is still one tap away (audit P1-7) */
+      T.stoppedEarly = true; $("stopPanel").classList.remove("hidden");
     }
     T.startAt = 0;
     if (state.view === "practice") updateControls();
@@ -693,6 +755,8 @@
     };
   }
   function renderCard() {
+    /* reached without a quiz (e.g. all places → a place → practice): the card uses the generic season plan */
+    if (!condById(state.cond)) currentMatch();
     if (!condById(state.cond)) { go("home", null, true); return; }
     var m = cardModel();
     $("cardShowCond").checked = !!state.cardShowCond;
@@ -1059,12 +1123,13 @@
     } catch (e) {}
   }
   function renderMusicBtns() {
-    ["btnMusic", "btnImmSound"].forEach(function (id) {
+    ["btnMusic", "btnImmSound", "btnRevealSound"].forEach(function (id) {
       var b = $(id); if (!b) return;
+      var k = id === "btnRevealSound" ? "sound" : "music";
       b.classList.toggle("hidden", !musicSupported());
       b.classList.toggle("on", MUS.on);
       b.setAttribute("aria-pressed", MUS.on ? "true" : "false");
-      b.textContent = t(MUS.on ? "music.on" : "music.off");
+      b.textContent = t(MUS.on ? k + ".on" : k + ".off");
     });
     var n = $("musicNote"); if (n) { n.textContent = t(D.MUSIC.src ? "music.noteTrack" : "music.noteSynth"); n.classList.toggle("hidden", !MUS.on); }
   }
@@ -1132,7 +1197,7 @@
   function immStart(cfg) {
     immStop();
     var cv = $("immCanvas"), wrapEl = $("immStage"), fallback = $("immFallback");
-    fallback.style.backgroundImage = "url('" + cfg.photo + "')"; fallback.style.backgroundPosition = D.focal(cfg.photo);
+    fallback.style.backgroundImage = "url('" + D.sized(cfg.photo, 828) + "')"; fallback.style.backgroundPosition = D.focal(cfg.photo);
     Promise.all([loadImg(cfg.photo), loadImg(cfg.depth)]).then(function (ims) {
       var im = ims[0], dm = ims[1], gl = null;
       try { gl = cv.getContext("webgl", { premultipliedAlpha: false, preserveDrawingBuffer: true }); } catch (e) {}
@@ -1186,6 +1251,7 @@
   function setBackdrop() {
     var p = (state.view === "place" || state.view === "immersive") && R.placeById(state.placeId);
     var src = (p && (p.wide || p.photo)) || D.SEASON_WIDE[state.season] || D.SEASON_PHOTO[state.season];
+    src = D.sized(src, 480); /* blurred backdrop: the smallest copy is plenty */
     /* absolute URL: a url() inside a custom property resolves against the stylesheet (app/), not the page */
     var abs = src; try { abs = new URL(src, document.baseURI).href; } catch (e) {}
     document.documentElement.style.setProperty("--backdrop", "url('" + abs + "')");
@@ -1225,11 +1291,25 @@
     quizPrev: function () { if (quiz.i === 0) { go("home"); return; } quiz.i--; renderQuiz(); window.scrollTo(0, 0); },
     flip: function (el) {
       var i = +el.getAttribute("data-i");
+      /* an open card is a photo of a place: tapping it goes there (seniors tap photos to see more) */
+      if (flipped[i]) { go("place", { placeId: el.getAttribute("data-place") }); return; }
       if (!Object.keys(flipped).length) logEvent("flip_seen");
-      flipped[i] = !flipped[i];
-      renderReveal();
+      el.style.setProperty("--fd", "0s");
+      flipped[i] = true; chime(0.25);
+      updateReveal();
     },
-    flipAll: function () { if (!Object.keys(flipped).length) logEvent("flip_seen"); for (var i = 0; i < 3; i++) flipped[i] = true; renderReveal(); },
+    flipAll: function () {
+      if (!Object.keys(flipped).length) logEvent("flip_seen");
+      var k = 0;
+      Array.prototype.forEach.call(document.querySelectorAll("#revealBody .flip-card"), function (c) {
+        var i = +c.getAttribute("data-i");
+        if (flipped[i]) return;
+        c.style.setProperty("--fd", (k * 0.6).toFixed(1) + "s"); chime(0.25 + k * 0.6); k++;
+        flipped[i] = true;
+      });
+      var sm = $("revealSummary"); if (sm) sm.style.setProperty("--fd", (Math.max(0, k - 1) * 0.6 + 1.1).toFixed(1) + "s");
+      updateReveal();
+    },
     openWhy: function () { go("result"); },
     openPlaces: function () { go("places"); },
     openRecords: function () { recEdit = -1; go("records"); },
@@ -1509,7 +1589,7 @@
     lastIcs: function () { return lastIcs; }, music: MUS, imm: IMM,
     shareConfig: SHARE_CFG, targetHref: function (id) { return targetHref(id, buildShare()); },
     incoming: incoming, lineTravels: lineTravels,
-    cardModel: cardModel, currentMatch: currentMatch, records: logRows, quiz: function () { return quiz; },
+    cardModel: cardModel, currentMatch: currentMatch, eventNames: { core: EVENTS_CORE, extra: EVENTS_EXTRA }, records: logRows, quiz: function () { return quiz; },
     privatePng: function () { return privatePng(); },
     lastPrivateText: function () { return lastPrivateText.slice(); }
   };

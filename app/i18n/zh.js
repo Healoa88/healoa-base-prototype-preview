@@ -28,6 +28,12 @@
       "imm.gyro": "转动手机来看",
       "music.on": "音乐：开",
       "music.off": "音乐：关",
+      "greet.sep": " · ",
+      "reveal.summary": "这个{term}，适合你的是：{places}",
+      "reveal.open": "点照片，走进去看看 ›",
+      "sound.on": "声音：开",
+      "sound.off": "声音：关",
+      "practice.stoppedNote": "停下也没关系。想留下这一季的安排，可以存一张卡。",
       "music.noteSynth": "轻柔的合成音色，手机当场生成。",
       "music.noteTrack": "Cindy 选的放松音乐。",
       "remind.open": "每天提醒我做 3 分钟（可以不要）",
@@ -99,7 +105,7 @@
 
       /* opened from a share link */
       "shared.kicker": "有人把 HeaLoa 分享给了你",
-      "shared.headline": "这个季节，身体怎么养、去哪里养？",
+      "shared.headline": "这个节气，哪里最适合你？",
       "shared.subline": "花 2 分钟点几下，按你自己的身体和心情，配出这个节气适合你去放松的 3 个地方。",
       "shared.hint": "你的答案只留在你自己的手机里 · 不用注册",
       "shared.start": "给自己也配一次（约 2 分钟）",
@@ -411,6 +417,8 @@
       },
       /* Same order as SOLAR_TERMS dates in app/data.js. */
       solarTerms: ["小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种", "夏至", "小暑", "大暑", "立秋", "处暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪", "冬至"],
+      /* v2026-09-28-a: one quiet line per solar term (weather / nature only, no advice; same order as solarTerms) */
+      termGreetings: ["小寒到了，天冷得扎实，屋里暖一点，心也就静了。","一年里最冷的时候，也是离春天最近的时候。","风开始变软，日子慢慢往亮处走。","细雨落下来，土地一点点醒了。","春雷响过，万物都伸了个懒腰。","昼夜一样长，适合把日子的节奏放匀一点。","天清地明，出门走走，看看新绿。","雨水多了，花开得正好。","白天长了，傍晚的风很舒服。","麦穗渐渐饱满，小小的满足刚刚好。","田里正忙，也给自己留一段慢下来的时间。","一年里白天最长的一天，找一片树荫坐一会儿。","热起来了，清晨和傍晚最适合出门。","一年里最热的时候，慢一点，找个凉快的地方待着。","暑气还在，早晚已经有一点凉意。","暑热慢慢退去，天高了一些。","早晨草叶上有了露水，出门添件薄外套。","昼夜平分，秋意正好，适合慢慢走走。","露水更凉了，山里的颜色一天比一天深。","早上可能见霜，天晴的时候最适合晒晒太阳。","冬天开始了，屋里的灯显得格外暖。","北方开始飘雪，喝口热汤，暖暖地待着。","雪下得多了，外面很安静，心也跟着静下来。","一年里夜最长的一天，从今天起，白天一点点变长。"],
       /* cindyLine = Cindy's own signed line for this locale. Leave "" until she provides it; never generate or translate it for her. */
       places: {
         wudang: {
