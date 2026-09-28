@@ -45,7 +45,7 @@ check("banned-words (locale-aware): " + Object.values(LOCALE_FILES).join(", ") +
 let tracked = [];
 try { tracked = execSync("git ls-files", { cwd: ROOT, encoding: "utf8" }).split("\n").filter(Boolean); } catch { tracked = CUSTOMER_FILES; }
 const untrackedNew = ["index.html", "app/data.js", "app/rules.js", "app/app.js", "app/app.css", "app/kb.js", "app/match.js", "app/social.js", ...Object.values(LOCALE_FILES), "app/i18n/i18n.js", "README.md", "PRODUCT_CURRENT.md", "DECISIONS.md", "vendor/qrcode.js"].filter((f) => fs.existsSync(path.join(ROOT, f)));
-const files = [...new Set([...tracked, ...untrackedNew])].filter((f) => !f.startsWith("tests/") && !f.startsWith("rules/") && f !== "HEALOA_RULES.md" /* the rule files hold the list itself */ && /\.(html|js|mjs|md|css|json|yml|yaml|txt)$/.test(f) && fs.existsSync(path.join(ROOT, f)));
+const files = [...new Set([...tracked, ...untrackedNew])].filter((f) => !f.startsWith("tests/") && !f.startsWith("rules/") && f !== "HEALOA_RULES.md" /* the rule files hold the list itself */ && !/^vendor\/(three|spark)-\d/.test(f) /* unmodified third-party 3D libraries (pinned, never shown to customers; e.g. three.js has a "// Host Relative URL" comment) */ && /\.(html|js|mjs|md|css|json|yml|yaml|txt)$/.test(f) && fs.existsSync(path.join(ROOT, f)));
 const anyHits = [];
 for (const f of files) for (const h of scanText(read(f), BANNED_ANYWHERE)) anyHits.push({ file: f, ...h });
 check("app-only: no healoa.com / 光圈 / Keeper / Host / Choose Again / /board in " + files.length + " files", anyHits.length === 0, anyHits.length ? anyHits.slice(0, 10) : null);

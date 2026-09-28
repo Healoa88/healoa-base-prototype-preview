@@ -1,3 +1,4 @@
 node_modules/
 tests/scene-seed-p0-results.json
 package-lock.json
+tools/.worldlabs-run.json

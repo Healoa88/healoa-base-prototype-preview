@@ -1,4 +1,4 @@
-/* HeaLoa · content structure (v2026-09-28-a)
+/* HeaLoa · content structure (v2026-09-28-b · 3D world slot filled for Wudang; v2026-09-28-a)
  * Language-neutral data only: ids, climate numbers, photos, attributes, timings.
  * Every customer-facing string comes from the active locale (app/i18n/<locale>.js, default zh)
  * via window.HEALOA_I18N.content() and is merged here, so HEALOA_DATA keeps the same shape as before.
@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-09-28-a";
+  var VERSION = "v2026-09-28-b";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -282,11 +282,20 @@
   /* Immersive view per place (v2026-09-27-y).
    * depth = a depth map made ON THIS MACHINE from Cindy's photo (tools/make_depth.py, Depth Anything V2 Small, Apache-2.0);
    *         the app shifts near / far parts of the photo when you drag or tilt the phone (2.5D).
-   * world3d = slot for a World Labs Marble world (Gaussian splat .spz + optional marble.worldlabs.ai link). Stays null: making
-   *         one needs Cindy's own World Labs account, a paid plan / API credits, and her OK to upload her photo there
-   *         (DECISIONS D-27-06). Nothing is uploaded anywhere by this app. */
+   * world3d = World Labs Marble world made from this one photo with Cindy's OK (v2026-09-28-b, tools/worldlabs_generate.py).
+   *         spz = 500k-splat file (default), spzLow = 100k fallback for weaker phones, pano = the world's panorama; all
+   *         downloaded into the repo (no expiring links). scale = semantics_metadata.metric_scale_factor (raw units → metres);
+   *         maxWalk = how far (m) you may walk from the photo spot. marbleUrl = the world on marble.worldlabs.ai (PRIVATE:
+   *         opens only for Cindy's account; never shown in the app). The app itself never uploads anything. */
   var IMMERSIVE = {
-    wudang: { photo: "assets/places/wudang/02-terrace-sunrise.jpg", depth: "assets/places/wudang/02-terrace-sunrise-depth.png", world3d: { spz: null, marbleUrl: null } }
+    wudang: {
+      photo: "assets/places/wudang/02-terrace-sunrise.jpg", depth: "assets/places/wudang/02-terrace-sunrise-depth.png",
+      world3d: {
+        spz: "assets/places/wudang/3d/terrace-500k.spz", spzLow: "assets/places/wudang/3d/terrace-100k.spz",
+        pano: "assets/places/wudang/3d/terrace-pano.jpg", marbleUrl: "https://marble.worldlabs.ai/world/20ea415f-ad14-4828-a4a4-441f7f1e3c1b",
+        scale: 2.44225, maxWalk: 1.2, yaw: 0, pitch: 0, fov: 62
+      }
+    }
   };
 
   var DISCLAIMER = root.HEALOA_I18N.t("disclaimer");

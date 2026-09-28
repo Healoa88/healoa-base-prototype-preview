@@ -38,3 +38,8 @@ Note: onsen photos are committed in Grok P0 PR; Arctic cabin photos not yet prov
 ## v2026-09-27-y
 - `wudang/02-terrace-sunrise-depth.png` is a depth map computed on our own machine from Cindy's photo `wudang/02-terrace-sunrise.jpg` with Depth Anything V2 Small (ONNX, offline; `tools/make_depth.py`). It is not a new photo and the photo was not uploaded anywhere. It drives the 2.5D 「走进这里看看」 view.
 - Photo roles and focal points: `PHOTO_AUDIT.md`.
+
+## v2026-09-28-b · World Labs 3D (D-27-07)
+- `wudang/3d/terrace-500k.spz` (7.70 MB, default), `wudang/3d/terrace-100k.spz` (1.39 MB, weaker phones / data saver), `wudang/3d/terrace-pano.jpg` (1.18 MB, the world's 4608×2304 panorama re-encoded to 4096×2048 JPEG q85): **World Labs Marble (marble-1.1) world generated from Cindy Yang's photo** `wudang/02-terrace-sunrise.jpg` (EXIF/GPS already stripped). Generated 2026-09-28 with Cindy's approval (one world, 1,580 API credits), world set **private** (`public: false`, `allow_id_access: false`); files downloaded into the repo, no expiring links. In-app note: 「3D 由 World Labs 根据 Cindy Yang 的照片生成」 + the copyright line. Scale: `metric_scale_factor` 2.44225 (ground_plane_offset 1.9103, not used: the camera stays at the photo spot).
+- Only this one photo was uploaded to World Labs (`tools/worldlabs_generate.py`). The World API has no per-request setting to exclude uploads from model training; World Labs' Terms say paid accounts can opt out of use of their content via the Account page (to be switched off by Cindy in her World Labs account).
+- The 2.5D depth map above is still made offline; the 2.5D view itself uploads nothing.

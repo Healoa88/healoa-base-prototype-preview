@@ -151,7 +151,7 @@ function textHolds(txt) {
   const hits = [];
   for (const f of files) for (const h of scanText(read(f), rule("R08").bannedAnywhere)) hits.push({ f, ...h });
   const r12 = [];
-  for (const f of files) for (const h of scanText(read(f), rule("R12").bannedAnywhere)) r12.push({ f, ...h });
+  for (const f of files.filter((f) => !/^vendor\/(three|spark)-\d/.test(f) /* unmodified third-party 3D libraries (three.js has a "// Host Relative URL" comment); still scanned for healoa.com above */)) for (const h of scanText(read(f), rule("R12").bannedAnywhere)) r12.push({ f, ...h });
   check("R08.a", `no "healoa.com" in ${files.length} tracked files (excluding ${ex.join(", ")})`, hits.length === 0, hits.length ? hits.slice(0, 5) : null);
   check("R12.b", `no old product / website terms (${rule("R12").bannedAnywhere.join(" / ")}) in ${files.length} tracked files`, r12.length === 0, r12.length ? r12.slice(0, 5) : null);
 }
