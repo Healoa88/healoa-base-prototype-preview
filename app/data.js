@@ -1,4 +1,4 @@
-/* HeaLoa · content structure (v2026-09-28-b · 3D world slot filled for Wudang; v2026-09-28-a)
+/* HeaLoa · content structure (v2026-09-28-c · 3D framing clamps; v2026-09-28-b · 3D world slot filled for Wudang; v2026-09-28-a)
  * Language-neutral data only: ids, climate numbers, photos, attributes, timings.
  * Every customer-facing string comes from the active locale (app/i18n/<locale>.js, default zh)
  * via window.HEALOA_I18N.content() and is merged here, so HEALOA_DATA keeps the same shape as before.
@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-09-28-b";
+  var VERSION = "v2026-09-28-c";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -293,7 +293,11 @@
       world3d: {
         spz: "assets/places/wudang/3d/terrace-500k.spz", spzLow: "assets/places/wudang/3d/terrace-100k.spz",
         pano: "assets/places/wudang/3d/terrace-pano.jpg", marbleUrl: "https://marble.worldlabs.ai/world/20ea415f-ad14-4828-a4a4-441f7f1e3c1b",
-        scale: 2.44225, maxWalk: 1.2, yaw: 0, pitch: 0, fov: 62
+        scale: 2.44225, maxWalk: 1.2, yaw: 0, pitch: -0.04, fov: 62,
+        /* v2026-09-28-c framing: how far the EDGES of the view may go (degrees from the photo direction / horizon); no zoom.
+         * Chosen from the v2026-09-28-b shots: beyond ~60° sideways the invented parts get soft, below ~30° the ground
+         * and steps smear, above ~42° the sky texture is magnified. hfovWide = horizontal FOV on landscape screens. */
+        edgeYaw: 60, edgeDown: 30, edgeUp: 42, hfovWide: 74
       }
     }
   };
