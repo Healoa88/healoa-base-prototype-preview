@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-09-28-b">
+<meta name="healoa-version" content="v2026-09-28-c">
 <meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-09-28-b）</title>
-<link rel="stylesheet" href="app/app.css?v=2026-09-28-b">
+<title>HeaLoa · 顺着季节养（预览 v2026-09-28-c）</title>
+<link rel="stylesheet" href="app/app.css?v=2026-09-28-c">
 <!-- 3D view libraries (vendored, pinned): three.js 0.186.1 + Spark 2.2.0 (World Labs). Loaded only when the 3D view opens. -->
 <script type="importmap">{ "imports": { "three": "./vendor/three-0.186.1/three.module.js", "three/addons/": "./vendor/three-0.186.1/addons/", "@sparkjsdev/spark": "./vendor/spark-2.2.0/spark.module.min.js" } }</script>
 <script>
@@ -240,21 +240,27 @@
       <canvas id="immCanvas" class="imm-canvas" aria-hidden="true"></canvas>
       <div id="immFallback" class="imm-fallback hidden" aria-hidden="true"></div>
       <div id="imm3d" class="imm3d hidden"></div>
+      <div id="imm3dPrev" class="imm3d-prev hidden" aria-hidden="true"></div>
       <div class="imm-mist" aria-hidden="true"><i></i><i></i></div>
       <div id="imm3dLoad" class="imm3d-load hidden" role="status" aria-live="polite"><div class="imm3d-bar"><i id="imm3dBar"></i></div><span id="imm3dPct"></span></div>
     </div>
     <div class="imm-ui">
       <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnImmSound" data-action="toggleMusic" aria-pressed="false" data-i18n="music.off">音乐：关</button></div>
       <div class="imm-bottom">
-        <h2 id="immTitle" class="imm-title"></h2>
-        <p id="immHint" class="imm-hint"></p>
-        <div class="imm3d-ctl hidden" id="imm3dCtl">
-          <button type="button" class="chip light-chip imm3d-walk" id="btnImmFwd" data-action="imm3dStep" data-dir="1" data-i18n="imm3d.fwd">按住往前走</button>
-          <button type="button" class="chip light-chip imm3d-walk" id="btnImmBack" data-action="imm3dStep" data-dir="-1" data-i18n="imm3d.back">按住往后退</button>
+        <!-- title / hint / World Labs note: in 3D they fade out a few seconds after the scene is ready; a tap on the scene brings them back -->
+        <div class="imm-info" id="immInfo">
+          <h2 id="immTitle" class="imm-title"></h2>
+          <p id="immHint" class="imm-hint"></p>
+          <p class="imm3d-note hidden" id="imm3dNote" data-i18n="imm3d.note">3D 由 World Labs 根据 Cindy Yang 的照片生成</p>
         </div>
-        <button type="button" class="chip light-chip" id="btnImmGyro" data-action="immGyro" data-i18n="imm.gyro">转动手机来看</button>
-        <button type="button" class="chip light-chip hidden" id="btnImmMode" data-action="immMode" data-mode="2d" data-i18n="imm3d.to2d">换成照片看</button>
-        <p class="imm3d-note hidden" id="imm3dNote" data-i18n="imm3d.note">3D 由 World Labs 根据 Cindy Yang 的照片生成</p>
+        <div class="imm-actions">
+          <div class="imm3d-ctl hidden" id="imm3dCtl">
+            <button type="button" class="chip light-chip imm3d-walk" id="btnImmFwd" data-action="imm3dStep" data-dir="1" data-i18n="imm3d.fwd">按住往前走</button>
+            <button type="button" class="chip light-chip imm3d-walk" id="btnImmBack" data-action="imm3dStep" data-dir="-1" data-i18n="imm3d.back">按住往后退</button>
+          </div>
+          <button type="button" class="chip light-chip" id="btnImmGyro" data-action="immGyro" data-i18n="imm.gyro">转动手机来看</button>
+          <button type="button" class="chip light-chip hidden" id="btnImmMode" data-action="immMode" data-mode="2d" data-i18n="imm3d.to2d">换成照片看</button>
+        </div>
         <p class="copyright copyright-inline" data-i18n="copyright">本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。</p>
       </div>
     </div>
@@ -283,7 +289,7 @@
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-28-b</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-28-c</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
         <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
         <p data-i18n-html="about.photos"><b>照片：</b>本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
@@ -296,18 +302,18 @@
     </details>
   </footer>
 </div>
-<script src="vendor/qrcode.js?v=2026-09-28-b"></script>
-<script src="app/i18n/zh.js?v=2026-09-28-b"></script>
-<script src="app/i18n/en.js?v=2026-09-28-b"></script>
-<script src="app/i18n/ja.js?v=2026-09-28-b"></script>
-<script src="app/i18n/es.js?v=2026-09-28-b"></script>
-<script src="app/i18n/i18n.js?v=2026-09-28-b"></script>
-<script src="app/social.js?v=2026-09-28-b"></script>
-<script src="app/share-targets.js?v=2026-09-28-b"></script>
-<script src="app/data.js?v=2026-09-28-b"></script>
-<script src="app/rules.js?v=2026-09-28-b"></script>
-<script src="app/kb.js?v=2026-09-28-b"></script>
-<script src="app/match.js?v=2026-09-28-b"></script>
-<script src="app/app.js?v=2026-09-28-b"></script>
+<script src="vendor/qrcode.js?v=2026-09-28-c"></script>
+<script src="app/i18n/zh.js?v=2026-09-28-c"></script>
+<script src="app/i18n/en.js?v=2026-09-28-c"></script>
+<script src="app/i18n/ja.js?v=2026-09-28-c"></script>
+<script src="app/i18n/es.js?v=2026-09-28-c"></script>
+<script src="app/i18n/i18n.js?v=2026-09-28-c"></script>
+<script src="app/social.js?v=2026-09-28-c"></script>
+<script src="app/share-targets.js?v=2026-09-28-c"></script>
+<script src="app/data.js?v=2026-09-28-c"></script>
+<script src="app/rules.js?v=2026-09-28-c"></script>
+<script src="app/kb.js?v=2026-09-28-c"></script>
+<script src="app/match.js?v=2026-09-28-c"></script>
+<script src="app/app.js?v=2026-09-28-c"></script>
 </body>
 </html>

@@ -347,7 +347,7 @@ body.practicing .site-foot { display: none; }
 .imm-bottom { background: linear-gradient(transparent, rgba(0,0,0,.6)); margin: 0 -18px -20px; padding: 60px 18px 20px; }
 .imm-title { font-size: 26px; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
 .imm-hint { margin: 4px 0 10px; opacity: .92; }
-/* 3D world view (v2026-09-28-b) */
+/* 3D world view (v2026-09-28-b; overlay + preview v2026-09-28-c below) */
 .imm3d { position: absolute; inset: 0; background: #1a1712; }
 .imm3d-canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; display: block; touch-action: none; cursor: grab; }
 #vImmersive.is3d .imm-mist { display: none; }
@@ -496,3 +496,33 @@ body.practicing .site-foot { display: none; }
 /* draft badge: a small pill at the top centre that never pushes the full-bleed photos down */
 .app { position: relative; }
 .draft-badge { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 20; margin: 0; pointer-events: none; font-size: 17px; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+
+/* ---------- v2026-09-28-c: 3D view — slim overlay, photo preview while loading, wider on desktop ----------
+ * Phone: a compact bottom strip (one row of buttons ≥52px + the one copyright line, 17px); the title / hint / World Labs
+ * note sit above it and fade out 5 s after the scene is ready (tap the scene to show / hide them). 2.5D keeps its layout. */
+.imm3d-prev { position: absolute; inset: -24px; z-index: 1; background-size: cover; filter: blur(14px) brightness(.8) saturate(1.05); opacity: 1; transition: opacity .8s ease; pointer-events: none; }
+.imm3d-prev.gone { opacity: 0; }
+.imm3d-load { z-index: 3; top: 46%; font-size: 17px; }
+.imm3d-bar { height: 4px; }
+.imm-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.imm-actions > .chip { margin: 0; }
+#btnImmMode { margin-left: 0; }
+.imm3d-ctl { display: contents; }
+.imm3d-ctl.hidden { display: none !important; }
+.imm-info { transition: opacity .6s ease, visibility .6s; }
+#vImmersive.is3d .imm-bottom { background: linear-gradient(transparent, rgba(0,0,0,.55) 38%, rgba(0,0,0,.66)); padding: 44px 14px max(10px, env(safe-area-inset-bottom)); margin: 0 -18px -20px; }
+#vImmersive.is3d .imm-title { font-size: 22px; margin: 0; }
+#vImmersive.is3d .imm-hint { margin: 2px 0 4px; font-size: 17px; line-height: 1.45; }
+#vImmersive.is3d .imm3d-note { font-size: 17px; opacity: .88; margin: 0 0 8px; line-height: 1.4; }
+#vImmersive.is3d .imm-actions > * , #vImmersive.is3d .imm-actions .imm3d-walk { flex: 1 1 0; min-width: 0; min-height: 52px; padding: 4px 8px; font-size: 17px; line-height: 1.2; white-space: normal; text-align: center; justify-content: center; }
+#vImmersive.is3d .copyright-inline { font-size: 17px; line-height: 1.4; margin: 8px 0 0; color: rgba(255,255,255,.8); text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+#vImmersive.is3d.info-off .imm-info { opacity: 0; visibility: hidden; }
+#vImmersive.is3d.info-off .imm-bottom { padding-top: 28px; }
+@media (prefers-reduced-motion: reduce) { .imm-info, .imm3d-prev { transition: none; } }
+/* Desktop / landscape: the 3D view (only) opens wider than the phone frame, landscape; everything else stays the
+ * centred phone frame. The horizontal field of view is fixed in app/world3d.js, so the clamps still hold. */
+@media (min-width: 760px) {
+  .app:has(#vImmersive.is3d:not(.hidden)) { max-width: min(1120px, calc(100vw - 64px)); }
+  #vImmersive.is3d .imm-bottom { padding-left: 28px; padding-right: 28px; }
+  #vImmersive.is3d .imm-info, #vImmersive.is3d .imm-actions { max-width: 560px; }
+}

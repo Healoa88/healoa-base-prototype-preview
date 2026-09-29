@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -1215,8 +1215,32 @@
     var nav = navigator, low = (nav.deviceMemory && nav.deviceMemory <= 3) || (nav.connection && nav.connection.saveData) || params.get("q3d") === "low";
     return (low && w.spzLow) || w.spz;
   }
+  /* v2026-09-28-c: in 3D the title / hint / World Labs note fade out INFO_MS after the scene is ready so the scene is not
+   * covered; a tap on the scene (not a drag) shows them again (and hides them again). Buttons + copyright line stay. */
+  var INFO_MS = 5000;
+  function immInfo(show, autoHide) {
+    var v = $("vImmersive"); clearTimeout(W3D.infoTimer);
+    v.classList.toggle("info-off", !show);
+    if (show && autoHide && v.classList.contains("is3d")) W3D.infoTimer = setTimeout(function () { if (v.classList.contains("is3d") && W3D.ready) v.classList.add("info-off"); }, INFO_MS);
+  }
+  (function () {
+    var d = null;
+    document.addEventListener("pointerdown", function (e) { d = (e.target.closest && e.target.closest("#immStage")) ? [e.clientX, e.clientY, performance.now()] : null; });
+    document.addEventListener("pointerup", function (e) {
+      if (!d) return; var tap = Math.hypot(e.clientX - d[0], e.clientY - d[1]) < 10 && performance.now() - d[2] < 400; d = null;
+      var v = $("vImmersive"); if (!tap || !v || !v.classList.contains("is3d") || !W3D.ready) return;
+      immInfo(v.classList.contains("info-off"), true);
+    });
+  })();
+  /* the blurred source photo shown while the 3D file loads, faded out when the scene is ready */
+  function w3dPrev(cfg, on) {
+    var el = $("imm3dPrev"); clearTimeout(W3D.prevTimer);
+    if (on) { el.style.backgroundImage = "url('" + D.sized(cfg.photo, 480) + "')"; el.style.backgroundPosition = D.focal(cfg.photo); el.classList.remove("hidden", "gone"); }
+    else { el.classList.add("gone"); W3D.prevTimer = setTimeout(function () { el.classList.add("hidden"); }, 900); }
+  }
   function w3dUi(on) {
     $("vImmersive").classList.toggle("is3d", on);
+    immInfo(true, false);
     $("imm3d").classList.toggle("hidden", !on);
     $("imm3dCtl").classList.toggle("hidden", !on);
     $("imm3dNote").classList.toggle("hidden", !on);
@@ -1233,12 +1257,13 @@
   function w3dStop() {
     clearTimeout(W3D.timer); W3D.seq++;
     if (W3D.view) { try { W3D.view.stop(); } catch (e) {} W3D.view = null; }
-    if ($("vImmersive")) { $("vImmersive").classList.remove("is3d"); $("imm3dLoad").classList.add("hidden"); }
+    clearTimeout(W3D.infoTimer);
+    if ($("vImmersive")) { $("vImmersive").classList.remove("is3d", "info-off"); $("imm3dLoad").classList.add("hidden"); $("imm3dPrev").classList.add("hidden"); }
   }
   function immStart3d(cfg) {
     immStop();
     var w = cfg.world3d, seq = ++W3D.seq, t0 = performance.now();
-    w3dUi(true); w3dLoad(0, true);
+    w3dUi(true); w3dLoad(0, true); w3dPrev(cfg, true);
     var fail = function (why) {
       if (seq !== W3D.seq) return;
       w3dStop(); W3D.fail = why; w3dUi(false); $("immHint").textContent = t("imm3d.fallback");
@@ -1248,9 +1273,9 @@
     W3D.ready = false; W3D.fail = null;
     import(new URL("app/world3d.js?v=" + D.VERSION, document.baseURI).href).then(function (mod) {
       if (seq !== W3D.seq) return;
-      W3D.view = mod.start($("imm3d"), { spz: w3dPick(w), scale: w.scale, yaw: w.yaw, pitch: w.pitch, fov: w.fov, maxWalk: w.maxWalk, sky: w.sky, keepFrame: params.get("shots") === "1" }, {
+      W3D.view = mod.start($("imm3d"), { spz: w3dPick(w), scale: w.scale, yaw: w.yaw, pitch: w.pitch, fov: w.fov, maxWalk: w.maxWalk, sky: w.sky, edgeYaw: w.edgeYaw, edgeDown: w.edgeDown, edgeUp: w.edgeUp, hfovWide: w.hfovWide, keepFrame: params.get("shots") === "1" }, {
         progress: function (f) { if (seq === W3D.seq && !W3D.ready) w3dLoad(f * 0.97, true); },
-        ready: function () { if (seq !== W3D.seq) return; W3D.ready = true; W3D.loadMs = Math.round(performance.now() - t0); clearTimeout(W3D.timer); w3dLoad(1, false); },
+        ready: function () { if (seq !== W3D.seq) return; W3D.ready = true; W3D.loadMs = Math.round(performance.now() - t0); clearTimeout(W3D.timer); w3dLoad(1, false); w3dPrev(cfg, false); immInfo(true, true); },
         error: function () { fail("load"); }
       });
     }, function () { fail("module"); });
@@ -1664,7 +1689,7 @@
 
   /* test / debug surface (no personal data leaves the device) */
   window.__healoa = {
-    w3d: function () { return { mode: W3D.mode, ready: !!W3D.ready, fail: W3D.fail || null, loadMs: W3D.loadMs || null, view: W3D.view ? W3D.view.state() : null }; }, w3dView: function () { return W3D.view; },
+    w3d: function () { return { mode: W3D.mode, ready: !!W3D.ready, fail: W3D.fail || null, loadMs: W3D.loadMs || null, view: W3D.view ? W3D.view.state() : null }; }, w3dView: function () { return W3D.view; }, immInfo: function (show) { immInfo(!!show, false); },
     version: D.VERSION, lang: I18N.lang, state: state, actions: ACTIONS, go: go, buildShare: buildShare,
     elapsedMs: elapsedMs, timer: T, events: function () { return lsGet(LS_EVENTS) || []; },
     lastShareCardText: function () { return lastShareCardText.slice(); },

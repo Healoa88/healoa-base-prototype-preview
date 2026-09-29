@@ -1,5 +1,5 @@
 /**
- * 3D world view tests (v2026-09-28-b). The Wudang immersive view shows the World Labs Marble world made from Cindy's
+ * 3D world view tests (v2026-09-28-b; framing / overlay / preview / desktop checks v2026-09-28-c). The Wudang immersive view shows the World Labs Marble world made from Cindy's
  * terrace photo (Spark + three.js, vendored), and falls back to the 2.5D photo view when WebGL2 is missing, the phone is
  * weak, or loading fails.
  *  1. static: the asset paths in app/data.js exist in the repo, are .spz / .jpg, and are small enough for GitHub Pages;
@@ -77,12 +77,63 @@ try {
       check("3D view: World Labs note + copyright line visible, walk buttons + 「换成照片看」 shown; URL carries no body / quiz info",
         (await vis(p, "imm3dNote")) && (await p.textContent("#imm3dNote")) === "3D 由 World Labs 根据 Cindy Yang 的照片生成" && (await p.$$eval("#vImmersive .copyright", (els) => els.some((e) => e.offsetParent)))
         && (await vis(p, "btnImmFwd")) && (await vis(p, "btnImmMode")) && [...new URL(url).searchParams.keys()].every((k) => ["imm", "lang"].includes(k)), url);
-      await p.click("#btnImmMode");
+      // v2026-09-28-c framing: clamped look-around, no zoom, start tilted slightly up; slim overlay; preview while loading
+      const fr = await p.evaluate(async () => {
+        const v = window.__healoa.w3dView(), L = v.limits(), st0 = v.state();
+        v.look(10, 10); await new Promise((r) => setTimeout(r, 50)); const a = v.state();
+        v.look(-10, -10); await new Promise((r) => setTimeout(r, 50)); const b = v.state();
+        document.getElementById("imm3dCanvas").dispatchEvent(new WheelEvent("wheel", { deltaY: -400, bubbles: true, cancelable: true }));
+        await new Promise((r) => setTimeout(r, 400)); const c = v.state(); v.look(0);
+        return { L, start: st0.pitch, a: [a.yaw, a.pitch], b: [b.yaw, b.pitch], fov0: st0.fov, fov1: c.fov };
+      });
+      const deg = (r) => r * 180 / Math.PI;
+      check("3D framing (v2026-09-28-c): start tilted slightly up; yaw clamped to ≤ ±50°, pitch can't go more than ~2° down (ground smear) or past the sky limit; wheel / pinch does not zoom",
+        fr.start < 0 && fr.start > -0.15 && deg(fr.L.yaw) <= 50 && deg(fr.L.yaw) >= 25 && Math.abs(fr.a[0] - fr.L.yaw) < 1e-6 && Math.abs(fr.b[0] + fr.L.yaw) < 1e-6 &&
+        fr.a[1] === fr.L.pitchMax && deg(fr.L.pitchMax) <= 2 && fr.b[1] === fr.L.pitchMin && deg(fr.L.pitchMin) >= -20 && fr.fov0 === fr.fov1, fr);
+      const ui = await p.evaluate(async () => {
+        const q = (s) => document.querySelector(s), r = (e) => e.getBoundingClientRect();
+        const btns = ["#btnImmFwd", "#btnImmBack", "#btnImmMode"].map((s) => r(q(s)));
+        const px = (s) => parseFloat(getComputedStyle(q(s)).fontSize);
+        const out = { oneRow: btns.every((b) => Math.abs(b.top - btns[0].top) < 2), minH: Math.min(...btns.map((b) => b.height)),
+          fonts: ["#btnImmFwd", "#immHint", "#imm3dNote", "#vImmersive .copyright"].map(px), copies: document.querySelectorAll("#vImmersive .copyright").length,
+          strip: Math.round(window.innerHeight - Math.min(...btns.map((b) => b.top))), prev: !!q("#imm3dPrev") };
+        q("#immInfo").style.transition = "none"; /* read the end state, not the fade */
+        window.__healoa.immInfo(false);
+        out.offOpacity = getComputedStyle(q("#immInfo")).opacity;
+        return out;
+      });
+      await p.mouse.click(195, 250); /* a tap on the scene (not a drag) */
+      await p.waitForTimeout(300);
+      Object.assign(ui, await p.evaluate(() => { const q = (s) => document.querySelector(s); const o = { tapOpacity: getComputedStyle(q("#immInfo")).opacity, btnsStill: !!q("#btnImmFwd").offsetParent && !!q("#vImmersive .copyright").offsetParent }; q("#immInfo").style.transition = ""; return o; }));
+      check("3D overlay (v2026-09-28-c): walk + photo buttons in ONE bottom row (≥52px), text ≥17px, one copyright line; title / hint / note fade out and a tap on the scene brings them back; buttons + copyright stay; blurred photo preview element for loading",
+        ui.oneRow && ui.minH >= 52 && ui.fonts.every((f) => f >= 17) && ui.copies === 1 && ui.strip <= 200 && ui.prev && ui.offOpacity === "0" && ui.tapOpacity === "1" && ui.btnsStill, ui);
+      await p.$eval("#btnImmMode", (b) => b.click()); /* DOM click: software WebGL in CI renders ~1 frame / 4 s, too slow for Playwright's actionability waits */
+      await p.waitForTimeout(500);
       check("3D view: 「换成照片看」 switches to the 2.5D photo view and removes the 3D canvas; 「换成 3D 看」 is offered back",
         !(await p.$("#imm3dCanvas")) && (await vis(p, "immCanvas")) && (await p.textContent("#btnImmMode")) === "换成 3D 看");
     } else {
       check("3D view (no WebGL2 in this browser): falls back to the 2.5D photo view", view === "immersive" && !(await p.$("#imm3dCanvas")) && !s.ready, s);
     }
+    await c.close();
+  }
+  // 2a'. desktop: the 3D view (only) is wider than the 430px phone frame, landscape; the blurred photo shows while loading
+  if (await (async () => { const c = await browser.newContext(); const p = await c.newPage(); const ok = await p.evaluate(() => !!document.createElement("canvas").getContext("webgl2")); await c.close(); return ok; })()) {
+    const c = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "zh-CN" });
+    const p = await c.newPage(); p.on("pageerror", (e) => pageErrors.push(String(e)));
+    let release; const gate = new Promise((r) => (release = r));
+    await p.route("**/*.spz", async (r) => { await gate; await r.continue(); });
+    await p.goto(base + "?imm=wudang");
+    await p.waitForFunction(() => document.getElementById("vImmersive").classList.contains("is3d"), null, { timeout: 30000 });
+    const loading = await p.evaluate(() => { const e = document.getElementById("imm3dPrev"); return { vis: !e.classList.contains("hidden") && !!e.offsetParent, bg: e.style.backgroundImage, bar: !document.getElementById("imm3dLoad").classList.contains("hidden") }; });
+    release();
+    await p.waitForFunction(() => { const s = window.__healoa && window.__healoa.w3d(); return s && (s.ready || s.fail); }, null, { timeout: 90000 }).catch(() => {});
+    await p.waitForTimeout(1200);
+    const wide = await p.evaluate(() => { const cv = document.getElementById("imm3dCanvas"); return { w: cv && cv.clientWidth, h: cv && cv.clientHeight, prevGone: document.getElementById("imm3dPrev").classList.contains("hidden") || document.getElementById("imm3dPrev").classList.contains("gone") }; });
+    await p.$eval('#vImmersive [data-action="back"]', (b) => b.click());
+    await p.waitForTimeout(500);
+    const back = await p.evaluate(() => document.querySelector(".app").getBoundingClientRect().width);
+    check("3D loading + desktop (v2026-09-28-c): blurred source photo + progress bar while the .spz loads, faded out when ready; on 1280×800 the 3D view is landscape and wider than 430px; other views keep the 430px phone frame",
+      loading.vis && /02-terrace-sunrise/.test(loading.bg) && loading.bar && wide.w > 700 && wide.w > wide.h && wide.prevGone && back <= 432, { loading, wide, back });
     await c.close();
   }
   // 2b. ?no3d=1 (stands in for a weak phone / no WebGL2) → 2.5D, and the .spz is never downloaded
