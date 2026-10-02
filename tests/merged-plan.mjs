@@ -230,7 +230,7 @@ try {
     JSON.stringify(zh.panel.ids) === '["copy"]' && !zh.panel.qrHidden && zh.panel.qrSvg && zh.drawn.includes("用手机相机扫一扫，给自己也配一次") && ["发给一个人…", "存图片", "存视频", "复制链接"].every((w) => zh.panel.text.includes(w)) && !["微信", "小红书", "微博", "抖音"].some((w) => zh.panel.text.includes(w)), zh.panel);
   check("native share sheet: navigator.share with the 9:16 PNG file + text + link (no body data)", zh.native.files.length === 1 && zh.native.files[0][1] === "image/png" && zh.native.files[0][2] > 10000 && zh.native.url === zh.share.url && !ALL_LABELS.some((l) => JSON.stringify(zh.native).includes(l)), zh.native);
   check("复制链接 copies the share link", zhT.copy.clip === zh.share.url && zhT.copy.note === "链接已复制。", zhT.copy);
-  check("存图片: 9:16 PNG 1080×1920 (with QR + copyright line in zh); the image dialog offers 「发送这张图」 (native file share)", JSON.stringify(zh.story.dims) === "[1080,1920]" && zh.story.text.includes("用手机相机扫一扫，给自己也配一次") && zh.story.text.includes("本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。") && zh.story.name.endsWith(".png") && zh.story.shareBtn && zh.story.sharedOk, zh.story);
+  check("存图片: 9:16 PNG 1080×1920 (with QR in zh; no Cindy copyright line); the image dialog offers 「发送这张图」 (native file share)", JSON.stringify(zh.story.dims) === "[1080,1920]" && zh.story.text.includes("用手机相机扫一扫，给自己也配一次") && !zh.story.text.includes("本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。") && !/Cindy/.test(zh.story.text.join("\n")) && zh.story.name.endsWith(".png") && zh.story.shareBtn && zh.story.sharedOk, zh.story);
   check("存视频: a real 9:16 video opens in the dialog (download + share)", zh.videoBtn && zh.video && zh.video.shown && zh.video.src === "blob:" && /\.(webm|mp4)$/.test(zh.video.name), zh.video);
 
   const en = await platformRun("en", "en-US");
@@ -242,7 +242,7 @@ try {
   check("en link: random id + ?lang=en only (draft recipients see the same draft)", JSON.stringify([...enU.searchParams.keys()]) === '["s","lang"]' && enU.searchParams.get("lang") === "en", en.share.url);
   check("Text / iMessage: sms: link with the text + link in the body", enT.sms.href === `sms:?&body=${enc(en.share.text + " " + en.share.url)}` && enT.sms.note.includes("Messages"), enT.sms);
   check("en Copy link copies the link", enT.copy.clip === en.share.url && enT.copy.note === "Link copied.", enT.copy);
-  check("en Save image: 9:16 1080×1920 with the English copyright line", JSON.stringify(en.story.dims) === "[1080,1920]" && en.story.text.some((t) => /© Cindy Yang/.test(t)));
+  check("en Save image: 9:16 1080×1920 with no Cindy copyright line", JSON.stringify(en.story.dims) === "[1080,1920]" && !en.story.text.some((t) => /Cindy|©/.test(t)));
   // Latin word wrap on every canvas text drawn in the en run (share card, story); long links are the only char-split tokens.
   const badWrap = en.wrap.filter((w) => /[A-Za-z]{2,} [A-Za-z]/.test(w.text) && !/\/\?s=/.test(w.text)).filter((w) => w.lines.join(" ") !== w.text.replace(/\s+/g, " ").trim());
   const multi = en.wrap.filter((w) => w.lines.length > 1 && !/\/\?s=/.test(w.text)).length;

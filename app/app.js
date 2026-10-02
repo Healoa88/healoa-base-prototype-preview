@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -259,7 +259,7 @@
     go("reveal", { answers: state.answers, cond: m.primaryCond });
   }
 
-  /* ---------- photos: art direction (focal point per photo, never stretched), no overlay credit (R10) ---------- */
+  /* ---------- photos: art direction (focal point per photo, never stretched), no overlay / Cindy credit (R10) ---------- */
   /* srcset = compressed WebP copies (tools/make_sizes.py); sizes = how wide the photo is drawn (default: full phone width,
    * or the 430px frame on desktop). lazy → loading="lazy"; the first photo of a page gets fetchpriority="high". */
   var SZ_FULL = "(min-width: 760px) 430px, (orientation: landscape) and (max-height: 540px) 430px, 100vw";
@@ -934,11 +934,14 @@
     return y;
   }
   function copyrightRow(ctx, W, H, log, alpha) {
+    /* v2026-10-02-a (D-02-01): copyright string is empty — no blanket Cindy credit on exports. */
+    var copy = t("copyright");
+    if (!copy) { if (log) /* nothing */; return H - 24; }
     ctx.font = "22px " + FONT; ctx.fillStyle = "rgba(255,255,255," + (alpha == null ? 0.78 : alpha) + ")"; ctx.textAlign = "center";
-    var lines = wrapLines(ctx, t("copyright"), W - 120);
+    var lines = wrapLines(ctx, copy, W - 120);
     lines.forEach(function (l, i) { ctx.fillText(l, W / 2, H - 34 - (lines.length - 1 - i) * 30); });
     ctx.textAlign = "left";
-    if (log) log.push(t("copyright"));
+    if (log) log.push(copy);
     return H - 34 - lines.length * 30;
   }
 

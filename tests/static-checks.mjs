@@ -133,9 +133,11 @@ function shape(o, pth = "") {
 }
 check("i18n: ja conditionBreaks (button line-break hints) cover the 6 conditions and, without the 「|」 marks, equal the ja labels exactly",
   JA.content.conditionBreaks && Object.keys(JA.content.conditions).every((k) => typeof JA.content.conditionBreaks[k] === "string" && JA.content.conditionBreaks[k].replace(/\|/g, "") === JA.content.conditions[k]));
+// copyright may be "" (D-02-01: Cindy revoked the blanket photo copyright line; key must still exist in every locale).
+const ALLOW_EMPTY = new Set(["copyright"]);
 for (const [code, Lc] of [["en", EN], ["ja", JA]]) {
   const zk = Object.keys(ZH.strings), lk = Object.keys(Lc.strings);
-  const miss = zk.filter((k) => typeof Lc.strings[k] !== "string" || Lc.strings[k] === ""), extra = lk.filter((k) => !(k in ZH.strings));
+  const miss = zk.filter((k) => typeof Lc.strings[k] !== "string" || (Lc.strings[k] === "" && !ALLOW_EMPTY.has(k))), extra = lk.filter((k) => !(k in ZH.strings));
   const same = zk.filter((k) => Lc.strings[k] === ZH.strings[k] && CJK_RE.test(ZH.strings[k]) && code === "en");
   check(`i18n: ${code} draft has every zh key (${zk.length}) and the same content shape (places, 12 care combos, practices, quiz …) — no silent zh fallback`,
     miss.length === 0 && extra.length === 0 && same.length === 0 && JSON.stringify(shape(Lc.content)) === JSON.stringify(shape(ZH.content)), { miss, extra, same: same.slice(0, 5) });
