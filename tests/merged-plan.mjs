@@ -49,7 +49,7 @@ try {
     return { ctx, p };
   }
   const text = (p) => p.evaluate(() => document.body.innerText);
-  const toCard = async (p, cond = "gut") => { await toResult(p, cond); await p.click('#resultBody [data-action="openCard"]'); };
+  const toCard = async (p, cond = "gut") => { await toResult(p, cond); await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]'); };
   const openShare = async (p) => { await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); };
   const imgDims = (p, sel) => p.evaluate((sel) => new Promise((res) => { const im = new Image(); im.onload = () => res([im.naturalWidth, im.naturalHeight]); im.onerror = () => res(null); im.src = document.querySelector(sel).src; }), sel);
   const clip = (p) => p.evaluate(() => navigator.clipboard.readText());
@@ -68,7 +68,7 @@ try {
     await p.click('#vPlace [data-action="back"]');
     await p.click('#resultBody [data-action="openPractice"] >> nth=0'); await probe("practice");
     await p.click('#vPractice [data-action="back"]');
-    await p.click('#resultBody [data-action="openCard"]');
+    await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
     const onCard = await p.isVisible("#btnOpenLine") && (await p.textContent("#btnOpenLine")) === "留一句";
     const order = await p.evaluate(() => { const a = document.getElementById("cardPreview"), b = document.getElementById("lineZone"), c = document.getElementById("btnOpenShare"); return !!(a.compareDocumentPosition(b) & 4) && !!(b.compareDocumentPosition(c) & 4); });
     check("「留一句」 appears only after the season card (not on home / quiz / reveal / result / place / practice); order: card → 留一句 → 发给一个人", seen.length === 0 && onCard && order, { seen, onCard, order });

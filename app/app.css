@@ -428,7 +428,7 @@ body.practicing .site-foot { display: none; }
 
 /* place hero: full-bleed, tall, slow push-in */
 .place-hero { margin: -16px -18px 0; }
-.place-hero .photo { aspect-ratio: auto; height: min(74vh, 132vw); min-height: 420px; max-height: 720px; border-radius: 0; }
+.place-hero .photo { position: relative; aspect-ratio: auto; height: min(74vh, 132vw); min-height: 420px; max-height: 720px; border-radius: 0; overflow: hidden; }
 .place-hero .photo img, .rv-hero-img { animation: hero-in 9s cubic-bezier(.2,.6,.2,1) both; transform-origin: 50% 45%; }
 .hero-text { padding: 90px 18px 20px; background: linear-gradient(transparent, rgba(10,14,12,.35) 30%, rgba(10,14,12,.8)); }
 .hero-text .place-area { font-size: 17px; letter-spacing: .02em; margin: 0 0 2px; color: #f7e7c4; }
@@ -526,3 +526,89 @@ body.practicing .site-foot { display: none; }
   #vImmersive.is3d .imm-bottom { padding-left: 28px; padding-right: 28px; }
   #vImmersive.is3d .imm-info, #vImmersive.is3d .imm-actions { max-width: 560px; }
 }
+
+/* ---------- v2026-10-01-a: healing atmosphere + care continuity (punch list P0/P1) ---------- */
+html[data-season="autumn"] {
+  --wash: rgba(154, 100, 48, 0.06);
+  --wash-deep: rgba(154, 85, 40, 0.12);
+}
+html[data-season="winter"] {
+  --wash: rgba(70, 100, 120, 0.07);
+  --wash-deep: rgba(50, 80, 105, 0.14);
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(120% 80% at 50% -10%, var(--wash, transparent), transparent 55%),
+              linear-gradient(180deg, var(--wash-deep, transparent), transparent 28%);
+}
+.app { position: relative; z-index: 1; }
+
+/* quiet mist / light shift on heroes — NOT bubble/leaf/gold-spin */
+.place-hero .photo::after,
+.rv-hero::before {
+  content: "";
+  position: absolute; inset: -8% -20%;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(255,255,255,.18), transparent 55%),
+    radial-gradient(ellipse at 70% 60%, rgba(255,248,230,.12), transparent 50%);
+  animation: mist-shift 28s ease-in-out infinite alternate;
+  pointer-events: none; z-index: 1;
+}
+.rv-hero::before { z-index: 1; }
+.place-hero .photo > img, .rv-hero-img { position: relative; z-index: 0; }
+.place-hero .hero-text, .rv-hero-text { position: relative; z-index: 2; }
+@keyframes mist-shift {
+  from { transform: translate3d(-3%, 1%, 0) scale(1.02); opacity: .55; }
+  to { transform: translate3d(4%, -2%, 0) scale(1.06); opacity: .9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .place-hero .photo::after, .rv-hero::before { animation: none; }
+  body::before { display: none; }
+}
+
+/* P1: lighter practice scrim; local text scrim under cue/clock */
+.practice-bg::after {
+  background: linear-gradient(rgba(18,24,22,.28), rgba(18,24,22,.48) 55%, rgba(18,24,22,.62));
+}
+.cue, .countdown, .guided-step, #vPractice.guided .cue {
+  text-shadow: 0 1px 8px rgba(0,0,0,.65), 0 0 18px rgba(0,0,0,.35);
+  background: linear-gradient(transparent, rgba(10,14,12,.28) 30%, rgba(10,14,12,.28) 70%, transparent);
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+#vPractice.guided .cue { font-size: 26px; line-height: 1.45; min-height: 4.8em; }
+
+.here-chip, .here-inline {
+  display: inline-block; margin: 6px 0 2px; padding: 6px 14px;
+  border-radius: 999px; font-size: 17px; font-weight: 700;
+  color: #f7e7c4; background: rgba(0,0,0,.28); border: 1px solid rgba(247,231,196,.45);
+}
+.here-inline { color: var(--warm); background: var(--warm-2); border-color: #efcfb4; margin: 8px 0 4px; }
+.imm-band { margin: 6px 0 10px; text-align: center; }
+
+.guided-prog { margin: 10px 0 4px; display: grid; gap: 6px; justify-items: center; }
+.guided-bar { width: min(280px, 86%); height: 8px; border-radius: 999px; background: rgba(255,255,255,.22); overflow: hidden; }
+.guided-bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #f3e3bf, #fff); border-radius: inherit; transition: width .35s ease; }
+#guidedProgLabel { font-size: 17px; opacity: .95; font-weight: 700; }
+
+/* tap ≥52px leftovers */
+.imm3d-walk, #vImmersive.is3d .imm-actions .imm3d-walk { min-height: 52px !important; }
+.social-link { min-height: 52px; }
+.reasons li::before { font-size: 17px; width: 28px; height: 28px; }
+
+/* careplan view */
+#vCareplan .result-title { margin-bottom: 4px; }
+#vCareplan .btn-row { grid-template-columns: 1fr 1fr; }
+@media (min-width: 760px) {
+  .place-hero .photo::after, .rv-hero::before { opacity: .7; }
+}
+
+/* cycle-2: why-page denser so place #1 photo enters the first screen sooner */
+#vResult .result-title { margin-bottom: 2px; }
+#vResult #resultTermLine { margin: 2px 0 0; }
+#vResult .result-lead { margin: 4px 0 8px; }
+#vResult .sec-title { margin: 12px 0 2px; font-size: 20px; }
+#vResult .sec-sub { margin: 0 0 6px; }
+#vResult .place-card { margin: 8px 0; }
+#vResult .place-card .photo.tall { aspect-ratio: 4 / 5; min-height: 280px; }

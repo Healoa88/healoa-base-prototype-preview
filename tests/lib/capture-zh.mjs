@@ -5,7 +5,7 @@
  * History: captured from v2026-09-27-s before the i18n refactor; re-captured ON PURPOSE for v2026-09-27-u
  * (zh copy polish for first-time 55+ users, 留一句 / 发给一个人 / per-platform share); re-captured ON PURPOSE for v2026-09-27-w
  * (audit fixes: private card without condition text when 「写出我的情况」 is off, 睡前慢呼吸 吸4呼6 replaces 4-7-8,
- * plain wording instead of 网格 / 待人工核对 / 样品 / 照片待补, exact solar-term dates); re-captured ON PURPOSE for v2026-09-28-c (D-28-02: 3D hint, no zoom); re-captured ON PURPOSE for v2026-09-28-b (D-27-07: about page 3D line); re-captured ON PURPOSE for v2026-09-28-a (D-28-01: solar-term greeting, reveal hero, sound chip, stop panel; before that v2026-09-27-y, D-27-06; before that v2026-09-27-x)
+ * plain wording instead of 网格 / 待人工核对 / 样品 / 照片待补, exact solar-term dates); re-captured ON PURPOSE for v2026-10-01-a (D-01-01: careplan split + Cindy practice stills); re-captured ON PURPOSE for v2026-09-28-c (D-28-02: 3D hint, no zoom); re-captured ON PURPOSE for v2026-09-28-b (D-27-07: about page 3D line); re-captured ON PURPOSE for v2026-09-28-a (D-28-01: solar-term greeting, reveal hero, sound chip, stop panel; before that v2026-09-27-y, D-27-06; before that v2026-09-27-x)
  * (v4 Phase 1, D-27-05: new home + 怎么用, 8-question matching quiz one per screen, flip reveal, 为什么是你 page,
  * all places open, per-place 适合谁 / 要避开什么 / 在这里做一件事, 我的养护记录; the 6 one-tap home buttons are gone).
  * Regenerate the golden only on purpose: node tests/lib/capture-zh.mjs --write
@@ -130,12 +130,14 @@ export async function captureZh({ query = "" } = {}) {
     await p.close();
 
     // results + places (12 combos, both natural and "提前看" seasons), place pages for every photo place
-    out.result = {}; out.place = {};
+    out.result = {}; out.careplan = {}; out.place = {};
     p = await fresh(base + Q("2026-09-26"));
     for (const s of SEASONS) for (const c of CONDS) {
       await p.evaluate(({ c, s }) => window.__healoa.go("result", { cond: c, season: s }, true), { c, s });
       out.result[`${c}/${s}`] = await bodyText(p);
       out.result[`${c}/${s} attrs`] = await attrs(p);
+      await p.evaluate(() => window.__healoa.go("careplan", {}, true));
+      out.careplan[`${c}/${s}`] = await bodyText(p);
       for (const pl of ["wudang", "pattaya", "onsen", "harbin"]) {
         await p.evaluate(({ pl }) => window.__healoa.go("place", { placeId: pl }, true), { pl });
         out.place[`${pl} ${c}/${s}`] = await p.textContent("#placeBody");

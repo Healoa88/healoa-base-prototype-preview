@@ -43,3 +43,15 @@ Note: onsen photos are committed in Grok P0 PR; Arctic cabin photos not yet prov
 - `wudang/3d/terrace-500k.spz` (7.70 MB, default), `wudang/3d/terrace-100k.spz` (1.39 MB, weaker phones / data saver), `wudang/3d/terrace-pano.jpg` (1.18 MB, the world's 4608×2304 panorama re-encoded to 4096×2048 JPEG q85): **World Labs Marble (marble-1.1) world generated from Cindy Yang's photo** `wudang/02-terrace-sunrise.jpg` (EXIF/GPS already stripped). Generated 2026-09-28 with Cindy's approval (one world, 1,580 API credits), world set **private** (`public: false`, `allow_id_access: false`); files downloaded into the repo, no expiring links. In-app note: 「3D 由 World Labs 根据 Cindy Yang 的照片生成」 + the copyright line. Scale: `metric_scale_factor` 2.44225 (ground_plane_offset 1.9103, not used: the camera stays at the photo spot).
 - Only this one photo was uploaded to World Labs (`tools/worldlabs_generate.py`). The World API has no per-request setting to exclude uploads from model training; World Labs' Terms say paid accounts can opt out of use of their content via the Account page (to be switched off by Cindy in her World Labs account).
 - The 2.5D depth map above is still made offline; the 2.5D view itself uploads nothing.
+
+## Practice stills (Cindy Yang, 2026-10-01)
+| Path | Scene | Credit | Notes |
+|---|---|---|---|
+| `assets/practices/01-courtyard-group.jpg` | Courtyard group Tai Chi | Photo · Cindy Yang | EXIF stripped; vertical |
+| `assets/practices/02-path-balance.jpg` | Path balance pose | Photo · Cindy Yang | EXIF stripped; vertical |
+| `assets/practices/03-indoor-balance.jpg` | Indoor crimson balance | Photo · Cindy Yang | Phone UI cropped; EXIF stripped |
+| `assets/practices/04-indoor-arm-raise.jpg` | Indoor arm raise | Photo · Cindy Yang | Phone/video UI cropped; EXIF stripped |
+| `assets/practices/05-courtyard-class.jpg` | Courtyard class + yin-yang | Photo · Cindy Yang | Same frame as wudang/06; practice stills |
+| `assets/practices/06-zixiao-steps-mist.jpg` | 紫霄殿 steps mist | Photo · Cindy Yang | Same frame as wudang/07; guided mood |
+| `assets/places/wudang/06-courtyard-class.jpg` | Courtyard class + yin-yang | Photo · Cindy Yang | Desktop season-wide autumn (`wide`) |
+| `assets/places/wudang/07-zixiao-steps-mist.jpg` | 紫霄殿 steps mist | Photo · Cindy Yang | Atmosphere still; too small for hero |

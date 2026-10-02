@@ -1,7 +1,7 @@
 # HeaLoa Base · 顺着季节养（可点原型）
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- 版本：**预览 v2026-09-27-x**（v4 Phase 1：配对小测 → 翻牌 → 为什么是你 → 地方 → 放松 → 养护卡 / 我的养护记录，D-27-05）· 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）
+- 版本：**预览 v2026-10-01-a**（v4 Phase 1：配对小测 → 翻牌 → 为什么是你 → 地方 → 放松 → 养护卡 / 我的养护记录，D-27-05）· 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）
 - 当前产品定义只看 **[`PRODUCT_CURRENT.md`](PRODUCT_CURRENT.md)**；历史规则与 SUPERSEDED 标记见 **[`DECISIONS.md`](DECISIONS.md)**。
 - 这是可点原型，不是正式 App；纯静态页面（GitHub Pages，main 分支），无后端、无账号、无网络请求。
 
@@ -42,7 +42,7 @@ npm test              # static-checks + match（打分引擎人设单元测试�
 npm run test:merged   # 只跑合并方案测试
 npm run shots         # 390×844 截图（默认输出 /workspace/hb-merge-shots，可用 HEALOA_SHOTS_DIR 改；v4 一组在 /workspace/v4-p1-shots）
 npm run test:legacy   # 归档页旧测试（可选，较慢）
-npm run golden:zh     # 把当前中文渲染与 tests/golden/zh-baseline.json（v2026-09-27-x 有意更新的快照）对比；--write 重新采集
+npm run golden:zh     # 把当前中文渲染与 tests/golden/zh-baseline.json（v2026-10-01-a 有意更新的快照）对比；--write 重新采集
 ```
 
 `tests/golden/zh-baseline.json` 含私有养护卡 PNG 的哈希，和机器字体有关；换机器跑如不一致，在当前提交上 `node tests/lib/capture-zh.mjs --write` 重新采集。

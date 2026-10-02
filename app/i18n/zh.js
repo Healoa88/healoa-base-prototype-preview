@@ -185,6 +185,14 @@
       "result.moveBreath": "慢呼吸 3 分钟",
       "result.caution": "要注意：",
       "result.cardCta": "存一张本季养护卡",
+      "result.kbTitle": "按你的回答，这个节气可以参考",
+      "result.careplanCta": "看看本季安排",
+      "careplan.title": "本季安排",
+      "careplan.lead": "按这个节气，在家也能慢慢做的小事。想存下来，就点下面的养护卡。",
+      "careplan.backWhy": "回到为什么是这几个地方",
+      "practice.here": "在这里 · {place}",
+      "practice.guidedProg": "第 {n} / {total} 步",
+      "imm.bandwidth": "3D 约 9 MB，建议在 Wi‑Fi 下打开；也可以先用照片看。",
       "result.srcNote": "地点的温度、湿度按往年平均算，不是天气预报。",
 
       /* place */

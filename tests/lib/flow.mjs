@@ -32,3 +32,16 @@ export async function runQuiz(p, picks = {}, { start = "#btnStart2" } = {}) {
   }
   await p.waitForSelector("#vReveal:not(.hidden)");
 }
+
+export async function toCard(p, cond, season) {
+  await toResult(p, cond, season);
+  await p.click('#resultBody [data-action="openCareplan"]');
+  await p.waitForSelector("#vCareplan:not(.hidden)");
+  await p.click('#careplanBody [data-action="openCard"]');
+  await p.waitForSelector("#vCard:not(.hidden)");
+}
+export async function toCareplan(p, cond, season) {
+  await toResult(p, cond, season);
+  await p.click('#resultBody [data-action="openCareplan"]');
+  await p.waitForSelector("#vCareplan:not(.hidden)");
+}

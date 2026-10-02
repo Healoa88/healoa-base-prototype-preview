@@ -134,10 +134,20 @@ try {
   check("result differs for every condition×season (12 distinct pages)", distinct === 12, `${distinct} distinct`);
   check("血压偏高+冬 ≠ 睡不踏实+秋", snapshots["bp/winter"] !== snapshots["sleep/autumn"]);
   const bw = snapshots["bp/winter"];
-  check("血压偏高+冬: warm place first; 哈尔滨 in 这个季节先不选; hot-spring ≤41℃ ≤10 分钟",
-    bw.indexOf("芭提雅") > -1 && bw.includes("这个季节先不选") && /哈尔滨 · 冰雪：冬季平均 −16.7℃/.test(bw) && bw.includes("41℃") && bw.includes("10 分钟"));
+  check("血压偏高+冬: warm place first; 哈尔滨 in 这个季节先不选",
+    bw.indexOf("芭提雅") > -1 && bw.includes("这个季节先不选") && /哈尔滨 · 冰雪：冬季平均 −16.7℃/.test(bw));
   check("睡不踏实+秋: 武当山 · 山居慢住 first, 芭提雅 not this season (湿热多雨)", /武当山 · 山居慢住/.test(snapshots["sleep/autumn"]) && /芭提雅 · 海边：秋季平均 27.8℃/.test(snapshots["sleep/autumn"]));
-  check("result: 本季要留意 / 吃喝 / 怎么动 / 去哪里养 / 先不选 sections present", ["本季要留意", "吃喝", "怎么动", "这个季节去哪里养", "这个季节先不选"].every((s) => bw.includes(s)));
+  check("result (为什么是你): 去哪里养 / 先不选 on the short why page", ["这个季节去哪里养", "这个季节先不选"].every((s) => bw.includes(s)));
+  {
+    const q = await fresh();
+    await toResult(q, "bp");
+    await q.click('#vResult [data-action="season"][data-season="winter"]');
+    await q.click('#resultBody [data-action="openCareplan"]');
+    await q.waitForSelector("#vCareplan:not(.hidden)");
+    const cp = await q.textContent("#careplanBody");
+    check("careplan (本季安排): 本季要留意 / 吃喝 / 怎么动 + hot-spring ≤41℃ ≤10 分钟", ["本季要留意", "吃喝", "怎么动"].every((s) => cp.includes(s)) && cp.includes("41℃") && cp.includes("10 分钟"));
+    await q.close();
+  }
   check("top places (1–3) all have a loaded real photo", photoTop.every((x) => x.n >= 1 && x.n <= 3 && x.allLoaded), photoTop.filter((x) => !(x.n >= 1 && x.n <= 3 && x.allLoaded)));
   check("URL never carries the condition (id or label)", urlLeaks.length === 0, urlLeaks);
   check("rendered DOM banned-word scan, locale-aware (zh rules; 12 results + 12 place cards)", domHits.length === 0, domHits.length ? domHits.slice(0, 8) : "0 hits");
@@ -186,7 +196,8 @@ try {
 
   p = await fresh(base + D, { clock: true });
   await toResult(p, "tense");
-  await p.click('#resultBody [data-action="openPractice"][data-practice="walk"]:not([data-place]) >> nth=0');
+  /* plain walk timings (no place overlay label) so the title stays 「慢走节奏」; place continuity is covered elsewhere */
+  await p.evaluate(() => window.__healoa.go("practice", { practiceId: "walk", actionPlace: null }, true));
   await p.click("#btnStart");
   await p.clock.runFor(2000);
   const feet = await p.evaluate(() => ["footL", "footR"].map((i) => document.getElementById(i).classList.contains("on")));
@@ -199,15 +210,15 @@ try {
     result: async (q) => { await toResult(q, "cold"); },
     place: async (q) => { await toResult(q, "cold"); await q.click('#resultBody [data-action="openPlace"] >> nth=0'); },
     practice: async (q) => { await toResult(q, "tense"); await q.click('#resultBody [data-action="openPractice"] >> nth=0'); },
-    card: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCard"]'); },
-    share: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); },
+    card: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCareplan"]'); await q.waitForSelector('#vCareplan:not(.hidden)'); await q.click('#careplanBody [data-action="openCard"]'); },
+    share: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCareplan"]'); await q.waitForSelector('#vCareplan:not(.hidden)'); await q.click('#careplanBody [data-action="openCard"]'); await q.click("#btnOpenShare"); await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:")); },
     quiz: async (q) => { await q.click('[data-action="openQuiz"]'); },
     quizMulti: async (q) => { await q.click('[data-action="openQuiz"]'); await q.click('#quizBody [data-opt="cold"]'); },
     reveal: async (q) => { await runQuiz(q, { q7: ["mountain"] }); },
     places: async (q) => { await q.click('#vHome [data-action="openPlaces"]'); },
     records: async (q) => { await q.evaluate(() => localStorage.setItem("healoa.log.v1", JSON.stringify([{ d: "2026-09-26", term: 17, place: "wudang", practice: "walk", note: "", at: 1 }]))); await q.click('#vHome [data-action="openRecords"]'); },
     shared: async (q) => { await q.goto(base + "?s=abc234&date=2026-09-26"); },
-    cardLine: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCard"]'); await q.click("#btnOpenLine"); },
+    cardLine: async (q) => { await toResult(q, "gut"); await q.click('#resultBody [data-action="openCareplan"]'); await q.waitForSelector('#vCareplan:not(.hidden)'); await q.click('#careplanBody [data-action="openCard"]'); await q.click("#btnOpenLine"); },
     sharedLine: async (q) => { await q.goto(base + "?s=abc234&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); },
     sharedLineWriting: async (q) => { await q.goto(base + "?s=abc235&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); await q.evaluate(() => localStorage.clear()); await q.click('[data-action="replyOpen"]'); await q.fill("#replyInput", "我也想慢一点。"); },
     sharedLineWrote: async (q) => { await q.goto(base + "?s=abc236&l=" + B64("这个秋天，慢一点。") + "&date=2026-09-26"); await q.evaluate(() => localStorage.clear()); await q.click('[data-action="replyOpen"]'); await q.fill("#replyInput", "我也想慢一点。"); await q.click('[data-action="replySave"]'); },
@@ -254,7 +265,7 @@ try {
   for (const id of CONDITION_IDS) {
     const q = await fresh();
     await toResult(q, id);
-    await q.click('#resultBody [data-action="openCard"]');
+    await q.click('#resultBody [data-action="openCareplan"]'); await q.waitForSelector('#vCareplan:not(.hidden)'); await q.click('#careplanBody [data-action="openCard"]');
     if (id === "bp") {
       check("season card: primary action is 「只留给自己」 and share is secondary", (await q.getAttribute("#btnKeep", "class")).includes("primary") && (await q.textContent("#btnKeep")) === "只留给自己" && (await q.getAttribute("#btnOpenShare", "class")).includes("text-link"));
       check("season card: condition hidden on card by default", !(await q.textContent("#cardPreview")).includes("血压偏高"));
@@ -278,7 +289,7 @@ try {
   {
     const q = await fresh();
     await toResult(q, "bp");
-    await q.click('#resultBody [data-action="openCard"]');
+    await q.click('#resultBody [data-action="openCareplan"]'); await q.waitForSelector('#vCareplan:not(.hidden)'); await q.click('#careplanBody [data-action="openCard"]');
     await q.click("#btnOpenShare");
     await q.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
     const t = (await q.textContent("#vCard")) + (await q.evaluate(() => window.__healoa.lastShareCardText().join("|")));
@@ -299,7 +310,7 @@ try {
   // ---------- return hint on next open ----------
   p = await fresh();
   await toResult(p, "cold");
-  await p.click('#resultBody [data-action="openCard"]');
+  await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
   await p.click("#btnKeep");
   await p.goto(base + D);
   check("next open: quiet return hint for the saved card (no push)", (await p.isVisible("#returnHint")) && (await p.textContent("#returnHint")).includes("养护卡"));

@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-09-28-c">
+<meta name="healoa-version" content="v2026-10-01-a">
 <meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-09-28-c）</title>
-<link rel="stylesheet" href="app/app.css?v=2026-09-28-c">
+<title>HeaLoa · 顺着季节养（预览 v2026-10-01-a）</title>
+<link rel="stylesheet" href="app/app.css?v=2026-10-01-a">
 <!-- 3D view libraries (vendored, pinned): three.js 0.186.1 + Spark 2.2.0 (World Labs). Loaded only when the 3D view opens. -->
 <script type="importmap">{ "imports": { "three": "./vendor/three-0.186.1/three.module.js", "three/addons/": "./vendor/three-0.186.1/addons/", "@sparkjsdev/spark": "./vendor/spark-2.2.0/spark.module.min.js" } }</script>
 <script>
@@ -104,6 +104,20 @@
     <div id="resultBody"></div>
   </section>
 
+  <!-- 本季安排（从「为什么是你」拆出，长辈默认不必一次滑完） -->
+  <section id="vCareplan" class="view hidden" data-view="careplan" aria-labelledby="careplanTitle">
+    <div class="topbar">
+      <button type="button" class="back" data-action="openWhy" data-i18n="nav.back">‹ 返回</button>
+      <div class="seg" role="group" aria-label="切换季节" data-i18n-attr="aria-label:season.switchAria">
+        <button type="button" class="seg-btn" data-action="season" data-season="autumn" data-i18n="season.autumn">秋</button>
+        <button type="button" class="seg-btn" data-action="season" data-season="winter" data-i18n="season.winter">冬</button>
+      </div>
+    </div>
+    <h2 id="careplanTitle" class="result-title" data-i18n="careplan.title">本季安排</h2>
+    <p class="muted small" data-i18n="careplan.lead">按这个节气，在家也能慢慢做的小事。想存下来，就点下面的养护卡。</p>
+    <div id="careplanBody"></div>
+  </section>
+
   <!-- 所有地方（第一次来就全部打开） -->
   <section id="vPlaces" class="view hidden" data-view="places" aria-labelledby="placesTitle">
     <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
@@ -125,8 +139,10 @@
       <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnMusic" data-action="toggleMusic" aria-pressed="false" data-i18n="music.off">音乐：关</button></div>
       <p class="music-note hidden" id="musicNote"></p>
       <div class="chip-row light" id="practiceModes" role="group" aria-label="选择练习" data-i18n-attr="aria-label:practice.modesAria"></div>
+      <p class="here-chip hidden" id="practiceHere" aria-live="polite"></p>
       <h2 class="practice-title" id="practiceTitle"></h2>
       <p class="practice-intro" id="practiceIntro"></p>
+      <div class="guided-prog hidden" id="guidedProg" aria-hidden="true"><div class="guided-bar"><i id="guidedBar"></i></div><span id="guidedProgLabel"></span></div>
       <div class="breath-wrap" id="breathWrap" aria-hidden="true"><div class="breath-circle" id="breathCircle"></div><div class="walk-feet hidden" id="walkFeet"><span id="footL" data-i18n="practice.footL">左</span><span id="footR" data-i18n="practice.footR">右</span></div></div>
       <p class="cue" id="practiceCue" aria-live="polite" data-i18n="practice.ready">准备好了，就点「开始」</p>
       <p class="countdown" id="practiceClock">3:00</p>
@@ -289,7 +305,7 @@
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-09-28-c</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-10-01-a</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
         <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
         <p data-i18n-html="about.photos"><b>照片：</b>本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护。地点下的一句署名感受由 Cindy 本人提供，还没提供的地方先空着。</p>
@@ -302,18 +318,18 @@
     </details>
   </footer>
 </div>
-<script src="vendor/qrcode.js?v=2026-09-28-c"></script>
-<script src="app/i18n/zh.js?v=2026-09-28-c"></script>
-<script src="app/i18n/en.js?v=2026-09-28-c"></script>
-<script src="app/i18n/ja.js?v=2026-09-28-c"></script>
-<script src="app/i18n/es.js?v=2026-09-28-c"></script>
-<script src="app/i18n/i18n.js?v=2026-09-28-c"></script>
-<script src="app/social.js?v=2026-09-28-c"></script>
-<script src="app/share-targets.js?v=2026-09-28-c"></script>
-<script src="app/data.js?v=2026-09-28-c"></script>
-<script src="app/rules.js?v=2026-09-28-c"></script>
-<script src="app/kb.js?v=2026-09-28-c"></script>
-<script src="app/match.js?v=2026-09-28-c"></script>
-<script src="app/app.js?v=2026-09-28-c"></script>
+<script src="vendor/qrcode.js?v=2026-10-01-a"></script>
+<script src="app/i18n/zh.js?v=2026-10-01-a"></script>
+<script src="app/i18n/en.js?v=2026-10-01-a"></script>
+<script src="app/i18n/ja.js?v=2026-10-01-a"></script>
+<script src="app/i18n/es.js?v=2026-10-01-a"></script>
+<script src="app/i18n/i18n.js?v=2026-10-01-a"></script>
+<script src="app/social.js?v=2026-10-01-a"></script>
+<script src="app/share-targets.js?v=2026-10-01-a"></script>
+<script src="app/data.js?v=2026-10-01-a"></script>
+<script src="app/rules.js?v=2026-10-01-a"></script>
+<script src="app/kb.js?v=2026-10-01-a"></script>
+<script src="app/match.js?v=2026-10-01-a"></script>
+<script src="app/app.js?v=2026-10-01-a"></script>
 </body>
 </html>

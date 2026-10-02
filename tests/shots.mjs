@@ -50,7 +50,7 @@ await toResult(p, "sleep");
 await p.waitForLoadState("networkidle");
 await snap(p, "02-zh-result-first-screen");
 await snap(p, "02b-zh-result-full", true);
-await p.click('#resultBody [data-action="openCard"]');
+await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
 await p.waitForLoadState("networkidle");
 await snap(p, "03-zh-season-card");
 await p.click("#btnOpenLine");
@@ -85,7 +85,7 @@ await snap(e, "07b-en-home-full", true);
 await toResult(e, "sleep");
 await e.waitForLoadState("networkidle");
 await snap(e, "08-en-result-first-screen");
-await e.click('#resultBody [data-action="openCard"]');
+await e.click('#resultBody [data-action="openCareplan"]'); await e.waitForSelector('#vCareplan:not(.hidden)'); await e.click('#careplanBody [data-action="openCard"]');
 await e.click("#btnOpenLine");
 await e.fill("#lineInput", "Slow mornings, warm tea, and a long walk by the water.");
 await snapEl(e, "#lineZone", "08b-en-leave-a-line");
@@ -103,7 +103,7 @@ await snap(er, "09d-en-recipient-view");
 // ---------- ja draft ----------
 const j = await page0(base + D + "&lang=ja", "ja-JP");
 await snap(j, "11-ja-home");
-savePng(await (async () => { await toResult(j, "sleep"); await j.click('#resultBody [data-action="openCard"]'); return j.evaluate(() => window.__healoa.storyPng()); })(), "10c-ja-story-9x16");
+savePng(await (async () => { await toResult(j, "sleep"); await j.click('#resultBody [data-action="openCareplan"]'); await j.waitForSelector('#vCareplan:not(.hidden)'); await j.click('#careplanBody [data-action="openCard"]'); return j.evaluate(() => window.__healoa.storyPng()); })(), "10c-ja-story-9x16");
 
 
 // ---------- v4 Phase 1 set (390×844) ----------

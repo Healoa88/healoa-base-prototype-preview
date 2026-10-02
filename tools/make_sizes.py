@@ -13,7 +13,7 @@ from PIL import Image, ImageOps
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 data = (ROOT / "app/data.js").read_text()
 meta = data[data.index("var PHOTO_META"):data.index("function focal")]
-srcs = re.findall(r'"(assets/places/[^"]+\.jpg)"', meta)
+srcs = re.findall(r'"(assets/(?:places|practices)/[^"]+\.jpg)"', meta)
 WIDTHS = [480, 828, 1200]
 total_in = total_out = 0
 for s in srcs:
