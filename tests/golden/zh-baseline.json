@@ -1123,18 +1123,6 @@
     "fy": 38,
     "h": 1868,
     "w": 1027
-   },
-   "assets/practices/05-courtyard-class.jpg": {
-    "fx": 50,
-    "fy": 55,
-    "h": 1080,
-    "w": 1440
-   },
-   "assets/practices/06-zixiao-steps-mist.jpg": {
-    "fx": 48,
-    "fy": 58,
-    "h": 689,
-    "w": 459
    }
   },
   "PLACES": [
@@ -1586,8 +1574,8 @@
      "assets/practices/01-courtyard-group.jpg",
      "assets/practices/03-indoor-balance.jpg",
      "assets/practices/02-path-balance.jpg",
-     "assets/practices/05-courtyard-class.jpg",
-     "assets/practices/06-zixiao-steps-mist.jpg",
+     "assets/places/wudang/06-courtyard-class.jpg",
+     "assets/places/wudang/07-zixiao-steps-mist.jpg",
      "assets/practices/04-indoor-arm-raise.jpg"
     ]
    },
@@ -1684,9 +1672,9 @@
      "assets/practices/01-courtyard-group.jpg",
      "assets/practices/04-indoor-arm-raise.jpg",
      "assets/practices/02-path-balance.jpg",
-     "assets/practices/05-courtyard-class.jpg",
+     "assets/places/wudang/06-courtyard-class.jpg",
      "assets/practices/03-indoor-balance.jpg",
-     "assets/practices/06-zixiao-steps-mist.jpg"
+     "assets/places/wudang/07-zixiao-steps-mist.jpg"
     ]
    },
    "soak": {
@@ -1740,8 +1728,8 @@
      "assets/practices/02-path-balance.jpg",
      "assets/practices/03-indoor-balance.jpg",
      "assets/practices/04-indoor-arm-raise.jpg",
-     "assets/practices/05-courtyard-class.jpg",
-     "assets/practices/06-zixiao-steps-mist.jpg"
+     "assets/places/wudang/06-courtyard-class.jpg",
+     "assets/places/wudang/07-zixiao-steps-mist.jpg"
     ]
    },
    "walk": {
