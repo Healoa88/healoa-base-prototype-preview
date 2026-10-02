@@ -59,4 +59,4 @@ See the `photo-audit-cabin-forest.png` sheet. In use: cabin/04-soup-window-warm 
 - **Harbin:** fine as it is (good portrait plus landscape).
 
 ## Practice stills (2026-10-01)
-Cindy’s own Tai Chi / Baduanjin stills in `assets/practices/`. Prefer vertical for phone practice UI. `06-zixiao-steps-mist` / `wudang/07` are atmospheric but low resolution — mood/gallery only, not place hero. Courtyard class (`wudang/06`) is the autumn desktop wide backdrop.
+Cindy’s own Tai Chi / Baduanjin stills in `assets/practices/` (01–06). Prefer vertical for phone practice UI. `06-zixiao-steps-mist` / `wudang/07` are atmospheric but low resolution — mood/gallery only, not place hero. Courtyard class (`practices/05` + `wudang/06`) is the autumn desktop wide backdrop.

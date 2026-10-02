@@ -51,5 +51,7 @@ Note: onsen photos are committed in Grok P0 PR; Arctic cabin photos not yet prov
 | `assets/practices/02-path-balance.jpg` | Path balance pose | Photo · Cindy Yang | EXIF stripped; vertical |
 | `assets/practices/03-indoor-balance.jpg` | Indoor crimson balance | Photo · Cindy Yang | Phone UI cropped; EXIF stripped |
 | `assets/practices/04-indoor-arm-raise.jpg` | Indoor arm raise | Photo · Cindy Yang | Phone/video UI cropped; EXIF stripped |
-| `assets/places/wudang/06-courtyard-class.jpg` | Courtyard class + yin-yang | Photo · Cindy Yang | Desktop season-wide autumn |
+| `assets/practices/05-courtyard-class.jpg` | Courtyard class + yin-yang | Photo · Cindy Yang | Same frame as wudang/06; practice stills |
+| `assets/practices/06-zixiao-steps-mist.jpg` | 紫霄殿 steps mist | Photo · Cindy Yang | Same frame as wudang/07; guided mood |
+| `assets/places/wudang/06-courtyard-class.jpg` | Courtyard class + yin-yang | Photo · Cindy Yang | Desktop season-wide autumn (`wide`) |
 | `assets/places/wudang/07-zixiao-steps-mist.jpg` | 紫霄殿 steps mist | Photo · Cindy Yang | Atmosphere still; too small for hero |
