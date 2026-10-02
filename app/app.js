@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -84,7 +84,7 @@
   }
 
   /* ---------- navigation (history state only; URL never carries the condition) ---------- */
-  var VIEWS = ["home", "shared", "quiz", "reveal", "result", "places", "place", "practice", "card", "records", "remind", "immersive"];
+  var VIEWS = ["home", "shared", "quiz", "reveal", "result", "careplan", "places", "place", "practice", "card", "records", "remind", "immersive"];
   function snapshot() { return { view: state.view, season: state.season, cond: state.cond, answers: state.answers, placeId: state.placeId, practiceId: state.practiceId, actionPlace: state.actionPlace }; }
   function show(view) {
     VIEWS.forEach(function (v) {
@@ -92,6 +92,7 @@
       if (el) el.classList.toggle("hidden", v !== view);
     });
     document.body.classList.toggle("practicing", view === "practice" || view === "immersive");
+    try { document.documentElement.setAttribute("data-season", state.season || ""); } catch (e) {}
     if (view !== "immersive" && state.view === "immersive") immStop();
     if (view !== "practice" && view !== "immersive" && view !== "reveal" && MUS.playing) musicStop();
     state.view = view;
@@ -105,6 +106,7 @@
     else if (state.view === "quiz") renderQuiz();
     else if (state.view === "reveal") renderReveal();
     else if (state.view === "result") renderResult();
+    else if (state.view === "careplan") renderCareplan();
     else if (state.view === "places") renderPlaces();
     else if (state.view === "records") renderRecords();
     else if (state.view === "place") renderPlace();
@@ -344,33 +346,38 @@
     var S = D.SEASONS[state.season];
     if (!S) { go("home", null, true); return; }
     var m = currentMatch(), c = condById(state.cond);
-    var care = D.CARE[state.cond][state.season];
     var prac = D.PRACTICES[m.practiceId] || D.PRACTICES.breath46;
+    var topId = m.top[0] && m.top[0].id;
     $("resultTitle").textContent = t("result.title", { season: S.label });
     var lead = t("result.lead");
     var h = '<p class="muted small" id="resultTermLine">' + esc(t("result.termLine", { term: termName(m.termIndex) })) + "</p>";
     h += lead ? '<p class="result-lead">' + esc(lead) + "</p>" : "";
     if (D.HOME_REGION === "us") h += '<p class="note-line" id="usNote">' + esc(t("result.usNote")) + "</p>";
     if (m.asia && D.ASIA_LINE) h += '<p class="cindy-line" id="asiaLine">' + esc(D.ASIA_LINE) + "</p>";
-    var homeCard = '<div class="home-card" id="blkHome"><h3>' + esc(t("result.homeTitle")) + "</h3>" + (m.atHome ? '<p class="small">' + esc(t("result.atHomeFirst")) + "</p>" : "") + "<ul>" +
-      D.HOME_PLAN[state.cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") +
-      '</ul><div class="btn-row"><button type="button" class="btn ghost" data-action="openPractice" data-practice="soak">' + esc(t("result.soakBtn")) + "</button>" +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="' + prac.id + '">' + esc(prac.short) + "</button></div></div>";
-    if (m.atHome) h += homeCard;
-
+    if (m.atHome) {
+      h += '<div class="home-card" id="blkHome"><h3>' + esc(t("result.homeTitle")) + "</h3><p class=\"small\">" + esc(t("result.atHomeFirst")) + "</p></div>";
+    }
+    /* Shared sourced KB lines once above the cards (R16); omitted while KB empty. Per-card EDA stays place-first (P0-5). */
+    var sharedEat = M.adviceFor(m.termIndex, "eat", m.answers), sharedDo = M.adviceFor(m.termIndex, "do", m.answers), sharedAvoid = M.adviceFor(m.termIndex, "avoid", m.answers);
+    var shared = [];
+    sharedEat.forEach(function (x) { shared.push("<li><b>" + esc(t("result.eatLabel")) + "</b>" + esc(x.text) + "</li>"); });
+    sharedDo.forEach(function (x) { shared.push("<li><b>" + esc(t("result.doLabel")) + "</b>" + esc(x.text) + "</li>"); });
+    sharedAvoid.forEach(function (x) { shared.push("<li><b>" + esc(t("result.avoidLabel")) + "</b>" + esc(x.text) + "</li>"); });
+    if (shared.length) h += '<div class="block" id="blkKb"><h3>' + esc(t("result.kbTitle")) + '</h3><ul class="eda">' + shared.join("") + "</ul></div>";
     h += '<h3 class="sec-title">' + esc(t("result.placesTitle")) + '</h3><p class="sec-sub">' + esc(t("result.placesSub", { season: S.label })) + "</p>";
     m.top.forEach(function (tp, i) {
       var p = R.placeById(tp.id), act = D.PLACE_ACTIONS[tp.id];
-      var eat = M.adviceFor(m.termIndex, "eat", m.answers).map(function (x) { return x.text; }), dos = M.adviceFor(m.termIndex, "do", m.answers).map(function (x) { return x.text; }), avoid = M.adviceFor(m.termIndex, "avoid", m.answers).map(function (x) { return x.text; });
+      /* Place-first EDA (P0-5): each card shows THIS place's food / todo / caution — not the same KB lines copied onto every card. */
+      var eda = [];
+      if (p.food && p.food[0]) eda.push("<li><b>" + esc(t("result.eatLabel")) + "</b>" + esc(p.food[0]) + "</li>");
+      if (p.todo && p.todo[0]) eda.push("<li><b>" + esc(t("result.doLabel")) + "</b>" + esc(p.todo[0]) + "</li>");
+      if (p.caution && p.caution[0]) eda.push("<li><b>" + esc(t("result.avoidLabel")) + "</b>" + esc(p.caution[0]) + "</li>");
       h += '<article class="place-card" data-place="' + tp.id + '">' +
         '<div class="photo tall">' + img(p.photo, p.alt, true) + '<span class="rank">' + esc(t("result.rank", { n: i + 1 })) + '</span><p class="photo-name">' + esc(p.name) + "</p></div>" +
         '<div class="place-main">' +
         '<p class="place-benefit">' + esc(p.benefit) + "</p>" + cindyLineHtml(p) +
         '<p class="why-label">' + esc(t("result.whyLabel")) + '</p><ul class="why">' + tp.reasons.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>" +
-        '<ul class="eda">' +
-        "<li><b>" + esc(t("result.eatLabel")) + "</b>" + esc(eat.concat(p.food.slice(0, 1)).join(t("punct.listSep"))) + "</li>" +
-        "<li><b>" + esc(t("result.doLabel")) + "</b>" + esc(dos.concat(p.todo.slice(0, 1)).join(t("punct.listSep"))) + "</li>" +
-        "<li><b>" + esc(t("result.avoidLabel")) + "</b>" + esc(avoid.concat(p.caution.slice(0, 1)).join(" ")) + "</li></ul>" +
+        (eda.length ? '<ul class="eda">' + eda.join("") + "</ul>" : "") +
         '<div class="btn-row"><button type="button" class="btn ghost small" data-action="openPlace" data-place="' + tp.id + '">' + esc(t("result.enter")) + "</button>" +
         (act ? '<button type="button" class="btn ghost small" data-action="openPractice" data-practice="' + act.practice + '" data-place="' + tp.id + '">' + esc(act.short) + "</button>" : "") + "</div></div></article>";
     });
@@ -379,8 +386,30 @@
         return '<li><span class="skip-name">' + esc(s.name) + "</span>" + esc(t("punct.colon")) + esc(s.reason) + "</li>";
       }).join("") + "</ul></div>";
     }
-    h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '">' + esc(t("result.relaxCta", { label: prac.label })) + "</button></div>";
+    /* P0-1: primary relax CTA carries the matched top place into the practice scene */
+    h += '<div class="stack"><button type="button" class="btn primary" data-action="openPractice" data-practice="' + prac.id + '"' +
+      (topId ? ' data-place="' + topId + '"' : "") + ">" + esc(t("result.relaxCta", { label: prac.label })) + "</button>";
+    h += '<button type="button" class="btn ghost" data-action="openCareplan">' + esc(t("result.careplanCta")) + "</button></div>";
+    h += '<p class="note-line" id="resultNext">' + esc(t("result.nextTerm", nextTermInfo())) + "</p>";
+    h += '<button type="button" class="text-link" data-action="openPlaces">' + esc(t("result.allPlaces")) + "</button>";
+    h += '<button type="button" class="text-link" data-action="openQuiz">' + esc(t("result.redo")) + "</button>";
+    h += '<p class="src-note">' + esc(t("result.srcNote")) + "</p>";
+    $("resultBody").innerHTML = h;
+    return c;
+  }
+  /* Split「为什么是你」→「本季安排」(P0-4): season note / eat / move / safety / home / card live here so the why page stays ≤ ~1.5 screens. */
+  function renderCareplan() {
+    var S = D.SEASONS[state.season];
+    if (!S) { go("home", null, true); return; }
+    var m = currentMatch();
+    var care = D.CARE[state.cond][state.season];
+    var prac = D.PRACTICES[m.practiceId] || D.PRACTICES.breath46;
+    var homeCard = '<div class="home-card" id="blkHome"><h3>' + esc(t("result.homeTitle")) + "</h3>" + (m.atHome ? '<p class="small">' + esc(t("result.atHomeFirst")) + "</p>" : "") + "<ul>" +
+      D.HOME_PLAN[state.cond].map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") +
+      '</ul><div class="btn-row"><button type="button" class="btn ghost" data-action="openPractice" data-practice="soak"' + (m.top[0] ? ' data-place="' + m.top[0].id + '"' : "") + ">" + esc(t("result.soakBtn")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="' + prac.id + '"' + (m.top[0] ? ' data-place="' + m.top[0].id + '"' : "") + ">" + esc(prac.short) + "</button></div></div>";
     var seasonLine = state.season === naturalSeason ? t("result.seasonToday", { term: term, season: S.label }) : t("result.seasonAhead", { season: S.label, months: S.months });
+    var h = "";
     h += '<div class="block" id="blkNote"><h3>' + esc(t("result.noteTitle")) + '</h3><p class="muted small">' + esc(seasonLine) + "</p><ul>" +
       care.note.map(function (n) { return '<li><span class="tag">' + esc(n.tag) + "</span>" + esc(n.text) + "</li>"; }).join("") + "</ul></div>";
     h += '<div class="block" id="blkEat"><h3>' + esc(t("result.eatTitle")) + "</h3><ul>" +
@@ -391,19 +420,16 @@
       '<p class="muted small">' + esc(t("result.eatNote")) + "</p></div>";
     h += '<div class="block" id="blkMove"><h3>' + esc(t("result.moveTitle")) + "</h3><ul>" + care.move.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul>" +
       '<p class="muted small">' + esc(t("result.moveFollow")) + '</p><div class="btn-row">' +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="walk">' + esc(t("result.moveWalk")) + "</button>" +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="baduanjin1">' + esc(t("result.moveBaduanjin")) + "</button>" +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="taiji1">' + esc(t("result.moveTaiji")) + "</button>" +
-      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="breath46">' + esc(t("result.moveBreath")) + "</button></div></div>";
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="walk"' + (m.top[0] ? ' data-place="' + m.top[0].id + '"' : "") + ">" + esc(t("result.moveWalk")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="baduanjin1"' + (m.top[0] ? ' data-place="' + m.top[0].id + '"' : "") + ">" + esc(t("result.moveBaduanjin")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="taiji1"' + (m.top[0] ? ' data-place="' + m.top[0].id + '"' : "") + ">" + esc(t("result.moveTaiji")) + "</button>" +
+      '<button type="button" class="btn ghost" data-action="openPractice" data-practice="breath46"' + (m.top[0] ? ' data-place="' + m.top[0].id + '"' : "") + ">" + esc(t("result.moveBreath")) + "</button></div></div>";
     h += '<div class="safety" id="blkSafety"><b>' + esc(t("result.caution")) + "</b>" + esc(care.safety) + "</div>";
-    if (!m.atHome) h += homeCard;
-    h += '<div class="stack"><button type="button" class="btn primary" data-action="openCard">' + esc(t("result.cardCta")) + "</button></div>";
-    h += '<p class="note-line" id="resultNext">' + esc(t("result.nextTerm", nextTermInfo())) + "</p>";
-    h += '<button type="button" class="text-link" data-action="openPlaces">' + esc(t("result.allPlaces")) + "</button>";
-    h += '<button type="button" class="text-link" data-action="openQuiz">' + esc(t("result.redo")) + "</button>";
+    h += homeCard;
+    h += '<div class="stack"><button type="button" class="btn primary" data-action="openCard">' + esc(t("result.cardCta")) + "</button>";
+    h += '<button type="button" class="btn ghost" data-action="openWhy">' + esc(t("careplan.backWhy")) + "</button></div>";
     h += '<p class="src-note">' + esc(t("result.srcNote")) + "</p>";
-    $("resultBody").innerHTML = h;
-    return c;
+    $("careplanBody").innerHTML = h;
   }
   function cindyLineHtml(p) {
     /* Cindy's own signed line. Empty until she provides it → renders nothing. Never generated. */
@@ -421,7 +447,14 @@
     /* full-bleed hero under the back button (v2026-09-28-a); the name and one feeling line sit on the photo */
     var h = '<div class="place-hero"><div class="photo">' + img(p.photo, p.alt) + '<div class="hero-text"><p class="place-area">' + esc(p.area) + '</p><h2 class="place-title">' + esc(p.name) + "</h2></div></div></div>";
     h += '<p class="place-benefit feel-line">' + esc(p.benefit) + "</p>" + cindyLineHtml(p);
-    if (D.IMMERSIVE[p.id]) h += '<button type="button" class="btn immersive-btn" data-action="openImmersive" data-place="' + p.id + '"><span class="imm-ico" aria-hidden="true"></span>' + esc(t("imm.open")) + "</button>";
+    if (D.IMMERSIVE[p.id]) {
+      h += '<button type="button" class="btn immersive-btn" data-action="openImmersive" data-place="' + p.id + '"><span class="imm-ico" aria-hidden="true"></span>' + esc(t("imm.open")) + "</button>";
+      h += '<p class="muted small imm-band">' + esc(t("imm.bandwidth")) + "</p>";
+    } else {
+      /* P1 non-Wudang: light atmosphere continuity — primary practice CTA names the place */
+      var acts0 = D.PLACE_ACTIVITIES[p.id] || [];
+      if (acts0[0]) h += '<p class="here-inline">' + esc(t("practice.here", { place: p.name })) + "</p>";
+    }
     /* 在这里可以做的事: the main action first, then more (existing practices only, each with a photo of this place). */
     var acts = D.PLACE_ACTIVITIES[p.id] || [];
     if (acts.length) {
@@ -514,10 +547,20 @@
    * photo, label and intro (D.PLACE_ACTIONS; plan v4 §5). */
   function practice() {
     var base = D.PRACTICES[state.practiceId] || D.PRACTICES.breath46, a = activityFor(state.actionPlace, base.id);
-    if (!a) return base;
+    var place = state.actionPlace ? R.placeById(state.actionPlace) : null;
+    if (!a) {
+      /* P1: switching modes mid-session keeps the place mood photo instead of jumping to a default stock shot */
+      if (!place) return base;
+      var keep = {}, k0;
+      for (k0 in base) keep[k0] = base[k0];
+      keep.photo = place.photo || base.photo;
+      keep.place = place.id;
+      keep.placeName = place.name;
+      return keep;
+    }
     var p = {}, k;
     for (k in base) p[k] = base[k];
-    p.label = a.label; p.intro = a.intro; p.photo = a.photo; p.place = a.place;
+    p.label = a.label; p.intro = a.intro; p.photo = a.photo; p.place = a.place; p.placeName = place ? place.name : "";
     return p;
   }
   function durationOf(p) {
@@ -536,15 +579,36 @@
     if (state.practiceId && ids.indexOf(state.practiceId) < 0) ids.push(state.practiceId);
     return ids;
   }
+  function setPracticeBg(src) {
+    if (!src) return;
+    $("practiceBg").style.backgroundImage = "url('" + D.sized(src, 828) + "')";
+    $("practiceBg").style.backgroundPosition = D.focal(src);
+    T.bgSrc = src;
+  }
   function renderPractice() {
     var p = practice();
     if (!T.running) { T.duration = p.kind === "guided" ? durationOf(p) : (T.durationFor === p.id ? T.duration : p.defaultDuration); T.durationFor = p.id; }
-    $("practiceBg").style.backgroundImage = "url('" + D.sized(p.photo, 828) + "')";
-    $("practiceBg").style.backgroundPosition = D.focal(p.photo);
+    setPracticeBg(p.photo);
     $("practiceModes").innerHTML = modeList().map(function (id) {
       var x = D.PRACTICES[id];
       return '<button type="button" class="chip' + (id === p.id ? " on" : "") + '" data-action="practiceMode" data-practice="' + id + '">' + esc(x.short) + "</button>";
     }).join("");
+    var here = $("practiceHere");
+    if (here) {
+      if (p.placeName || (p.place && R.placeById(p.place))) {
+        var nm = p.placeName || R.placeById(p.place).name;
+        here.textContent = t("practice.here", { place: nm });
+        here.classList.remove("hidden");
+      } else { here.textContent = ""; here.classList.add("hidden"); }
+    }
+    var gp = $("guidedProg");
+    if (gp) {
+      gp.classList.toggle("hidden", p.kind !== "guided");
+      if (p.kind === "guided") {
+        $("guidedBar").style.width = "0%";
+        $("guidedProgLabel").textContent = t("practice.guidedProg", { n: 1, total: p.steps.length });
+      }
+    }
     $("practiceTitle").textContent = p.label;
     $("practiceIntro").textContent = p.intro;
     var opts = "";
@@ -623,13 +687,24 @@
       $("breathCircle").style.transform = "scale(" + sPulse.toFixed(3) + ")";
       $("practiceCue").textContent = t(remain <= 60 ? "practice.soakLast" : "practice.soakOn");
     } else if (p.kind === "guided") {
-      var a2 = 0;
+      var a2 = 0, stepI = 0;
       for (var j = 0; j < p.steps.length; j++) {
         if (e < a2 + p.steps[j].sec || j === p.steps.length - 1) {
+          stepI = j;
           $("practiceCue").textContent = t("practice.guidedStep", { n: j + 1, total: p.steps.length, text: p.steps[j].text });
           break;
         }
         a2 += p.steps[j].sec;
+      }
+      if ($("guidedProg") && !$("guidedProg").classList.contains("hidden")) {
+        var pct = ((stepI + 1) / p.steps.length) * 100;
+        $("guidedBar").style.width = pct.toFixed(1) + "%";
+        $("guidedProgLabel").textContent = t("practice.guidedProg", { n: stepI + 1, total: p.steps.length });
+      }
+      /* Cindy practice stills: quiet mood change per step (no licensed video) */
+      if (p.stills && p.stills.length) {
+        var still = p.stills[Math.min(stepI, p.stills.length - 1)];
+        if (still && still !== T.bgSrc) setPracticeBg(still);
       }
     }
     if (remain <= 0) { timerStop(true); return; }
@@ -732,17 +807,24 @@
   /* ---------- care card ---------- */
   function cardModel() {
     var cond = state.cond, season = state.season, S = D.SEASONS[season];
-    var m = currentMatch(), top = m.top[0], place = top ? R.placeById(top.id) : null;
+    var m = currentMatch(), top = m.top[0];
+    /* P0-2: prefer the place just practiced / entered, else the top match */
+    var placeId = state.actionPlace || state.placeId || (top && top.id) || null;
+    var place = placeId ? R.placeById(placeId) : null;
+    var topForPlace = null;
+    if (place && top && top.id === place.id) topForPlace = top;
+    else if (place) m.top.forEach(function (x) { if (x.id === place.id) topForPlace = x; });
     cond = state.cond;
     var care = D.CARE[cond][season], prac = D.PRACTICES[m.practiceId] || D.PRACTICES[D.PRACTICE_DEFAULT[cond]];
     /* 「写出我的情况」 off (default): the card and its image carry NO condition-specific text — generic season items and a
      * generic safety line (same for every condition), and a 留一句 that names a body state stays off (rule R05). */
     var show = !!state.cardShowCond, G = D.CARE_GENERIC[season];
     var lineOk = show || lineTravels(state.line);
+    var climateReason = (topForPlace && topForPlace.climateReasons && topForPlace.climateReasons[0]) || (top && top.climateReasons && top.climateReasons[0]) || "";
     return {
       seasonLine: season === naturalSeason ? t("card.seasonToday", { season: S.label, term: term }) : t("card.seasonAhead", { season: S.label, months: S.months }),
       head: t("card.head", { who: state.cardShowCond ? condById(cond).label : t("card.whoAnon"), season: S.label }),
-      place: place ? { name: place.name, photo: place.photo, reason: top.climateReasons[0] /* weather only: answer reasons name body states (R05) */ } : null,
+      place: place ? { name: place.name, photo: place.photo, reason: climateReason /* weather only: answer reasons name body states (R05) */ } : null,
       photo: place ? place.photo : D.SEASON_PHOTO[season],
       items: show ? [
         t("card.itemEat", { tip: care.eat.tip, foods: care.eat.more.split(t("punct.listSep")).slice(0, 3).join(t("punct.listSep")) }),
@@ -901,6 +983,8 @@
     var line = travellingLine();
     if (!state.shareUrl) state.shareUrl = location.origin + location.pathname + "?s=" + newShareId() + (line ? "&l=" + b64e(line) : "") + langQuery();
     var S = D.SEASONS[state.season];
+    /* P0-3: 9:16 share uses the same place photo as the private card (season copy only; no body — R05) */
+    var cm = cardModel();
     return {
       url: state.shareUrl,
       title: t("share.title"),
@@ -910,7 +994,7 @@
         head: t("share.cardHead", { season: S.label }),
         sub: t("share.cardSub"),
         line: line,
-        photo: D.SEASON_PHOTO[state.season],
+        photo: cm.photo || D.SEASON_PHOTO[state.season],
         foot: D.DISCLAIMER
       }
     };
@@ -1362,7 +1446,7 @@
     season: function (el) {
       state.season = el.getAttribute("data-season");
       state.shareUrl = null; shareImgData = null;
-      if (state.view === "result" || state.view === "reveal") go(state.view, null, true); else render();
+      if (state.view === "result" || state.view === "reveal" || state.view === "careplan") go(state.view, null, true); else render();
     },
     back: function () { if (history.state && history.length > 1 && state.view !== "home") history.back(); else go("home", null, true); },
     goHome: function () { go("home"); },
@@ -1408,6 +1492,7 @@
       updateReveal();
     },
     openWhy: function () { go("result"); },
+    openCareplan: function () { go("careplan"); },
     openPlaces: function () { go("places"); },
     openRecords: function () { recEdit = -1; go("records"); },
     rematch: function () { logEvent("rematch"); ACTIONS.openQuiz(); },
@@ -1419,10 +1504,11 @@
     },
     /* 今天的 3 分钟: slow breathing (吸 4 呼 6, 3 minutes), shown with the photo of the last first match when that place's action is breathing. */
     openToday: function () {
-      var saved = lsGet(LS_MATCH), top = saved && saved.top && saved.top[0], a = top && D.PLACE_ACTIONS[top];
+      var saved = lsGet(LS_MATCH), top = saved && saved.top && saved.top[0];
       if (saved && saved.answers) state.answers = M.clean(saved.answers);
       T.done = false; T.durationFor = null;
-      go("practice", { practiceId: "breath46", actionPlace: a && a.practice === "breath46" ? top : null });
+      /* P1: daily 3-min breath keeps the matched place photo (activityFor falls back to practice photo if needed) */
+      go("practice", { practiceId: "breath46", actionPlace: top || null });
     },
     startFromShared: function () { logEvent("got_own_card"); ACTIONS.openQuiz(); },
     recNoteOpen: function (el) { recEdit = +el.getAttribute("data-i"); renderRecords(); try { $("recNoteInput").focus(); } catch (e) {} },
@@ -1446,7 +1532,14 @@
       T.done = false;
       go("practice", { practiceId: el.getAttribute("data-practice") || D.PRACTICE_DEFAULT[state.cond || "quiet"], actionPlace: el.getAttribute("data-place") || null });
     },
-    practiceMode: function (el) { if (T.running) return; T.done = false; state.practiceId = el.getAttribute("data-practice"); try { history.replaceState(snapshot(), "", location.pathname + cleanSearch()); } catch (e) {} renderPractice(); },
+    practiceMode: function (el) {
+      if (T.running) return;
+      T.done = false;
+      state.practiceId = el.getAttribute("data-practice");
+      /* P1: if this mode has no activity for the current place, keep the place photo (mood) but use the plain practice label */
+      try { history.replaceState(snapshot(), "", location.pathname + cleanSearch()); } catch (e) {}
+      renderPractice();
+    },
     practiceOpt: function (el) {
       if (T.running) return;
       if (el.hasAttribute("data-duration")) { T.duration = +el.getAttribute("data-duration"); T.durationFor = practice().id; }
@@ -1468,7 +1561,12 @@
     toggleCardCond: function (el) { state.cardShowCond = !!el.checked; renderCard(); },
     keepCard: function () {
       var ok = lsSet(LS_CARD, { cond: state.cond, season: state.season, showCond: !!state.cardShowCond, savedAt: Date.now() });
-      if (ok) { logEvent("card_kept"); var m = currentMatch(); addRecord({ kind: "card", place: m.top[0] ? m.top[0].id : null }); }
+      if (ok) {
+        logEvent("card_kept");
+        var m = currentMatch();
+        var place = state.actionPlace || state.placeId || (m.top[0] && m.top[0].id) || null;
+        addRecord({ kind: "card", place: place });
+      }
       note("savedNote", t(ok ? "card.kept" : "card.keepFailed"));
     },
     savePng: function () {

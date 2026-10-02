@@ -360,7 +360,7 @@ try {
       for (const id of D.CONDITIONS.map((x) => x.id)) {
         const { c, p } = await open(base + "?" + DQ + q, lang);
         await toResult(p, id);
-        await p.click('#resultBody [data-action="openCard"]');
+        await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
         await p.click("#btnOpenShare");
         await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
         const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText(), story: (window.__healoa.storyPng(), 1), url: location.href }));
@@ -382,7 +382,7 @@ try {
     for (const [l, list] of Object.entries(r.lineProbesMayTravel)) for (const s of list) if (!(await p.evaluate((s) => window.__healoa.lineTravels(s), s))) travel.push(l + ": " + s);
     // end-to-end: a condition line is kept on the own card but not in the link / share image
     const probe = r.lineProbesMustStayPrivate.zh[2];
-    await toResult(p, "sleep"); await p.click('#resultBody [data-action="openCard"]');
+    await toResult(p, "sleep"); await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
     await p.click("#btnOpenLine"); await p.fill("#lineInput", probe); await p.click('[data-action="saveLine"]');
     await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
     const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText() }));
@@ -467,7 +467,7 @@ try {
         visibleShare: [...document.querySelectorAll('#btnOpenShare,#sharePanel,[data-action="shareSend"]')].filter((e) => e.offsetParent).length };
     });
     check("R06.a", "home first screen has no share entry (no share buttons / panel, no 「发给」「分享」 text)", home.shareEls === 0 && home.visibleShare === 0 && !/发给|分享/.test(home.text), home);
-    await toResult(p, "gut"); await p.click('#resultBody [data-action="openCard"]');
+    await toResult(p, "gut"); await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
     const def = await p.evaluate(() => ({ keep: document.getElementById("btnKeep").textContent, primary: document.getElementById("btnKeep").classList.contains("primary"), showCond: document.getElementById("cardShowCond").checked, note: document.querySelector("#vCard [data-i18n='card.privateNote']").textContent, panelOpen: !document.getElementById("sharePanel").classList.contains("hidden") }));
     check("R06.b", `card defaults to 「${r.keepLabel.zh}」 (primary action), condition not written on the card, share panel closed`, def.keep === r.keepLabel.zh && def.primary && !def.showCond && /只给你自己看/.test(def.note) && !def.panelOpen, def);
     await p.click("#btnKeep");
@@ -493,11 +493,11 @@ try {
     await p.click('#revealBody [data-action="openWhy"]');
     const order = await p.evaluate(() => {
       const rb = document.getElementById("resultBody");
-      const card1 = rb.querySelector(".place-card"), why = card1 && card1.querySelector(".why li"), eda = card1 && card1.querySelectorAll(".eda li").length, enter = card1 && card1.querySelector('[data-action="openPlace"]'), toCard = rb.querySelector('[data-action="openCard"]');
+      const card1 = rb.querySelector(".place-card"), why = card1 && card1.querySelector(".why li"), eda = card1 && card1.querySelectorAll(".eda li").length, enter = card1 && card1.querySelector('[data-action="openPlace"]'), toCare = rb.querySelector('[data-action="openCareplan"]'), relax = rb.querySelector('.btn.primary[data-action="openPractice"]');
       const before = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & 4));
-      return { season: /^(秋|冬) · /.test(document.getElementById("resultTitle").textContent), reason: !!why, eda, placeBeforeCard: before(card1, toCard), enter: !!enter };
+      return { season: /^(秋|冬) · /.test(document.getElementById("resultTitle").textContent), reason: !!why, eda, placeBeforeCare: before(card1, toCare), enter: !!enter, relaxPlace: !!(relax && relax.getAttribute("data-place")) };
     });
-    steps.why = order.season && order.reason && order.eda === 3 && order.placeBeforeCard && order.enter;
+    steps.why = order.season && order.reason && order.eda === 3 && order.placeBeforeCare && order.enter && order.relaxPlace;
     await p.click('#resultBody .place-card [data-action="openPlace"] >> nth=0');
     steps.place = await p.isVisible("#vPlace") && (await p.$$('#placeBody [data-action="openPractice"][data-place]')).length >= 1;
     await p.click('#placeBody [data-action="openPractice"][data-place] >> nth=0');
@@ -556,7 +556,7 @@ try {
     await runQuiz(p, { q1: ["bp", "sleep"], q2: ["cold"], q3: ["damp"], q4: ["low"], q5: ["late", "iced"], q6: ["tense", "quiet"], q7: ["hotspring"], q8: ["near"] });
     const urls = [p.url()];
     await p.click('#revealBody [data-action="openWhy"]'); urls.push(p.url());
-    await p.click('#resultBody [data-action="openCard"]'); urls.push(p.url());
+    await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]'); urls.push(p.url());
     await p.click("#btnOpenShare"); await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
     const sh = await p.evaluate(() => ({ share: window.__healoa.buildShare(), drawn: window.__healoa.lastShareCardText(), story: (window.__healoa.storyPng(), window.__healoa.lastStoryText()), saved: localStorage.getItem("healoa.match.v1") }));
     const L = ctx.HEALOA_LOCALES.zh.content.quiz;

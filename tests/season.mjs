@@ -87,7 +87,10 @@ try {
     const { c, p } = await home(d);
     const now = await p.textContent("#homeSeasonNow");
     await toResult(p, "cold");
-    probes[d] = { now, title: await p.textContent("#resultTitle"), note: await p.textContent("#blkNote .muted") };
+    const title = await p.textContent("#resultTitle");
+    await p.click('#resultBody [data-action="openCareplan"]');
+    await p.waitForSelector("#vCareplan:not(.hidden)");
+    probes[d] = { now, title, note: await p.textContent("#blkNote .muted") };
     await c.close();
   }
   check("2026-11-06 home: 霜降前后 · 秋天; result 秋 ·", probes["2026-11-06"].now === "今天是霜降前后 · 秋天" && probes["2026-11-06"].title.startsWith("秋 ·"), probes["2026-11-06"]);

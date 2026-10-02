@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-09-28-c";
+  var VERSION = "v2026-10-01-a";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -81,7 +81,15 @@
     "assets/places/harbin/04-stairs-street-blue-sky.jpg": { w: 787, h: 1400, fx: 50, fy: 60 },
     "assets/places/cabin/04-soup-window-warm.jpg": { w: 1400, h: 1050, fx: 58, fy: 58 },
     "assets/places/cabin/02-cabin-through-birch.jpg": { w: 787, h: 1400, fx: 50, fy: 55 },
-    "assets/places/forest/path/01-leaf-tunnel.jpg": { w: 787, h: 1400, fx: 50, fy: 62 }
+    "assets/places/forest/path/01-leaf-tunnel.jpg": { w: 787, h: 1400, fx: 50, fy: 62 },
+    "assets/places/wudang/06-courtyard-class.jpg": { w: 1440, h: 1080, fx: 50, fy: 55 },
+    "assets/places/wudang/07-zixiao-steps-mist.jpg": { w: 459, h: 689, fx: 48, fy: 58 },
+    "assets/practices/01-courtyard-group.jpg": { w: 1280, h: 1707, fx: 48, fy: 55 },
+    "assets/practices/02-path-balance.jpg": { w: 1280, h: 1707, fx: 52, fy: 48 },
+    "assets/practices/03-indoor-balance.jpg": { w: 1320, h: 1814, fx: 55, fy: 40 },
+    "assets/practices/04-indoor-arm-raise.jpg": { w: 1027, h: 1868, fx: 52, fy: 38 },
+    "assets/places/wudang/06-courtyard-class.jpg": { w: 1440, h: 1080, fx: 50, fy: 55 },
+    "assets/places/wudang/07-zixiao-steps-mist.jpg": { w: 459, h: 689, fx: 48, fy: 58 }
   };
   function focal(src) { var m = PHOTO_META[src]; return m ? m.fx + "% " + m.fy + "%" : "50% 50%"; }
   /* v2026-09-28-a: compressed responsive copies of every photo above (tools/make_sizes.py): <name>-w480 / -w828 / -w1200.webp
@@ -183,18 +191,44 @@
     baduanjin1: {
       id: "baduanjin1", kind: "guided",
       steps: [10, 12, 12, 10, 12, 12, 12],
-      photo: "assets/places/wudang/homestay/02-window-tea-terrace.jpg"
+      photo: "assets/practices/04-indoor-arm-raise.jpg",
+      stills: [
+        "assets/practices/04-indoor-arm-raise.jpg",
+        "assets/practices/01-courtyard-group.jpg",
+        "assets/practices/03-indoor-balance.jpg",
+        "assets/practices/02-path-balance.jpg",
+        "assets/places/wudang/06-courtyard-class.jpg",
+        "assets/places/wudang/07-zixiao-steps-mist.jpg",
+        "assets/practices/04-indoor-arm-raise.jpg"
+      ]
     },
     taiji1: {
       id: "taiji1", kind: "guided",
       steps: [10, 10, 12, 12, 12, 12],
-      photo: "assets/places/wudang/01-cloud-sea-sun.jpg"
+      photo: "assets/practices/02-path-balance.jpg",
+      stills: [
+        "assets/practices/01-courtyard-group.jpg",
+        "assets/practices/02-path-balance.jpg",
+        "assets/practices/03-indoor-balance.jpg",
+        "assets/practices/04-indoor-arm-raise.jpg",
+        "assets/places/wudang/06-courtyard-class.jpg",
+        "assets/places/wudang/07-zixiao-steps-mist.jpg"
+      ]
     },
     /* v2026-09-27-y 「不爱运动也能做」: 3 minutes sitting on a chair, tiny slow moves, natural breathing (no hold at all). */
     sitEasy: {
       id: "sitEasy", kind: "guided",
       steps: [20, 25, 25, 25, 25, 30, 30],
-      photo: "assets/places/wudang/homestay/02-window-tea-terrace.jpg"
+      photo: "assets/practices/03-indoor-balance.jpg",
+      stills: [
+        "assets/practices/03-indoor-balance.jpg",
+        "assets/practices/01-courtyard-group.jpg",
+        "assets/practices/04-indoor-arm-raise.jpg",
+        "assets/practices/02-path-balance.jpg",
+        "assets/places/wudang/06-courtyard-class.jpg",
+        "assets/practices/03-indoor-balance.jpg",
+        "assets/places/wudang/07-zixiao-steps-mist.jpg"
+      ]
     }
   };
   var PRACTICES = {};
@@ -269,7 +303,7 @@
     winter: "assets/places/cabin/02-cabin-through-birch.jpg"
   };
   var SEASON_WIDE = {
-    autumn: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg",
+    autumn: "assets/places/wudang/06-courtyard-class.jpg",
     winter: "assets/places/harbin/02-night-lanterns-snowman.jpg"
   };
 

@@ -57,3 +57,6 @@ See the `photo-audit-cabin-forest.png` sheet. In use: cabin/04-soup-window-warm 
 - **Wudang:** a calm **landscape** (cloud sea or terrace, no crowds) for desktop. Right now desktop falls back to the blurred portrait hero.
 - **Pattaya:** the dusk harbour mood in **portrait**. The best Pattaya photo is landscape only, so the phone hero is the pool.
 - **Harbin:** fine as it is (good portrait plus landscape).
+
+## Practice stills (2026-10-01)
+Cindy’s own Tai Chi / Baduanjin stills in `assets/practices/`. Prefer vertical for phone practice UI. `06-zixiao-steps-mist` / `wudang/07` are atmospheric but low resolution — mood/gallery only, not place hero. Courtyard class (`wudang/06`) is the autumn desktop wide backdrop.

@@ -23,12 +23,12 @@ const D = "?date=2026-09-26";
 const pageErrors = [];
 let server, browser;
 try {
-  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-09-28-c: 3D hint without zoom, D-28-02; before that v2026-09-28-b: about page gains the World Labs 3D line; before that v2026-09-28-a: solar-term greeting, full-bleed reveal hero, sound chip, stop panel, D-28-01; before that v2026-09-27-y: photo-first redesign, copyright line, 9:16 share, reminder, music, more quiz options, D-27-06) ----------
+  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-10-01-a: 3D hint without zoom, D-28-02; before that v2026-09-28-b: about page gains the World Labs 3D line; before that v2026-09-28-a: solar-term greeting, full-bleed reveal hero, sound chip, stop panel, D-28-01; before that v2026-09-27-y: photo-first redesign, copyright line, 9:16 share, reminder, music, more quiz options, D-27-06) ----------
   const golden = JSON.parse(fs.readFileSync(GOLDEN, "utf8"));
   const now = await captureZh();
   const diff = diffGolden(golden, now);
   const n = (o) => Object.keys(o).length;
-  check(`zh identical to the v2026-09-28-c zh snapshot (intentional update, D-28-02 3D hint; D-27-07 about: 3D line; D-28-01 solar-term greeting + reveal hero + sound chip + stop panel; D-27-06 photo-first + copyright + 9:16 share + reminder + music + more options; D-27-05: v4 home + 怎么用, 8-question quiz, flip reveal, 为什么是你, all places, 我的养护记录): home, shared, quiz (8 screens), reveal, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
+  check(`zh identical to the v2026-10-01-a zh snapshot (intentional update, D-28-02 3D hint; D-27-07 about: 3D line; D-28-01 solar-term greeting + reveal hero + sound chip + stop panel; D-27-06 photo-first + copyright + 9:16 share + reminder + music + more options; D-27-05: v4 home + 怎么用, 8-question quiz, flip reveal, 为什么是你, all places, 我的养护记录): home, shared, quiz (8 screens), reveal, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
     diff.length === 0, diff.length ? diff.slice(0, 6) : "identical");
   check("key zh screens contain the locked strings", golden.home.includes("这个节气，哪里最适合你？") && now.home === golden.home &&
     CONDITION_LABELS.every((l) => now.quiz.join("|").includes(l)) && now.result["bp/winter"].includes("这个季节先不选") && now.card["bp/autumn"].view.includes("只留给自己") && now.head.lang === "zh-CN");
@@ -115,7 +115,7 @@ try {
     const { ctx, p } = await open(base + D);
     const home = await p.evaluate(() => ({ sw: document.getElementById("langSwitch").classList.contains("hidden") && document.getElementById("langSwitch").children.length === 0, foot: document.getElementById("socialFoot").classList.contains("hidden") }));
     await toResult(p, "gut");
-    await p.click('#resultBody [data-action="openCard"]');
+    await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
     const card = await p.evaluate(() => ({ card: document.getElementById("socialCard").classList.contains("hidden"), follow: document.body.innerText.includes("关注我们") }));
     check("language switcher hidden (only 1 complete locale); 「关注我们」 hidden in footer + season card (no social entries)", home.sw && home.foot && card.card && !card.follow, { home, card });
     await ctx.close();
@@ -153,7 +153,7 @@ try {
     const { ctx, p } = await open(base + D, { routes: { "**/app/social.js*": fixtureSocial } });
     const foot = await p.evaluate(() => { const el = document.getElementById("socialFoot"); return { hidden: el.classList.contains("hidden"), text: el.innerText, links: [...el.querySelectorAll("a")].map((a) => ({ href: a.getAttribute("href"), target: a.target, rel: a.rel, action: a.getAttribute("data-action") })) }; });
     await toResult(p, "cold");
-    await p.click('#resultBody [data-action="openCard"]');
+    await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
     const card = await p.evaluate(() => { const el = document.getElementById("socialCard"); return { hidden: el.classList.contains("hidden"), text: el.innerText, n: el.querySelectorAll("a").length }; });
     check("with entries (fixture): 「关注我们」 row in footer + season card; only https links; opens in new tab with noopener",
       !foot.hidden && foot.text.includes("关注我们") && foot.links.length === 1 && foot.links[0].href === "https://example.org/healoa-fixture" && foot.links[0].target === "_blank" && /noopener/.test(foot.links[0].rel) && foot.links[0].action === "openSocial" && !card.hidden && card.text.includes("关注我们") && card.n === 1,
@@ -165,7 +165,7 @@ try {
   {
     const { ctx, p } = await open(base + D, { init: () => { window.__shared = []; Object.defineProperty(navigator, "share", { configurable: true, value: (d) => { window.__shared.push({ title: d.title, text: d.text, url: d.url, files: (d.files || []).length }); return Promise.resolve(); } }); } });
     await toResult(p, "sleep");
-    await p.click('#resultBody [data-action="openCard"]');
+    await p.click('#resultBody [data-action="openCareplan"]'); await p.waitForSelector('#vCareplan:not(.hidden)'); await p.click('#careplanBody [data-action="openCard"]');
     await p.click("#btnOpenShare");
     await p.waitForFunction(() => document.getElementById("shareImg").src.startsWith("data:"));
     await p.click('[data-action="shareSend"]');
