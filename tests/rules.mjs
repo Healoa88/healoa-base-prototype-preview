@@ -161,20 +161,30 @@ function textHolds(txt) {
   const seq = [s["home.step1"], s["home.step2"], s["home.step3"]];
   check("R09.b", "home 「怎么用」 steps (v4): 1 花 2 分钟点几下说身体和心情 → 2 翻牌看 3 个地方和原因 → 3 走进一个地方放松、记下这一次", /2 分钟/.test(seq[0]) && /身体/.test(seq[0]) && /心情/.test(seq[0]) && /翻牌/.test(seq[1]) && /3 个地方/.test(seq[1]) && /原因/.test(seq[1]) && /走进/.test(seq[2]) && /放松/.test(seq[2]) && seq[2].indexOf("放松") < seq[2].indexOf("记下"), seq);
 }
-// R10.a — no overlay credit anywhere in the source; one copyright line in the footer, inside the full-screen views,
-// and drawn on the bottom edge of every exported image; every photo <img> goes through img() (focal point, cover).
+// R10.a — no overlay credit; no consumer Cindy / Cindy Yang photo credit or blanket copyright line (D-02-01);
+// every photo <img> goes through img() (focal point, cover).
 {
   const app = stripJsComments(read("app/app.js")), html = read("index.html"), css = read("app/app.css");
   const r = rule("R10");
   const imgLines = app.split("\n").filter((l) => /<img src=/.test(l));
   const zhCopy = ctx.HEALOA_LOCALES.zh.strings.copyright;
-  const inlineCount = (html.match(/class="copyright copyright-inline" data-i18n="copyright"/g) || []).length;
-  const ok = zhCopy === r.copyrightZh && !app.includes(r.bannedOverlay) && !html.includes(r.bannedOverlay) && !/D\.CREDIT|class=\\?"credit/.test(app) && !/\.credit\b/.test(css) &&
+  const locales = ["zh", "en", "ja"];
+  const consumerKeys = ["copyright", "imm3d.note", "about.photos", "about.world3d", "about.immersive", "music.noteTrack", "place.cindyLine"];
+  const named = [];
+  for (const l of locales) {
+    const s = ctx.HEALOA_LOCALES[l].strings;
+    for (const k of consumerKeys) {
+      const v = s[k] || "";
+      if (/Cindy\s*Yang|Photo\s*·\s*Cindy|©\s*Cindy|\bCindy\b/.test(v)) named.push(l + ":" + k);
+    }
+  }
+  const ok = zhCopy === "" && r.copyrightZh === "" && !app.includes(r.bannedOverlay) && !html.includes(r.bannedOverlay) &&
+    !html.includes(r.revokedCopyrightZh) && !Object.values(ctx.HEALOA_LOCALES).some((Lc) => (Lc.strings.copyright || "").includes("Cindy")) &&
+    !/D\.CREDIT|class=\\?"credit/.test(app) && !/\.credit\b/.test(css) &&
     imgLines.length === 1 && /function img\(/.test(app) && /object-position:/.test(app) &&
-    /<footer[\s\S]*id="copyright" data-i18n="copyright"/.test(html) && inlineCount >= 2 &&
-    /function copyrightRow\(/.test(app) && (app.match(/copyrightRow\(/g) || []).length >= 3 && ["en", "ja"].every((l) => ctx.HEALOA_LOCALES[l].strings.copyright);
-  check("R10.a", `no 「${r.bannedOverlay}」 overlay in source; copyright line 「${r.copyrightZh}」 in the footer + ${inlineCount} full-screen views + drawn by copyrightRow() on exports; all photo <img> built by img() with a focal object-position`, ok,
-    { imgLines: imgLines.length, inlineCount, zhCopy });
+    /function copyrightRow\(/.test(app) && named.length === 0;
+  check("R10.a", `no 「${r.bannedOverlay}」 overlay; copyright strings empty (revoked blanket line); no Cindy / Cindy Yang in consumer photo/about strings; all photo <img> via img() with focal object-position`, ok,
+    { imgLines: imgLines.length, zhCopy, named });
 }
 // R18.a — share config: only buttons that work on their own; QR only in zh; exports are 9:16 1080×1920.
 {
@@ -249,15 +259,15 @@ try {
   }
   const text = (p) => p.evaluate(() => document.body.innerText);
   const hrefs = (p) => p.evaluate(() => [...document.querySelectorAll("[href],[src],[action]")].map((e) => e.getAttribute("href") || e.getAttribute("src") || e.getAttribute("action")));
-  // R10.b audit: on the visible view, no overlay credit; a copyright line is displayed (footer, or inside the full-screen
-  // view); every Cindy photo is object-fit: cover (never stretched) with a focal object-position.
-  const creditAudit = (p, r) => p.evaluate(({ banned, copy }) => {
+  // R10.b audit: no overlay credit; no Cindy / Cindy Yang photo credit on screen; photos object-fit: cover + focal.
+  const creditAudit = (p, r) => p.evaluate(({ banned, revoked }) => {
     const v = document.querySelector(".view:not(.hidden)");
     const bad = [];
     let n = 0;
-    if (document.body.innerText.includes(banned)) bad.push("overlay credit text");
-    const lines = [...document.querySelectorAll(".copyright")].filter((e) => e.offsetParent && e.textContent === copy);
-    if (!lines.length) bad.push("no visible copyright line");
+    const body = document.body.innerText;
+    if (body.includes(banned)) bad.push("overlay credit text");
+    if (revoked && body.includes(revoked)) bad.push("revoked copyright line");
+    if (/Cindy\s*Yang|©\s*Cindy|\bCindy\b/.test(body)) bad.push("Cindy name in UI");
     for (const im of v.querySelectorAll("img")) {
       const src = im.getAttribute("src") || "";
       if (!src.startsWith("assets/") || !im.offsetParent) continue;
@@ -266,7 +276,7 @@ try {
       if (cs.objectFit !== "cover" || !im.style.objectPosition) bad.push(src + " fit=" + cs.objectFit);
     }
     return { n, bad };
-  }, { banned: r.bannedOverlay, copy: r.copyrightZh });
+  }, { banned: r.bannedOverlay, revoked: r.revokedCopyrightZh });
 
   // ---- sweep of the zh main path: every screen scanned with ALL rule word lists + outcome patterns; links + credits audited ----
   {
@@ -303,8 +313,8 @@ try {
     check("R01.c", "rendered zh sweep (home, 8 quiz screens, flip reveal, 为什么是你, all places, 我的养护记录, 12 results, every photo place, 12 cards, every practice, 留一句, share panel + share image, about) → 0 hits for ALL rule word lists (R01/R02/R03/R04/R07/R12) and 0 outcome phrases", hits.length === 0 && outcome.length === 0, { hits: hits.slice(0, 6), outcome: outcome.slice(0, 4) });
     check("R07.b", "no points / rewards / streak / invite wording rendered anywhere on the zh path incl. the share flow + share image", r07.length === 0 && !/积分|奖励|打卡|签到|邀请|返利/.test(drawn), r07.slice(0, 4));
     check("R08.b", "no link / src / action to healoa.com in any rendered zh screen", links.length === 0, links.slice(0, 4));
-    check("R10.b", `every swept screen shows the copyright line and no overlay credit; all ${credits.n} rendered Cindy photos are object-fit: cover with a focal point (never stretched)`, credits.n >= 20 && credits.bad.length === 0, credits.bad.slice(0, 5));
-    check("R10.c", "the 9:16 share image draws the copyright line on its bottom edge, and no overlay credit", drawn.includes(rule("R10").copyrightZh) && !drawn.includes(rule("R10").bannedOverlay), drawn.slice(-3));
+    check("R10.b", `every swept screen has no overlay / Cindy photo credit and no revoked copyright line; all ${credits.n} rendered photos are object-fit: cover with a focal point (never stretched)`, credits.n >= 20 && credits.bad.length === 0, credits.bad.slice(0, 5));
+    check("R10.c", "the 9:16 share image does not draw the revoked copyright line or overlay credit, and names no Cindy", !drawn.includes(rule("R10").revokedCopyrightZh) && !drawn.includes(rule("R10").bannedOverlay) && !/Cindy/.test(drawn), drawn.slice(-3));
     await c.close();
   }
 

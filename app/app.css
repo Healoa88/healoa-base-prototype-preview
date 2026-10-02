@@ -371,6 +371,7 @@ body.practicing .site-foot { display: none; }
 
 /* Copyright: bottom of every page (footer) and inline in the full-screen views */
 .copyright { font-size: 13px; color: var(--muted); text-align: center; margin: 4px 0 8px; line-height: 1.5; }
+.copyright:empty { display: none; margin: 0; }
 .copyright-inline { color: rgba(255,255,255,.78); margin-top: 14px; }
 
 /* Desktop / landscape: an intentional centred phone-width frame over a blurred wide photo of the season or place

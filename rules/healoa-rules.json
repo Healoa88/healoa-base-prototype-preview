@@ -401,16 +401,22 @@
     },
     {
       "id": "R10",
-      "zh": "照片上不压任何署名；每一页底部（全屏的练习 / 沉浸页在页内）和导出的图片、视频底边都有一行版权声明：「本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。」（D-27-06）",
-      "en": "No credit is overlaid on any photo; one copyright line (All place photos © Cindy Yang …) sits at the bottom of every page (inside the full-screen practice / immersive views) and on the bottom edge of every exported image and video.",
+      "zh": "照片上不压任何署名；客户界面不出现「Photo · Cindy Yang」或「本 App 所有地方照片均由 Cindy Yang…」一类照片署名 / 版权行，也不以 Cindy / Cindy Yang 署名照片。（D-02-01 撤销 D-27-06 的统一版权行）",
+      "en": "No credit is overlaid on any photo; no consumer-facing Cindy / Cindy Yang photo credit, stamp, or blanket copyright line (D-02-01 revokes the D-27-06 footer).",
       "photoPathPrefix": "assets/",
       "enforcedBy": [
         "rules:R10.a",
         "rules:R10.b",
         "rules:R10.c"
       ],
-      "copyrightZh": "本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。",
-      "bannedOverlay": "Photo · Cindy Yang"
+      "copyrightZh": "",
+      "bannedOverlay": "Photo · Cindy Yang",
+      "bannedNames": [
+        "Cindy Yang",
+        "Cindy",
+        "© Cindy"
+      ],
+      "revokedCopyrightZh": "本 App 所有地方照片均由 Cindy Yang 实地拍摄，受版权保护，未经许可请勿转载。"
     },
     {
       "id": "R11",

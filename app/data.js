@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-10-01-a";
+  var VERSION = "v2026-10-02-a";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -55,8 +55,7 @@
     xishuangbanna: { elev: 1136, autumn: { t: 19.9, rh: 84, pr: 3.2, months: [22.1, 20.2, 17.3] }, winter: { t: 15.5, rh: 70, pr: 0.7, months: [14.5, 14.7, 17.2] } }
   };
 
-  /* v2026-09-27-y: no credit is laid over any photo any more (Cindy, 2026-09-27). One copyright line sits at the bottom of
-   * every page and at the bottom edge of every exported image: locale string "copyright" (rule R10). */
+  /* v2026-10-02-a: no overlay credit; no consumer-facing Cindy / Cindy Yang photo credit or blanket copyright line (R10, D-02-01). */
 
   /* Art direction for every photo the app shows (photo audit 2026-09-27, see assets/places/PHOTO_AUDIT.md):
    * w / h = pixel size, fx / fy = focal point in % (what must stay in frame when the photo is cropped with object-fit: cover

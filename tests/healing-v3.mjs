@@ -86,11 +86,11 @@ try {
     const one = await q.$$eval("#revealBody .flip-card.flipped", (els) => els.length);
     await q.click('#revealBody [data-action="flipAll"]');
     const all = await q.$$eval("#revealBody .flip-card.flipped", (els) => els.length);
-    // v2026-09-27-y (R10): no overlay credit on the photos; the copyright line sits at the bottom of the page.
-    const credit = !(await q.textContent("#revealBody")).includes("Photo · Cindy Yang") && (await q.$$eval("#revealBody .flip-back img", (els) => els.every((e) => getComputedStyle(e).objectFit === "cover"))) && (await q.isVisible("#copyright"));
+    // v2026-10-02-a (R10 / D-02-01): no overlay credit; no Cindy name; no blanket copyright footer.
+    const credit = !(await q.textContent("#revealBody")).includes("Photo · Cindy Yang") && !(await q.textContent("body")).includes("Cindy") && (await q.$$eval("#revealBody .flip-back img", (els) => els.every((e) => getComputedStyle(e).objectFit === "cover")));
     await q.click('#revealBody [data-action="openWhy"]');
     const why = await q.$$eval("#resultBody .place-card", (els) => els.length);
-    check("home → quiz → flip reveal: 1–3 face-down cards, tap flips one, 「全部翻开」 flips all, full-bleed photos (cover, no overlay credit, copyright line in the footer), 「看看为什么」 → places with reasons",
+    check("home → quiz → flip reveal: 1–3 face-down cards, tap flips one, 「全部翻开」 flips all, full-bleed photos (cover, no overlay / Cindy credit), 「看看为什么」 → places with reasons",
       cards >= 1 && cards <= 3 && backHidden && one === 1 && all === cards && credit && why === cards, { cards, one, all, why });
     await q.close();
   }
@@ -119,10 +119,10 @@ try {
       for (const h of scanRendered(await allText(q), await pageLang(q))) domHits.push({ state: `place ${id}/${season}`, ...h });
       if ((await overflow(q)) > 0) overflowStates.push(`place ${id}/${season}`);
       if (id === "bp" && season === "winter") {
-        check("place card: photo + copyright line + 3 reasons with numbers + 当地吃 + 做什么 + 适合谁 + 要避开什么 + 在这里做一件事", await q.evaluate(() => {
+        check("place card: photo + 3 reasons with numbers + 当地吃 + 做什么 + 适合谁 + 要避开什么 + 在这里做一件事 (no Cindy credit)", await q.evaluate(() => {
           const b = document.getElementById("placeBody");
           const reasons = [...b.querySelectorAll(".reasons li")].map((l) => l.textContent);
-          return !!b.querySelector(".place-hero img") && !b.textContent.includes("Photo · Cindy Yang") && !!document.getElementById("copyright").offsetParent && reasons.length === 3 && reasons.filter((r) => /\d/.test(r)).length >= 2 &&
+          return !!b.querySelector(".place-hero img") && !b.textContent.includes("Photo · Cindy Yang") && !/Cindy/.test(document.body.innerText) && reasons.length === 3 && reasons.filter((r) => /\d/.test(r)).length >= 2 &&
             b.textContent.includes("在这里可以吃") && b.textContent.includes("在这里做什么") && b.textContent.includes("要避开什么") && b.textContent.includes("适合谁") && b.textContent.includes("在这里做一件事");
         }));
         check("place card: Cindy line slot renders nothing while empty", (await q.$$(".cindy-line")).length === 0);
