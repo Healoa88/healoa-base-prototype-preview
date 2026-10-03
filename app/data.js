@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-10-02-b";
+  var VERSION = "v2026-10-03-a";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -340,11 +340,9 @@
     winter: "assets/places/harbin/02-night-lanterns-snowman.jpg"
   };
 
-  /* Background music for the relaxation practices (sound toggle, off by default).
-   * src: Cindy supplies her own licensed track → put it at assets/audio/relax-cindy.mp3 and set src to that path.
-   * Until then src is null and the app plays a soft pad synthesised on the phone with WebAudio (no recording, no
-   * copyrighted music). Never ship a track we do not hold the rights to. */
-  var MUSIC = { src: null, plannedPath: "assets/audio/relax-cindy.mp3" };
+  /* Practice bed (v2026-10-03-a). src is a 65s calm excerpt of a purchased track (see assets/audio/SOURCES.md).
+   * The practice videos themselves have no audio. Without src, the phone synthesises a soft pad. */
+  var MUSIC = { src: "assets/audio/sono-bed.mp3", plannedPath: "assets/audio/sono-bed.mp3" };
 
   /* Immersive view per place (v2026-09-27-y).
    * depth = a depth map made ON THIS MACHINE from Cindy's photo (tools/make_depth.py, Depth Anything V2 Small, Apache-2.0);

@@ -599,8 +599,8 @@
     },
     {
       "id": "R19",
-      "zh": "提醒和音乐都是自己打开才有、默认关；提醒语气轻、错过不提示、没有连续天数；音乐只用手机当场合成的音色或 Cindy 提供的有版权的曲子（D-27-06）。",
-      "en": "Reminders and music are opt-in and off by default; reminders are gentle, no streaks, nothing for a missed day; music is synthesised on the device or a licensed track supplied by Cindy.",
+      "zh": "提醒默认关，语气轻、错过不提示、没有连续天数。练习声音这一版预览默认开，右上角可关。音乐用已购的本机曲子，没有曲子时用手机当场合成的音色（D-03-01）。",
+      "en": "Reminders stay opt-in and off by default, gentle, no streaks. The practice sound switch defaults on for this preview and can be turned off. Music is a purchased local file, or a tone synthesised on the phone when there is no file (D-03-01).",
       "enforcedBy": [
         "rules:R19.a",
         "rules:R19.b"

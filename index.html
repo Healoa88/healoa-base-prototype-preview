@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-10-02-b">
+<meta name="healoa-version" content="v2026-10-03-a">
 <meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-10-02-b）</title>
+<title>HeaLoa · 顺着季节养（预览 v2026-10-03-a）</title>
 <link rel="stylesheet" href="app/app.css?v=2026-10-01-a">
 <!-- 3D view libraries (vendored, pinned): three.js 0.186.1 + Spark 2.2.0 (World Labs). Loaded only when the 3D view opens. -->
 <script type="importmap">{ "imports": { "three": "./vendor/three-0.186.1/three.module.js", "three/addons/": "./vendor/three-0.186.1/addons/", "@sparkjsdev/spark": "./vendor/spark-2.2.0/spark.module.min.js" } }</script>
@@ -80,7 +80,7 @@
   <section id="vReveal" class="view hidden" data-view="reveal" aria-labelledby="revealTitle">
     <div class="rv-hero">
       <img id="revealHeroImg" class="rv-hero-img" alt="">
-      <div class="topbar light over"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnRevealSound" data-action="toggleMusic" aria-pressed="false" data-i18n="sound.off">声音：关</button></div>
+      <div class="topbar light over"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnRevealSound" data-action="toggleMusic" aria-pressed="true" data-i18n="sound.on">声音：开</button></div>
       <div class="rv-hero-text">
         <p class="rv-term" id="revealTerm"></p>
         <p class="rv-greet" id="revealGreet"></p>
@@ -134,9 +134,9 @@
 
   <!-- 放松练习 -->
   <section id="vPractice" class="view hidden" data-view="practice">
-    <div class="practice-bg" id="practiceBg"><video id="practiceClip" class="practice-clip" muted playsinline loop preload="none"></video></div>
+    <div class="practice-bg" id="practiceBg"><video id="practiceClip" class="practice-clip" muted playsinline webkit-playsinline loop autoplay preload="auto"></video></div>
     <div class="practice-inner">
-      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnMusic" data-action="toggleMusic" aria-pressed="false" data-i18n="music.off">音乐：关</button></div>
+      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnMusic" data-action="toggleMusic" aria-pressed="true" data-i18n="sound.on">声音：开</button></div>
       <p class="music-note hidden" id="musicNote"></p>
       <div class="chip-row light" id="practiceModes" role="group" aria-label="选择练习" data-i18n-attr="aria-label:practice.modesAria"></div>
       <p class="here-chip hidden" id="practiceHere" aria-live="polite"></p>
@@ -148,7 +148,7 @@
       <p class="countdown" id="practiceClock">3:00</p>
       <div class="opt-row" id="practiceOpts"></div>
       <div class="controls">
-        <button type="button" class="btn primary" id="btnStart" data-action="practiceStart" data-i18n="practice.start">开始</button>
+        <button type="button" class="btn primary big" id="btnStart" data-action="practiceStart" data-i18n="practice.start">开始</button>
         <button type="button" class="btn ghost hidden" id="btnPause" data-action="practicePause" data-i18n="practice.pause">暂停</button>
         <button type="button" class="btn ghost hidden" id="btnStop" data-action="practiceStop" data-i18n="practice.stop">停止</button>
       </div>
@@ -261,7 +261,7 @@
       <div id="imm3dLoad" class="imm3d-load hidden" role="status" aria-live="polite"><div class="imm3d-bar"><i id="imm3dBar"></i></div><span id="imm3dPct"></span></div>
     </div>
     <div class="imm-ui">
-      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnImmSound" data-action="toggleMusic" aria-pressed="false" data-i18n="music.off">音乐：关</button></div>
+      <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnImmSound" data-action="toggleMusic" aria-pressed="true" data-i18n="sound.on">声音：开</button></div>
       <div class="imm-bottom">
         <!-- title / hint / World Labs note: in 3D they fade out a few seconds after the scene is ready; a tap on the scene brings them back -->
         <div class="imm-info" id="immInfo">
@@ -305,7 +305,7 @@
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-10-02-b</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-10-03-a</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
         <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
         <p data-i18n-html="about.photos"><b>照片：</b>地点下的一句感受有写的才显示，没有的先空着。</p>

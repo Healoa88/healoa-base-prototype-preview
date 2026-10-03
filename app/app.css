@@ -615,3 +615,25 @@ body::before {
 #vResult .sec-sub { margin: 0 0 6px; }
 #vResult .place-card { margin: 8px 0; }
 #vResult .place-card .photo.tall { aspect-ratio: 4 / 5; min-height: 280px; }
+
+/* v2026-10-03-a: form video fills the practice screen. One big 「开始」 sits on the picture until the timer runs,
+ * so the first tap can start the muted loop and the bed together (autoplay-with-sound is blocked). */
+#vPractice { min-height: 100dvh; }
+#vPractice .practice-bg { min-height: 100%; }
+#vPractice.guided .practice-clip { object-fit: cover; object-position: center 42%; }
+#vPractice.guided .practice-bg::after {
+  background: linear-gradient(rgba(10,14,12,.10) 0%, rgba(10,14,12,.16) 42%, rgba(10,14,12,.55) 100%);
+}
+#vPractice.needs-start .controls {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 52%;
+  z-index: 6;
+}
+#vPractice.needs-start #btnStart {
+  width: 100%;
+  min-height: 72px;
+  font-size: 28px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.35);
+}

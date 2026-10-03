@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -556,11 +556,20 @@
       keep.photo = place.photo || base.photo;
       keep.place = place.id;
       keep.placeName = place.name;
-      return keep;
+      return formClip(keep);
     }
     var p = {}, k;
     for (k in base) p[k] = base[k];
     p.label = a.label; p.intro = a.intro; p.photo = a.photo; p.place = a.place; p.placeName = place ? place.name : "";
+    return formClip(p);
+  }
+  /* One place, one form: 太极 / 八段锦 already name a clip. At 武当, anything without its own clip uses the mountain-path film. */
+  function formClip(p) {
+    if (p.clip) return p;
+    if (p.place === "wudang") {
+      p.clip = "assets/practices/clips/path-form.mp4";
+      if (!p.poster) p.poster = "assets/practices/10-path-form.jpg";
+    }
     return p;
   }
   function durationOf(p) {
@@ -585,11 +594,21 @@
     $("practiceBg").style.backgroundPosition = D.focal(src);
     T.bgSrc = src;
   }
-  /* Muted picture only. Source clips had loud added audio, so the file in the repo has no sound track. */
+  /* Picture only. The files have no audio track (added music was stripped). Sound is the separate bed, started on 「开始」. */
   function pausePracticeClip() {
     var v = $("practiceClip");
     if (!v) return;
     try { v.pause(); } catch (e) {}
+  }
+  function playPracticeClip() {
+    var v = $("practiceClip");
+    if (!v || !v.getAttribute("data-clip")) return;
+    v.muted = true;
+    v.defaultMuted = true;
+    v.loop = true;
+    v.playsInline = true;
+    var play = v.play();
+    if (play && play.catch) play.catch(function () {});
   }
   function setPracticeClip(p) {
     var v = $("practiceClip"), bg = $("practiceBg");
@@ -598,12 +617,15 @@
       if (v.getAttribute("data-clip") !== p.clip) {
         v.setAttribute("data-clip", p.clip);
         v.poster = p.poster ? D.sized(p.poster, 828) : "";
+        v.loop = true;
+        v.muted = true;
+        v.playsInline = true;
+        v.autoplay = true;
+        v.preload = "auto";
         v.src = p.clip;
       }
-      v.muted = true;
       bg.classList.add("has-clip");
-      var play = v.play();
-      if (play && play.catch) play.catch(function () {});
+      playPracticeClip();
     } else {
       bg.classList.remove("has-clip");
       if (v.getAttribute("data-clip")) {
@@ -679,6 +701,7 @@
     var running = T.running;
     $("btnStart").classList.toggle("hidden", running);
     $("btnStart").textContent = t(T.done ? "practice.startAgain" : "practice.start");
+    $("vPractice").classList.toggle("needs-start", !running && !!(practice().clip));
     $("btnPause").classList.toggle("hidden", !running);
     $("btnStop").classList.toggle("hidden", !running);
     $("btnPause").textContent = t(T.paused ? "practice.resume" : "practice.pause");
@@ -731,8 +754,8 @@
         $("guidedBar").style.width = pct.toFixed(1) + "%";
         $("guidedProgLabel").textContent = t("practice.guidedProg", { n: stepI + 1, total: p.steps.length });
       }
-      /* Cindy practice stills: quiet mood change per step (no licensed video) */
-      if (p.stills && p.stills.length) {
+      /* Stills only when there is no film. A clip stays one place and one form; do not swap photos under it. */
+      if (!p.clip && p.stills && p.stills.length) {
         var still = p.stills[Math.min(stepI, p.stills.length - 1)];
         if (still && still !== T.bgSrc) setPracticeBg(still);
       }
@@ -769,6 +792,8 @@
     cancelAnimationFrame(T.raf); clearInterval(T.iv);
     T.iv = setInterval(tick, 250);
     if (p.kind === "walk" && T.beep) click();
+    /* Same tap as 「开始」: browsers block sound until a gesture, so picture and bed start together here. */
+    playPracticeClip();
     if (MUS.on) musicStart();
     wakeOn(); updateControls(); loop();
   }
@@ -1190,11 +1215,11 @@
     return storyPng(share).then(function (url) { shareImgData = url; $("shareImg").src = url; });
   }
 
-  /* ---------- background music (sound toggle, off by default; R19) ----------
-   * D.MUSIC.src = Cindy's own licensed track (null until she supplies it). Without it: a soft pad synthesised right here
+  /* ---------- background bed (声音 switch; this preview defaults ON until the user turns it off, R19 / D-03-01) ----------
+   * D.MUSIC.src = purchased calm excerpt. Without it: a soft pad synthesised right here
    * with WebAudio (sine tones on a slow C / A-minor drift + a quiet filtered-noise "breeze"). No recording, no copyright. */
   var LS_MUSIC = "healoa.music.v1", LS_REMIND = "healoa.remind.v1";
-  var MUS = { on: lsGet(LS_MUSIC) === true, ctx: null, master: null, nodes: [], el: null, timer: 0 };
+  var MUS = { on: lsGet(LS_MUSIC) !== false, ctx: null, master: null, nodes: [], el: null, timer: 0 };
   function musicSupported() { return !!(D.MUSIC.src || window.AudioContext || window.webkitAudioContext); }
   function musicStart() {
     if (MUS.playing) return;
@@ -1242,7 +1267,7 @@
   function renderMusicBtns() {
     ["btnMusic", "btnImmSound", "btnRevealSound"].forEach(function (id) {
       var b = $(id); if (!b) return;
-      var k = id === "btnRevealSound" ? "sound" : "music";
+      var k = "sound";
       b.classList.toggle("hidden", !musicSupported());
       b.classList.toggle("on", MUS.on);
       b.setAttribute("aria-pressed", MUS.on ? "true" : "false");
