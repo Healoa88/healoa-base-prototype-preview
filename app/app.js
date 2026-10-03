@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -116,7 +116,7 @@
     else if (state.view === "immersive") renderImmersive();
   }
   function go(view, patch, replace) {
-    if (state.view === "practice" && view !== "practice") timerStop(false);
+    if (state.view === "practice" && view !== "practice") { timerStop(false); pausePracticeClip(); }
     if (patch) {
       /* An entry that names one body state (saved card, test hooks) without quiz answers → answers derived from it. */
       if (patch.cond && !("answers" in patch)) state.answers = null;
@@ -135,7 +135,7 @@
   }
   window.addEventListener("popstate", function (ev) {
     var s = ev.state;
-    if (state.view === "practice") timerStop(false);
+    if (state.view === "practice") { timerStop(false); pausePracticeClip(); }
     if (!s || !s.view) { show("home"); render(); return; }
     state.season = s.season || state.season; state.cond = s.cond; state.answers = s.answers || null; state.placeId = s.placeId; state.practiceId = s.practiceId; state.actionPlace = s.actionPlace || null;
     show(s.view); render();
@@ -585,10 +585,40 @@
     $("practiceBg").style.backgroundPosition = D.focal(src);
     T.bgSrc = src;
   }
+  /* Muted picture only. Source clips had loud added audio, so the file in the repo has no sound track. */
+  function pausePracticeClip() {
+    var v = $("practiceClip");
+    if (!v) return;
+    try { v.pause(); } catch (e) {}
+  }
+  function setPracticeClip(p) {
+    var v = $("practiceClip"), bg = $("practiceBg");
+    if (!v || !bg) return;
+    if (p && p.clip) {
+      if (v.getAttribute("data-clip") !== p.clip) {
+        v.setAttribute("data-clip", p.clip);
+        v.poster = p.poster ? D.sized(p.poster, 828) : "";
+        v.src = p.clip;
+      }
+      v.muted = true;
+      bg.classList.add("has-clip");
+      var play = v.play();
+      if (play && play.catch) play.catch(function () {});
+    } else {
+      bg.classList.remove("has-clip");
+      if (v.getAttribute("data-clip")) {
+        v.removeAttribute("data-clip");
+        pausePracticeClip();
+        v.removeAttribute("src");
+        try { v.load(); } catch (e) {}
+      }
+    }
+  }
   function renderPractice() {
     var p = practice();
     if (!T.running) { T.duration = p.kind === "guided" ? durationOf(p) : (T.durationFor === p.id ? T.duration : p.defaultDuration); T.durationFor = p.id; }
     setPracticeBg(p.photo);
+    setPracticeClip(p);
     $("practiceModes").innerHTML = modeList().map(function (id) {
       var x = D.PRACTICES[id];
       return '<button type="button" class="chip' + (id === p.id ? " on" : "") + '" data-action="practiceMode" data-practice="' + id + '">' + esc(x.short) + "</button>";

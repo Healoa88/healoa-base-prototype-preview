@@ -477,11 +477,30 @@
             quiet: "The onsen streets are nearly empty early in the morning."
           }
         },
+        seashrine: {
+          name: "Japan Coast · Sea and Shrine",
+          area: "Japan",
+          alt: "Sunset over the sea, seen from a low seat by the window",
+          benefit: "The evening sea turns warm. Sitting by the window is a restorative place, quiet and unhurried. The shrine roof rests under a clear sky.",
+          kind: "a quiet corner by the sea",
+          cindyLine: "",
+          food: ["Warm soup, simple fish, hot tea", "Fewer iced drinks, and go easy on raw food"],
+          todo: ["Sit by the window at dusk and breathe slowly for a few minutes", "Walk slowly in front of the shrine and look up at the roof", "If you soak, choose water at 105°F (41°C) or cooler, 10 minutes at a time"],
+          caution: ["The midday sun by the sea is strong — don't stay out in it long.", "A soak: 105°F (41°C) or cooler, 10 minutes at a time, stand up slowly, and don't soak alone. Skip it right after a meal or a drink.", "Take the shrine steps slowly."],
+          fit: {
+            bp: "The coast swings less than a high mountain, so a slow walk is enough. If you soak: 105°F (41°C) or cooler, 10 minutes, and stand up slowly.",
+            sleep: "Watch the sea for a little while at dusk, dim the lights, and turn in early.",
+            cold: "The window seat is warm. Add a layer before you step out, and keep your feet warm.",
+            gut: "Choose warm, simple food and skip the iced drinks.",
+            tense: "Watch the sea change color, and take a slow walk by the shrine — you'll loosen up a little.",
+            quiet: "When it's uncrowded, the window and the shrine front are very quiet. A good place to plan nothing."
+          }
+        },
         harbin: {
           name: "Harbin · Snow Country",
           area: "Heilongjiang, China",
-          alt: "A village in Harbin after snowfall",
-          benefit: "When the snow falls, everything goes quiet, and indoors it's warm and snug.",
+          alt: "Snow-loaded roofs framed by pines",
+          benefit: "Thick snow sits on the roofs, and pines frame the village. When the snow falls, everything goes quiet, and indoors it's warm and snug.",
           cindyLine: "",
           kind: "a quiet snowy village",
           food: ["Hot dumplings and slow-cooked stews", "A cup of hot milk tea to warm your hands"],
@@ -736,6 +755,7 @@
         wudang: { label: "Slow walk on the courtyard steps · 10 min", short: "Courtyard walk", intro: "Picture the stone steps of the courtyard and walk slowly to a left · right beat: three steps breathing in, three steps breathing out. A hallway or any room works too." },
         pattaya: { label: "Slow breathing by the bay · in 4, out 6 · 3 min", short: "Bayside breathing", intro: "Look out at the evening bay and follow the circle: breathe in through your nose for 4 seconds as it grows, out for 6 as it shrinks — like waves coming and going. No holding your breath." },
         onsen: { label: "Foot-soak timer · 10 min (105°F or cooler)", short: "Foot-soak timer", intro: "Like sitting at a footbath in the hot-spring town: water 105°F (41°C) or cooler (warm to the touch, never hot), 10 minutes at most. Rinse your hands and feet first, and stand up slowly." },
+        seashrine: { label: "Sea at the window · slow breathing, 3 minutes", short: "Sea breathing", intro: "Watch the sea through the window and follow the circle: breathe in slowly for 4 seconds as it grows, and out for 6 as it shrinks. Don't hold your breath." },
         harbin: { label: "Warm drink, snow view · slow breathing 3 min", short: "Snow-view breathing", intro: "Hold a warm drink, look out the window and follow the circle: breathe in for 4 seconds as it grows, out for 6 as it shrinks. No holding your breath." }
       },
       placeActivities: {
@@ -751,6 +771,10 @@
         onsen: [
           { label: "Stroll the onsen streets and watch the steam", short: "Onsen stroll", intro: "Picture the steam rising over the spring field: walk slowly to the left-right beat. Indoors or a hallway works too." },
           { label: "Sit for a while after a soak, 3 minutes", short: "After-soak sit", intro: "Stand up slowly after soaking. Sit down, do a few small moves, and sip some warm water." }
+        ],
+        seashrine: [
+          { label: "A slow walk in front of the shrine", short: "Shrine walk", intro: "Like walking under the shrine roof: follow the left · right rhythm, slowly. If there are steps, stay on the flat path." },
+          { label: "Sit by the window and watch the sea · 3 minutes", short: "Window seat", intro: "Like sitting at the glass: a few tiny moves, then just look at the water." }
         ],
         harbin: [
           { label: "Sit in a warm room, 3 minutes", short: "Warm-room sit", intro: "Picture coming in from the snow to a warm room: a few small seated moves, then sip something hot." },

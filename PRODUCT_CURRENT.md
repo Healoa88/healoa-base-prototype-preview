@@ -3,7 +3,7 @@
 > 只写**当前生效**的版本。历史规则见 `DECISIONS.md`（标记 SUPERSEDED，不删除）。
 > 依据：**《HeaLoa-Base 疗愈 App 方案 v4》Phase 1（Cindy 2026-09-27 9:16 批准，D-27-05）** · 《方案 v3（锁定版）》· Cindy 锁定裁定 2026-09-26 · Cindy 批准的「合并方案」2026-09-27（D-27-02）。
 > 创始人规则：**`HEALOA_RULES.md`**（机器可读：`rules/healoa-rules.json`，由 `tests/rules.mjs` 逐条检查，D-27-03）。
-> 当前预览版本：**v2026-10-02-a**（疗愈打磨 + 养护连续：为什么是你拆屏、练习/卡/分享同地照片、Cindy 太极八段锦静帧（assets/practices 01–06）、季节薄雾氛围；上一版 v2026-09-28-c 武当 3D：开场略抬头、视角限制、不能缩放、手机底部精简 + 说明自动淡出、加载时虚化原照片、电脑上 3D 页变宽，D-28-02） · 上一版 v2026-09-28-b（武当 World Labs 3D 场景，D-27-07） · Live: https://healoa88.github.io/healoa-base-prototype-preview/
+> 当前预览版本：**v2026-10-02-b**（日本海边·温泉与神社、哈尔滨雪乡新照片、武当练习短片静音；上一版疗愈打磨 + 养护连续：为什么是你拆屏、练习/卡/分享同地照片、Cindy 太极八段锦静帧（assets/practices 01–06）、季节薄雾氛围；上一版 v2026-09-28-c 武当 3D：开场略抬头、视角限制、不能缩放、手机底部精简 + 说明自动淡出、加载时虚化原照片、电脑上 3D 页变宽，D-28-02） · 上一版 v2026-09-28-b（武当 World Labs 3D 场景，D-27-07） · Live: https://healoa88.github.io/healoa-base-prototype-preview/
 
 ## 一句话
 

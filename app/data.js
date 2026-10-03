@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-10-02-a";
+  var VERSION = "v2026-10-02-b";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -48,6 +48,7 @@
     harbin: { elev: 139, autumn: { t: 4.8, rh: 70, pr: 1.1, months: [15.2, 5.3, -6] }, winter: { t: -16.7, rh: 86, pr: 0.2, months: [-16.7, -19, -14.5] } },
     kunming: { elev: 2021, autumn: { t: 15.4, rh: 77, pr: 2.1, months: [18.8, 15.8, 11.7] }, winter: { t: 8.7, rh: 72, pr: 0.4, months: [8.2, 7.7, 10.1] } },
     kusatsu: { elev: 1036, autumn: { t: 10.6, rh: 88, pr: 4.7, months: [16.9, 10.5, 4.3] }, winter: { t: -3.6, rh: 92, pr: 2.6, months: [-1.6, -5, -4.3] } },
+    jpcoast: { elev: 69, autumn: { t: 19.8, rh: 79, pr: 6.7, months: [24.1, 19.8, 15.6] }, winter: { t: 9.4, rh: 71, pr: 2.9, months: [11.1, 8.4, 8.7] } },
     pattaya: { elev: 17, autumn: { t: 27.8, rh: 79, pr: 5.9, months: [28.1, 28, 27.5] }, winter: { t: 26.8, rh: 73, pr: 0.6, months: [26.5, 26.6, 27.4] } },
     phuket: { elev: 11, autumn: { t: 27.3, rh: 84, pr: 10, months: [27.4, 27.2, 27.4] }, winter: { t: 27.2, rh: 81, pr: 2.7, months: [27.1, 26.9, 27.6] } },
     tengchong: { elev: 1730, autumn: { t: 16.7, rh: 81, pr: 2.9, months: [19.6, 17.1, 13.5] }, winter: { t: 10.9, rh: 64, pr: 0.6, months: [10.6, 9.9, 12.2] } },
@@ -78,6 +79,12 @@
     "assets/places/harbin/02-night-lanterns-snowman.jpg": { w: 1400, h: 787, fx: 45, fy: 60 },
     "assets/places/harbin/03-day-milk-tea-village.jpg": { w: 1400, h: 787, fx: 50, fy: 62 },
     "assets/places/harbin/04-stairs-street-blue-sky.jpg": { w: 787, h: 1400, fx: 50, fy: 60 },
+    "assets/places/harbin/05-snow-roofs-icicles.jpg": { w: 1600, h: 1200, fx: 48, fy: 58 },
+    "assets/places/harbin/06-snow-roofs-pines.jpg": { w: 1600, h: 1200, fx: 50, fy: 52 },
+    "assets/places/jpcoast/01-feet-sunset-sea.jpg": { w: 1200, h: 1600, fx: 50, fy: 68 },
+    "assets/places/jpcoast/02-lounge-sea-sunset.jpg": { w: 1600, h: 1200, fx: 36, fy: 62 },
+    "assets/places/jpcoast/03-shrine-facade.jpg": { w: 1600, h: 1200, fx: 50, fy: 72 },
+    "assets/places/jpcoast/04-lounge-sea-window.jpg": { w: 1600, h: 696, fx: 50, fy: 48 },
     "assets/places/cabin/04-soup-window-warm.jpg": { w: 1400, h: 1050, fx: 58, fy: 58 },
     "assets/places/cabin/02-cabin-through-birch.jpg": { w: 787, h: 1400, fx: 50, fy: 55 },
     "assets/places/forest/path/01-leaf-tunnel.jpg": { w: 787, h: 1400, fx: 50, fy: 62 },
@@ -88,7 +95,11 @@
     "assets/practices/03-indoor-balance.jpg": { w: 1320, h: 1814, fx: 55, fy: 40 },
     "assets/practices/04-indoor-arm-raise.jpg": { w: 1027, h: 1868, fx: 52, fy: 38 },
     "assets/practices/05-courtyard-class.jpg": { w: 1440, h: 1080, fx: 50, fy: 55 },
-    "assets/practices/06-zixiao-steps-mist.jpg": { w: 459, h: 689, fx: 48, fy: 58 }
+    "assets/practices/06-zixiao-steps-mist.jpg": { w: 459, h: 689, fx: 48, fy: 58 },
+    "assets/practices/07-mountain-balance.jpg": { w: 1200, h: 1600, fx: 46, fy: 46 },
+    "assets/practices/08-courtyard-white.jpg": { w: 1200, h: 1600, fx: 50, fy: 58 },
+    "assets/practices/09-plaza-form.jpg": { w: 720, h: 1280, fx: 50, fy: 40 },
+    "assets/practices/10-path-form.jpg": { w: 1280, h: 720, fx: 58, fy: 46 }
 
   };
   function focal(src) { var m = PHOTO_META[src]; return m ? m.fx + "% " + m.fy + "%" : "50% 50%"; }
@@ -132,10 +143,21 @@
       attrs: { quiet: 1, nature: 2, hotspring: true, cozy: 1 },
       scenes: ["hotspring", "forest", "mountain"], region: "jp", effort: 1, action: "soak"
     },
+    /* Sea lounge + shrine. Not Kusatsu (that place keeps the yubatake photos). Town is not named:
+     * the frames are a window on the sea and a shrine front, and a TV in one lounge is a travel
+     * program, not this place. Climate is a Pacific-coast Honshu grid cell (data/climate/jpcoast.json). */
+    {
+      id: "seashrine", climate: "jpcoast",
+      photo: "assets/places/jpcoast/01-feet-sunset-sea.jpg", wide: "assets/places/jpcoast/03-shrine-facade.jpg",
+      gallery: ["assets/places/jpcoast/02-lounge-sea-sunset.jpg", "assets/places/jpcoast/04-lounge-sea-window.jpg"],
+      attrs: { quiet: 1, nature: 2, hotspring: true, cozy: 1 },
+      scenes: ["sea"], region: "jp", effort: 1, action: "breath46",
+      actionPhoto: "assets/places/jpcoast/01-feet-sunset-sea.jpg"
+    },
     {
       id: "harbin", climate: "harbin",
-      photo: "assets/places/harbin/01-night-snow-roofs.jpg", wide: "assets/places/harbin/02-night-lanterns-snowman.jpg",
-      gallery: ["assets/places/harbin/03-day-milk-tea-village.jpg", "assets/places/harbin/04-stairs-street-blue-sky.jpg"],
+      photo: "assets/places/harbin/06-snow-roofs-pines.jpg", wide: "assets/places/harbin/05-snow-roofs-icicles.jpg",
+      gallery: ["assets/places/harbin/01-night-snow-roofs.jpg", "assets/places/harbin/02-night-lanterns-snowman.jpg", "assets/places/harbin/03-day-milk-tea-village.jpg", "assets/places/harbin/04-stairs-street-blue-sky.jpg"],
       attrs: { quiet: 1, nature: 1, hotspring: false, cozy: 1 },
       scenes: ["snow"], region: "cn", effort: 1, action: "breath46"
     },
@@ -191,8 +213,13 @@
     baduanjin1: {
       id: "baduanjin1", kind: "guided",
       steps: [10, 12, 12, 10, 12, 12, 12],
-      photo: "assets/practices/04-indoor-arm-raise.jpg",
+      photo: "assets/practices/09-plaza-form.jpg",
+      clip: "assets/practices/clips/plaza-form.mp4",
+      poster: "assets/practices/09-plaza-form.jpg",
       stills: [
+        "assets/practices/09-plaza-form.jpg",
+        "assets/practices/08-courtyard-white.jpg",
+        "assets/practices/07-mountain-balance.jpg",
         "assets/practices/04-indoor-arm-raise.jpg",
         "assets/practices/01-courtyard-group.jpg",
         "assets/practices/03-indoor-balance.jpg",
@@ -205,8 +232,13 @@
     taiji1: {
       id: "taiji1", kind: "guided",
       steps: [10, 10, 12, 12, 12, 12],
-      photo: "assets/practices/02-path-balance.jpg",
+      photo: "assets/practices/07-mountain-balance.jpg",
+      clip: "assets/practices/clips/path-form.mp4",
+      poster: "assets/practices/10-path-form.jpg",
       stills: [
+        "assets/practices/07-mountain-balance.jpg",
+        "assets/practices/10-path-form.jpg",
+        "assets/practices/08-courtyard-white.jpg",
         "assets/practices/01-courtyard-group.jpg",
         "assets/practices/02-path-balance.jpg",
         "assets/practices/03-indoor-balance.jpg",
@@ -279,7 +311,8 @@
     wudang: [{ practice: "taiji1", photo: "assets/places/wudang/02-terrace-sunrise.jpg" }, { practice: "baduanjin1", photo: "assets/places/wudang/homestay/02-window-tea-terrace.jpg" }, { practice: "sitEasy", photo: "assets/places/wudang/vista/01-cliff-pavilion.jpg" }],
     pattaya: [{ practice: "walk", photo: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg" }, { practice: "sitEasy", photo: "assets/places/thai/pool/03-long-pool-canopy.jpg" }],
     onsen: [{ practice: "walk", photo: "assets/places/onsen/01-hot-spring-field-town.jpg" }, { practice: "sitEasy", photo: "assets/places/onsen/01-hot-spring-field-town.jpg" }],
-    harbin: [{ practice: "sitEasy", photo: "assets/places/harbin/03-day-milk-tea-village.jpg" }, { practice: "breathNight", photo: "assets/places/harbin/02-night-lanterns-snowman.jpg" }]
+    seashrine: [{ practice: "walk", photo: "assets/places/jpcoast/03-shrine-facade.jpg" }, { practice: "sitEasy", photo: "assets/places/jpcoast/04-lounge-sea-window.jpg" }],
+    harbin: [{ practice: "sitEasy", photo: "assets/places/harbin/06-snow-roofs-pines.jpg" }, { practice: "breathNight", photo: "assets/places/harbin/05-snow-roofs-icicles.jpg" }]
   };
   var PLACE_ACTIVITIES = {};
   Object.keys(PLACE_ACTIONS).forEach(function (id) {

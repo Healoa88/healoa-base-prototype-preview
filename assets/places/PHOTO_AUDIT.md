@@ -60,3 +60,8 @@ See the `photo-audit-cabin-forest.png` sheet. In use: cabin/04-soup-window-warm 
 
 ## Practice stills (2026-10-01)
 Cindy’s own Tai Chi / Baduanjin stills in `assets/practices/` (01–06). Prefer vertical for phone practice UI. `06-zixiao-steps-mist` / `wudang/07` are atmospheric but low resolution — mood/gallery only, not place hero. Courtyard class (`practices/05` + `wudang/06`) is the autumn desktop wide backdrop.
+
+## v2026-10-02-b
+- **日本海边 · 温泉与神社** (`seashrine`, not 草津): hero = `jpcoast/01-feet-sunset-sea.jpg` (portrait, phone). Wide = shrine facade (architecture kept). Lounge with a TV is gallery only; the program on the TV is not the place. The women-only seating sign was cropped out of `04-lounge-sea-window.jpg` so it is not the subject.
+- **哈尔滨 · 冰雪**: hero = `harbin/06-snow-roofs-pines.jpg` (pine-framed snow roofs). Wide = `harbin/05-snow-roofs-icicles.jpg`. Older Harbin frames stay in the gallery. Phone cover crops the sides of the landscape hero; focal point keeps the roofs.
+- **武当练习**: `practices/07` mountain balance and `08` courtyard in white join the stills. Short muted clips: `clips/plaza-form.mp4` (八段锦), `clips/path-form.mp4` (太极). Posters `09` and `10`.
