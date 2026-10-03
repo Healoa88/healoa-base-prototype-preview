@@ -71,7 +71,13 @@ Provenance only (not shown in the app). No customer-facing name credit.
 | `assets/practices/08-courtyard-white.jpg` | 武当练习 | Photo · Cindy Yang | 2026-10-02 via chat | EXIF/GPS stripped; JPEG q82 |
 | `assets/practices/09-plaza-form.jpg` | 武当练习 · poster | Photo · Cindy Yang | 2026-10-02 via chat | Poster frame from the plaza clip |
 | `assets/practices/10-path-form.jpg` | 武当练习 · poster | Photo · Cindy Yang | 2026-10-02 via chat | Poster frame from the path clip |
-| `assets/practices/clips/plaza-form.mp4` | 武当八段锦氛围 | Photo · Cindy Yang | 2026-10-02 via chat | 8s, 540×960, muted (source audio was loud added sound); ~400 KB |
-| `assets/practices/clips/path-form.mp4` | 武当太极氛围 | Photo · Cindy Yang | 2026-10-02 via chat | 8s, 854×480, muted; ~960 KB |
+| `assets/practices/clips/plaza-form.mp4` | 武当八段锦原片 | Photo · Cindy Yang | 2026-10-03 | full original ~59s, 720×1280, 30 fps, audio stripped; not the 8s trim |
+| `assets/practices/clips/path-form.mp4` | 武当太极原片 | Photo · Cindy Yang | 2026-10-03 | full original ~33s, 1280×720, 30 fps, audio stripped (loud music bed); not the 8s trim |
 
 Climate for the new coast place: `data/climate/jpcoast.json`, NASA POWER climatology at 35.09N, 139.08E (a Pacific-coast Honshu cell, elev 69 m). The UI does not name that grid cell as a town. Kusatsu stays the forest hot-spring place.
+
+
+## v2026-10-03-a · practice films (picture only)
+
+- Plaza clip and path clip above are the full originals, picture only.
+- Bed: `assets/audio/sono-bed.mp3` (see `assets/audio/SOURCES.md`). Lyrics credit stays in that internal note and in DECISIONS D-03-01, not in the consumer UI.

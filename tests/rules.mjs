@@ -196,15 +196,15 @@ function textHolds(txt) {
     /width = 1080[^;]*;[^\n]*1920|1080, 1920|1080 \* k|W = 1080/.test(app) && /MediaRecorder/.test(app);
   check("R18.a", `share targets are only web / sms / copy (${Object.keys(SH.targets).join(", ")}); no save-then-open-the-app platform buttons; QR only in zh; system share + save image + save video (MediaRecorder) wired`, ok, SH.byLocale);
 }
-// R19.a — reminder + music are opt-in, default off, gentle; music is synthesised or a licensed local track.
+// R19.a — reminder stays opt-in and off; the practice bed is a licensed local file (or a synth pad) and this preview defaults the 声音 switch ON (D-03-01).
 {
   const app = stripJsComments(read("app/app.js"));
   const M = D.MUSIC;
   const zh = ctx.HEALOA_LOCALES.zh.strings, en = ctx.HEALOA_LOCALES.en.strings;
   const rtext = Object.keys(zh).filter((k) => /^(remind|music)\./.test(k)).map((k) => zh[k] + " " + en[k]).join("\n");
   const ok = (M.src === null || /^assets\/audio\/[\w.-]+\.(mp3|m4a|ogg)$/.test(M.src)) && /createOscillator/.test(app) &&
-    /MUS = \{ on: lsGet\(LS_MUSIC\) === true/.test(app) && /notify: false/.test(app) && !/连续|天数|streak|in a row/i.test(rtext) && /没关系|No problem|That's fine/.test(rtext);
-  check("R19.a", "music: synthesised pad (WebAudio) or a licensed local file; music + reminder start OFF (only on after the user taps); reminder texts gentle, no streak / missed-day wording", ok, { src: M.src });
+    /MUS = \{ on: lsGet\(LS_MUSIC\) !== false/.test(app) && /notify: false/.test(app) && !/连续|天数|streak|in a row/i.test(rtext) && /没关系|No problem|That's fine/.test(rtext);
+  check("R19.a", "music: synthesised pad (WebAudio) or a licensed local file; 声音 defaults ON for this preview (a stored off still wins); reminders start OFF; reminder texts gentle, no streak / missed-day wording", ok, { src: M.src });
 }
 // R11.a — zh is the only complete locale; en/ja drafts; es empty.
 {
@@ -343,22 +343,23 @@ try {
     check("R18.b", "zh: copy + QR only, en: Text + copy, no QR; 发给一个人 opens the system share with the 9:16 PNG; 存图片 gives a 1080×1920 PNG; 存视频 (where recording works) gives a real 9:16 video", ok, out);
   }
 
-  // ---- R19.b: reminder + music default off; opting in works; the calendar file repeats daily ----
+  // ---- R19.b: 声音 defaults on for this preview; the switch still turns it off and on; reminder stays opt-in ----
   {
     const { c, p } = await open(base + "?" + DQ);
     await p.evaluate(() => window.__healoa.go("practice", { cond: "sleep", practiceId: "breath46" }, true));
-    const before = await p.evaluate(() => ({ music: document.getElementById("btnMusic").getAttribute("aria-pressed"), on: window.__healoa.music.on, remind: localStorage.getItem("healoa.remind.v1") }));
+    const before = await p.evaluate(() => ({ music: document.getElementById("btnMusic").getAttribute("aria-pressed"), on: window.__healoa.music.on, label: document.getElementById("btnMusic").textContent, remind: localStorage.getItem("healoa.remind.v1") }));
     await p.click("#btnMusic");
-    const mid = await p.evaluate(() => ({ music: document.getElementById("btnMusic").getAttribute("aria-pressed"), on: window.__healoa.music.on }));
+    const mid = await p.evaluate(() => ({ music: document.getElementById("btnMusic").getAttribute("aria-pressed"), on: window.__healoa.music.on, label: document.getElementById("btnMusic").textContent }));
     await p.click("#btnMusic");
+    const after = await p.evaluate(() => ({ music: document.getElementById("btnMusic").getAttribute("aria-pressed"), on: window.__healoa.music.on }));
     await p.click("#btnRemind");
     const view = await p.evaluate(() => !document.getElementById("vRemind").classList.contains("hidden"));
     await p.click('#remindTimes [data-time="08:00"]');
     const ics = await p.evaluate(() => window.__healoa.icsText());
     await c.close();
-    const ok = before.music === "false" && before.on === false && !before.remind && mid.music === "true" && mid.on === true && view &&
+    const ok = before.music === "true" && before.on === true && before.label === "声音：开" && !before.remind && mid.music === "false" && mid.on === false && mid.label === "声音：关" && after.music === "true" && after.on === true && view &&
       /RRULE:FREQ=DAILY/.test(ics) && /T080000/.test(ics) && /BEGIN:VALARM/.test(ics) && !/连续|streak/i.test(ics);
-    check("R19.b", "fresh visit: music off + no reminder stored; the music chip turns it on / off; 每天提醒我 opens the opt-in page; the calendar file is a daily repeating event with an alarm at the chosen time, no streak wording", ok, { before, mid, view, ics: ics.slice(0, 300) });
+    check("R19.b", "fresh visit: 声音 on + no reminder stored; the switch turns it off and on; 每天提醒我 opens the opt-in page; the calendar file is a daily repeating event with an alarm at the chosen time, no streak wording", ok, { before, mid, after, view, ics: ics.slice(0, 300) });
   }
 
   // ---- R05: share link / image never carry body-state info ----
