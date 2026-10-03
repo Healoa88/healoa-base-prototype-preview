@@ -55,3 +55,23 @@ Note: onsen photos are committed in Grok P0 PR; Arctic cabin photos not yet prov
 | `assets/practices/06-zixiao-steps-mist.jpg` | 紫霄殿 steps mist | Photo · Cindy Yang | Same frame as wudang/07; guided mood |
 | `assets/places/wudang/06-courtyard-class.jpg` | Courtyard class + yin-yang | Photo · Cindy Yang | Desktop season-wide autumn (`wide`) |
 | `assets/places/wudang/07-zixiao-steps-mist.jpg` | 紫霄殿 steps mist | Photo · Cindy Yang | Atmosphere still; too small for hero |
+
+## v2026-10-02-b · Japan sea lounge + shrine, Harbin 雪乡, Wudang practice
+Provenance only (not shown in the app). No customer-facing name credit.
+
+| file path | place | credit | provided | processing |
+|---|---|---|---|---|
+| `assets/places/jpcoast/01-feet-sunset-sea.jpg` | 日本海边 · hero | Photo · Cindy Yang | 2026-10-02 via chat | EXIF orientation applied; EXIF/GPS stripped; JPEG q82; long edge 1600 |
+| `assets/places/jpcoast/02-lounge-sea-sunset.jpg` | 日本海边 · gallery | Photo · Cindy Yang | 2026-10-02 via chat | EXIF/GPS stripped; JPEG q82; long edge 1600. A TV in the room plays a travel program; the place is not that program. |
+| `assets/places/jpcoast/03-shrine-facade.jpg` | 日本海边 · wide | Photo · Cindy Yang | 2026-10-02 via chat | EXIF/GPS stripped; JPEG q82; long edge 1600. Shrine town not named in the UI. |
+| `assets/places/jpcoast/04-lounge-sea-window.jpg` | 日本海边 · gallery | Photo · Cindy Yang | 2026-10-02 via chat | Bottom crop so a seating sign is not the subject; sea and window kept; JPEG q82. |
+| `assets/places/harbin/05-snow-roofs-icicles.jpg` | 哈尔滨雪乡 · wide | Photo · Cindy Yang | 2026-10-02 via chat | EXIF/GPS stripped; JPEG q82; long edge 1600 |
+| `assets/places/harbin/06-snow-roofs-pines.jpg` | 哈尔滨雪乡 · hero | Photo · Cindy Yang | 2026-10-02 via chat | EXIF/GPS stripped; JPEG q82; long edge 1600 |
+| `assets/practices/07-mountain-balance.jpg` | 武当练习 | Photo · Cindy Yang | 2026-10-02 via chat | EXIF/GPS stripped; JPEG q82 |
+| `assets/practices/08-courtyard-white.jpg` | 武当练习 | Photo · Cindy Yang | 2026-10-02 via chat | EXIF/GPS stripped; JPEG q82 |
+| `assets/practices/09-plaza-form.jpg` | 武当练习 · poster | Photo · Cindy Yang | 2026-10-02 via chat | Poster frame from the plaza clip |
+| `assets/practices/10-path-form.jpg` | 武当练习 · poster | Photo · Cindy Yang | 2026-10-02 via chat | Poster frame from the path clip |
+| `assets/practices/clips/plaza-form.mp4` | 武当八段锦氛围 | Photo · Cindy Yang | 2026-10-02 via chat | 8s, 540×960, muted (source audio was loud added sound); ~400 KB |
+| `assets/practices/clips/path-form.mp4` | 武当太极氛围 | Photo · Cindy Yang | 2026-10-02 via chat | 8s, 854×480, muted; ~960 KB |
+
+Climate for the new coast place: `data/climate/jpcoast.json`, NASA POWER climatology at 35.09N, 139.08E (a Pacific-coast Honshu cell, elev 69 m). The UI does not name that grid cell as a town. Kusatsu stays the forest hot-spring place.

@@ -82,6 +82,6 @@
       { solarTerm: 18, tag: "tcm_pending_5", type: "avoid", text: null, sourceRef: null, status: "pending-cindy" }
     ],
     /* Per place: "suits" tags (who it suits, traditional-medicine view) — pending. */
-    placeSuits: { wudang: null, pattaya: null, onsen: null, harbin: null }
+    placeSuits: { wudang: null, pattaya: null, onsen: null, seashrine: null, harbin: null }
   };
 })(typeof window !== "undefined" ? window : globalThis);

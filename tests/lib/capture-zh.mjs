@@ -138,7 +138,7 @@ export async function captureZh({ query = "" } = {}) {
       out.result[`${c}/${s} attrs`] = await attrs(p);
       await p.evaluate(() => window.__healoa.go("careplan", {}, true));
       out.careplan[`${c}/${s}`] = await bodyText(p);
-      for (const pl of ["wudang", "pattaya", "onsen", "harbin"]) {
+      for (const pl of ["wudang", "pattaya", "onsen", "seashrine", "harbin"]) {
         await p.evaluate(({ pl }) => window.__healoa.go("place", { placeId: pl }, true), { pl });
         out.place[`${pl} ${c}/${s}`] = await p.textContent("#placeBody");
       }

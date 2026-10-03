@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-10-02-a">
+<meta name="healoa-version" content="v2026-10-02-b">
 <meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<title>HeaLoa · 顺着季节养（预览 v2026-10-02-a）</title>
+<title>HeaLoa · 顺着季节养（预览 v2026-10-02-b）</title>
 <link rel="stylesheet" href="app/app.css?v=2026-10-01-a">
 <!-- 3D view libraries (vendored, pinned): three.js 0.186.1 + Spark 2.2.0 (World Labs). Loaded only when the 3D view opens. -->
 <script type="importmap">{ "imports": { "three": "./vendor/three-0.186.1/three.module.js", "three/addons/": "./vendor/three-0.186.1/addons/", "@sparkjsdev/spark": "./vendor/spark-2.2.0/spark.module.min.js" } }</script>
@@ -134,7 +134,7 @@
 
   <!-- 放松练习 -->
   <section id="vPractice" class="view hidden" data-view="practice">
-    <div class="practice-bg" id="practiceBg"></div>
+    <div class="practice-bg" id="practiceBg"><video id="practiceClip" class="practice-clip" muted playsinline loop preload="none"></video></div>
     <div class="practice-inner">
       <div class="topbar light"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button><button type="button" class="chip music-chip" id="btnMusic" data-action="toggleMusic" aria-pressed="false" data-i18n="music.off">音乐：关</button></div>
       <p class="music-note hidden" id="musicNote"></p>
@@ -305,7 +305,7 @@
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-10-02-a</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-10-02-b</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
         <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
         <p data-i18n-html="about.photos"><b>照片：</b>地点下的一句感受有写的才显示，没有的先空着。</p>
