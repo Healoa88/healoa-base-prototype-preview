@@ -310,7 +310,9 @@ try {
     for (const h of scanRendered(drawn, "zh")) hits.push({ where: "share card image", ...h });
     const r07 = hits.filter((h) => rule("R07").banned.zh.includes(h.word));
     await p.evaluate(() => { document.getElementById("about").open = true; }); await p.evaluate(() => window.__healoa.go("home", {}, true)); await sweep("about");
-    check("R01.c", "rendered zh sweep (home, 8 quiz screens, flip reveal, 为什么是你, all places, 我的养护记录, 12 results, every photo place, 12 cards, every practice, 留一句, share panel + share image, about) → 0 hits for ALL rule word lists (R01/R02/R03/R04/R07/R12) and 0 outcome phrases", hits.length === 0 && outcome.length === 0, { hits: hits.slice(0, 6), outcome: outcome.slice(0, 4) });
+    await p.evaluate(() => window.__healoa.go("privacy", {}, true)); await sweep("privacy");
+    await p.evaluate(() => window.__healoa.go("wellness", {}, true)); await sweep("wellness");
+    check("R01.c", "rendered zh sweep (home, 8 quiz screens, flip reveal, 为什么是你, all places, 我的养护记录, 12 results, every photo place, 12 cards, every practice, 留一句, share panel + share image, about, privacy, wellness) → 0 hits for ALL rule word lists (R01/R02/R03/R04/R07/R12) and 0 outcome phrases", hits.length === 0 && outcome.length === 0, { hits: hits.slice(0, 6), outcome: outcome.slice(0, 4) });
     check("R07.b", "no points / rewards / streak / invite wording rendered anywhere on the zh path incl. the share flow + share image", r07.length === 0 && !/积分|奖励|打卡|签到|邀请|返利/.test(drawn), r07.slice(0, 4));
     check("R08.b", "no link / src / action to healoa.com in any rendered zh screen", links.length === 0, links.slice(0, 4));
     check("R10.b", `every swept screen has no overlay / Cindy photo credit and no revoked copyright line; all ${credits.n} rendered photos are object-fit: cover with a focal point (never stretched)`, credits.n >= 20 && credits.bad.length === 0, credits.bad.slice(0, 5));

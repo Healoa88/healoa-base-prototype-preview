@@ -1,4 +1,4 @@
-/* HeaLoa · service worker (v2026-10-05-f, queue 4 · PWA).
+/* HeaLoa · service worker (v2026-10-05-g, queue 4 · PWA).
  * Lives next to index.html, so its scope is that folder — on GitHub Pages /healoa-base-prototype-preview/ — and it never
  * sees anything outside the app. Registered from index.html after the page has loaded (does not slow the first paint).
  *
@@ -11,26 +11,26 @@
  * Navigations are network-first (a new version shows up as soon as there is signal), falling back to the cached page.
  * When you bump the version: change VERSION and the ?v= URLs below to match index.html (tests/pwa.mjs checks this). */
 "use strict";
-var VERSION = "v2026-10-05-f";
+var VERSION = "v2026-10-05-g";
 var SHELL = "healoa-shell-" + VERSION;
 var PHOTOS = "healoa-photos-" + VERSION;
 var PHOTO_MAX = 80;
 
 var SHELL_URLS = [
   "./",
-  "app/app.css?v=2026-10-05-f",
-  "app/i18n/zh.js?v=2026-10-05-f",
-  "app/i18n/en.js?v=2026-10-05-f",
-  "app/i18n/ja.js?v=2026-10-05-f",
-  "app/i18n/es.js?v=2026-10-05-f",
-  "app/i18n/i18n.js?v=2026-10-05-f",
+  "app/app.css?v=2026-10-05-g",
+  "app/i18n/zh.js?v=2026-10-05-g",
+  "app/i18n/en.js?v=2026-10-05-g",
+  "app/i18n/ja.js?v=2026-10-05-g",
+  "app/i18n/es.js?v=2026-10-05-g",
+  "app/i18n/i18n.js?v=2026-10-05-g",
   "app/social.js?v=2026-10-01-a",
   "app/share-targets.js?v=2026-10-01-a",
-  "app/data.js?v=2026-10-05-f",
+  "app/data.js?v=2026-10-05-g",
   "app/rules.js?v=2026-10-01-a",
   "app/kb.js?v=2026-10-01-a",
   "app/match.js?v=2026-10-01-a",
-  "app/app.js?v=2026-10-05-f",
+  "app/app.js?v=2026-10-05-g",
   "manifest.webmanifest",
   "manifest.en.webmanifest",
   "assets/icons/favicon.svg",
