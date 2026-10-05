@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="healoa-version" content="v2026-10-05-f">
+<meta name="healoa-version" content="v2026-10-05-g">
 <meta name="description" content="按你最近的身体和心情，配出这个节气最适合你去放松的 3 个地方。">
 <meta name="theme-color" content="#f6f1e8">
-<!-- Add to Home Screen / install (v2026-10-05-f, queue 4). Paths are relative, so everything stays inside /healoa-base-prototype-preview/. -->
+<!-- Add to Home Screen / install (v2026-10-05-g, queue 4). Paths are relative, so everything stays inside /healoa-base-prototype-preview/. -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
@@ -27,8 +27,8 @@
 <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="assets/icons/splash-1125x2436.png">
 <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="assets/icons/splash-828x1792.png">
 <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="assets/icons/splash-750x1334.png">
-<title>HeaLoa · 顺着季节养（预览 v2026-10-05-f）</title>
-<link rel="stylesheet" href="app/app.css?v=2026-10-05-f">
+<title>HeaLoa · 顺着季节养（预览 v2026-10-05-g）</title>
+<link rel="stylesheet" href="app/app.css?v=2026-10-05-g">
 <!-- 3D view libraries (vendored, pinned): three.js 0.186.1 + Spark 2.2.0 (World Labs). Loaded only when the 3D view opens. -->
 <script type="importmap">{ "imports": { "three": "./vendor/three-0.186.1/three.module.js", "three/addons/": "./vendor/three-0.186.1/addons/", "@sparkjsdev/spark": "./vendor/spark-2.2.0/spark.module.min.js" } }</script>
 <script>
@@ -99,6 +99,8 @@
     <div class="btn-row home-more" role="group" aria-label="更多" data-i18n-attr="aria-label:home.moreAria">
       <button type="button" class="btn ghost" data-action="openPlaces" data-i18n="home.places">看看所有地方</button>
       <button type="button" class="btn ghost" data-action="openRecords" data-i18n="home.records">我的养护记录</button>
+      <button type="button" class="btn ghost" data-action="openPrivacy" data-i18n="privacy.open">隐私说明</button>
+      <button type="button" class="btn ghost" data-action="openWellness" data-i18n="wellness.open">健康提示（非医疗）</button>
     </div>
     <p class="note-line" id="homeNext"></p>
   </section>
@@ -343,8 +345,46 @@
     </div>
   </div>
 
+  <!-- 隐私说明（queue 6） -->
+  <section id="vPrivacy" class="view hidden" data-view="privacy" aria-labelledby="privacyTitle">
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h1 id="privacyTitle" class="result-title" data-i18n="privacy.title">隐私说明</h1>
+    <p class="legal-lead" data-i18n="privacy.lead">你在这里写下的一切，都只留在这台手机上。</p>
+    <div class="legal-body">
+      <p data-i18n="privacy.p1">配对的回答、养护记录和「留一句」都存在这台手机的浏览器本地存储里，不会上传到任何服务器。</p>
+      <p data-i18n="privacy.p2">身体和感受信息永远不会上传，也永远不会写进分享图、分享链接或网址参数。</p>
+      <p data-i18n="privacy.p3">分享出去的图和链接里只有一个随机编号。你自己留的一句话，只有在你选择发给别人时，才会跟着链接一起走。</p>
+      <p data-i18n="privacy.p4">本预览没有服务器。正式版的短链接会是「/s/编号」这一类形式。</p>
+    </div>
+    <div class="stack legal-nav">
+      <button type="button" class="btn ghost" data-action="openWellness" data-i18n="wellness.open">健康提示（非医疗）</button>
+      <button type="button" class="btn ghost" data-action="goHome" data-i18n="nav.home">回到首页</button>
+    </div>
+  </section>
+
+  <!-- 健康提示（非医疗）（queue 6） -->
+  <section id="vWellness" class="view hidden" data-view="wellness" aria-labelledby="wellnessTitle">
+    <div class="topbar"><button type="button" class="back" data-action="back" data-i18n="nav.back">‹ 返回</button></div>
+    <h1 id="wellnessTitle" class="result-title" data-i18n="wellness.title">健康提示（非医疗）</h1>
+    <p class="legal-lead" data-i18n="wellness.lead">这是顺应季节照顾自己的参考，不能代替专业意见。</p>
+    <div class="legal-body">
+      <p data-i18n="wellness.p1">身体不适时，请以专业意见为准。这里不做判断，也不代替当面咨询。</p>
+      <p data-i18n="wellness.p2">「疗愈」在这里只用来形容地方、氛围和感受，不说成某种结果。</p>
+      <p data-i18n="wellness.p3">这里不承诺任何结果；练习只为让你当场放松一下，感觉怎么样都可以。不舒服就停下。</p>
+      <p data-i18n="wellness.p4">分享图和链接里也不会带上你的身体或感受信息。</p>
+    </div>
+    <div class="stack legal-nav">
+      <button type="button" class="btn ghost" data-action="openPrivacy" data-i18n="privacy.open">隐私说明</button>
+      <button type="button" class="btn ghost" data-action="goHome" data-i18n="nav.home">回到首页</button>
+    </div>
+  </section>
+
   <footer class="site-foot">
     <p class="disclaimer" id="disclaimer" data-i18n="disclaimer">这是顺应季节的养生参考，身体不适请以专业意见为准</p>
+    <div class="foot-links" role="navigation" aria-label="说明" data-i18n-attr="aria-label:legal.navAria">
+      <button type="button" class="text-link" data-action="openPrivacy" data-i18n="privacy.open">隐私说明</button>
+      <button type="button" class="text-link" data-action="openWellness" data-i18n="wellness.open">健康提示（非医疗）</button>
+    </div>
     <p class="draft-note hidden" id="draftNote" role="note"></p>
     <p class="copyright" id="copyright" data-i18n="copyright"></p>
     <div class="social-row hidden" id="socialFoot"></div>
@@ -352,7 +392,7 @@
     <details class="about" id="about">
       <summary data-i18n="about.summary">关于这份 Demo</summary>
       <div class="about-body">
-        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-10-05-f</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
+        <p><span data-i18n="about.versionPrefix">预览版本</span> <b id="verLabel">v2026-10-05-g</b> <span data-i18n="about.versionSuffix">· 可点原型，不是正式 App。</span></p>
         <p data-i18n-html="about.how"><b>推荐怎么来的：</b>先按安全规则排除这个季节不合适的地方，再按你的回答（怕冷怕热、想去海边还是山里……）加分，最后按当下节气那个月的气候调整；没有任何商家付费，也不随机。只放有实拍照片的地方。</p>
         <p data-i18n-html="about.climate"><b>气候数字：</b>按往年平均算（2001–2020 年每月平均），不是天气预报。山里、高处会比表里更凉一些。数据来源：NASA POWER（CC BY 4.0）。</p>
         <p data-i18n-html="about.photos"><b>照片：</b>地点下的一句感受有写的才显示，没有的先空着。</p>
@@ -360,17 +400,21 @@
         <p data-i18n-html="about.immersive"><b>走进这里看看：</b>用一张照片，在这台电脑上算出远近（景深），拖动或转动手机时，近处和远处移动得不一样。算景深这一步没有上传照片。</p>
         <p data-i18n-html="about.music"><b>音乐：</b>练习时的音乐是手机当场合成的轻柔音色，不是录好的曲子；默认关着。</p>
         <p data-i18n-html="about.privacy"><b>隐私：</b>你的回答和养护记录只存在这台手机上（浏览器本地存储），不上传。分享图和分享链接里没有身体或感受信息，只有一个随机编号；你自己留的一句话只在你选择发送时才写进链接。本 Demo 没有服务器，正式版短链接会是 /s/编号。</p>
+        <p class="about-links">
+          <button type="button" class="text-link" data-action="openPrivacy" data-i18n="privacy.open">隐私说明</button>
+          <button type="button" class="text-link" data-action="openWellness" data-i18n="wellness.open">健康提示（非医疗）</button>
+        </p>
         <p data-i18n-html="about.timer"><b>计时：</b>放松练习按真实时间计时，暂停、继续、停止都准确；支持时会让屏幕保持常亮。</p>
       </div>
     </details>
   </footer>
 </div>
 <!-- qrcode.js loaded on demand when a zh share card needs a QR (see __healoaEnsureQr) -->
-<script src="app/i18n/zh.js?v=2026-10-05-f"></script>
-<script src="app/i18n/en.js?v=2026-10-05-f"></script>
-<script src="app/i18n/ja.js?v=2026-10-05-f"></script>
-<script src="app/i18n/es.js?v=2026-10-05-f"></script>
-<script src="app/i18n/i18n.js?v=2026-10-05-f"></script>
+<script src="app/i18n/zh.js?v=2026-10-05-g"></script>
+<script src="app/i18n/en.js?v=2026-10-05-g"></script>
+<script src="app/i18n/ja.js?v=2026-10-05-g"></script>
+<script src="app/i18n/es.js?v=2026-10-05-g"></script>
+<script src="app/i18n/i18n.js?v=2026-10-05-g"></script>
 <script>
   window.__healoaLoadScript = function (src) {
     return new Promise(function (res, rej) {
@@ -385,13 +429,13 @@
 </script>
 <script src="app/social.js?v=2026-10-01-a"></script>
 <script src="app/share-targets.js?v=2026-10-01-a"></script>
-<script src="app/data.js?v=2026-10-05-f"></script>
+<script src="app/data.js?v=2026-10-05-g"></script>
 <script src="app/rules.js?v=2026-10-01-a"></script>
 <script src="app/kb.js?v=2026-10-01-a"></script>
 <script src="app/match.js?v=2026-10-01-a"></script>
-<script src="app/app.js?v=2026-10-05-f"></script>
+<script src="app/app.js?v=2026-10-05-g"></script>
 <script>
-  /* Offline first screen (v2026-10-05-f): register sw.js (scope = this folder) after load so it never competes with
+  /* Offline first screen (v2026-10-05-g): register sw.js (scope = this folder) after load so it never competes with
    * the first paint. Automated test browsers (navigator.webdriver) skip it unless a test opts in, so the existing suites
    * keep routing every request themselves; tests/pwa.mjs opts in with localStorage "healoa.pwa.sw" = "1". */
   (function () {

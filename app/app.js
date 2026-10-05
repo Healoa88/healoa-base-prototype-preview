@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-10-05-f: en footer note — English waits for a native proofread (queue 5) · v2026-10-05-e: installable PWA (manifest, icons, sw.js offline first screen) · v2026-10-05-d: lazy-load 3D / practice+first videos / SONO / QR+draft locales; first screen light on 3G; practice text contrast · leftover 10/12 · v2026-10-05-c: first session = muted place video + ~1 min SONO + one breath; questions after, skippable to seasonal defaults · v2026-10-05-b: photo audit — care-card 4:5, place hero/wide picks, ≤400KB · v2026-10-05-a: live health-check fixes (place/reveal hero text back on the photo, desktop backdrop, practice Start no longer covers the cue, draft badge clear of top bar) · v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-05-g: in-app Privacy + Wellness-notice pages (queue 6) + week feature tests (queue 7) · was -f: en footer note — English waits for a native proofread (queue 5) · v2026-10-05-e: installable PWA (manifest, icons, sw.js offline first screen) · v2026-10-05-d: lazy-load 3D / practice+first videos / SONO / QR+draft locales; first screen light on 3G; practice text contrast · leftover 10/12 · v2026-10-05-c: first session = muted place video + ~1 min SONO + one breath; questions after, skippable to seasonal defaults · v2026-10-05-b: photo audit — care-card 4:5, place hero/wide picks, ≤400KB · v2026-10-05-a: live health-check fixes (place/reveal hero text back on the photo, desktop backdrop, practice Start no longer covers the cue, draft badge clear of top bar) · v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -85,7 +85,7 @@
   }
 
   /* ---------- navigation (history state only; URL never carries the condition) ---------- */
-  var VIEWS = ["first", "home", "shared", "quiz", "reveal", "result", "careplan", "places", "place", "practice", "card", "records", "remind", "immersive"];
+  var VIEWS = ["first", "home", "shared", "quiz", "reveal", "result", "careplan", "places", "place", "practice", "card", "records", "remind", "immersive", "privacy", "wellness"];
   function snapshot() { return { view: state.view, season: state.season, cond: state.cond, answers: state.answers, placeId: state.placeId, practiceId: state.practiceId, actionPlace: state.actionPlace }; }
   function show(view) {
     VIEWS.forEach(function (v) {
@@ -117,6 +117,7 @@
     else if (state.view === "card") renderCard();
     else if (state.view === "remind") renderRemind();
     else if (state.view === "immersive") renderImmersive();
+    /* privacy + wellness: static HTML + data-i18n; nothing to re-render */
   }
   function go(view, patch, replace) {
     if (state.view === "practice" && view !== "practice") { timerStop(false); pausePracticeClip(); }
@@ -1704,6 +1705,8 @@
     openCareplan: function () { go("careplan"); },
     openPlaces: function () { go("places"); },
     openRecords: function () { recEdit = -1; go("records"); },
+    openPrivacy: function () { go("privacy"); },
+    openWellness: function () { go("wellness"); },
     rematch: function () { logEvent("rematch"); ACTIONS.openQuiz(); },
     openLastMatch: function () {
       var saved = lsGet(LS_MATCH);
@@ -1984,7 +1987,7 @@
   }
   I18N.applyDom(document, { version: D.VERSION });
   if (I18N.draft) { $("draftBadge").textContent = t("draft.badge"); $("draftBadge").classList.remove("hidden"); }
-  /* v2026-10-05-f (queue 5): draft locales that carry a draft.note say in the footer that the copy waits for a native proofread. */
+  /* v2026-10-05-g (queue 5): draft locales that carry a draft.note say in the footer that the copy waits for a native proofread. */
   (function () { var dn = I18N.draft ? t("draft.note") : ""; if (dn && dn !== "draft.note") { $("draftNote").textContent = dn; $("draftNote").classList.remove("hidden"); } })();
   renderLangSwitch();
   renderSocial("socialFoot");
