@@ -1,0 +1,49 @@
+{
+  "id": "./?lang=en",
+  "name": "HeaLoa · Live with the season",
+  "short_name": "HeaLoa",
+  "description": "Answer a 2-minute match and flip your 3 places for this season — each with the reasons, what to eat, what to do and what to skip.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "./?lang=en",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f1e8",
+  "theme_color": "#f6f1e8",
+  "categories": [
+    "lifestyle",
+    "travel"
+  ],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

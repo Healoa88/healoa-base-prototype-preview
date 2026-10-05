@@ -16,6 +16,7 @@
     meta: {
       code: "en", htmlLang: "en", name: "English", complete: false, draft: true, homeRegion: "us", explainTerms: true,
       tempUnit: "F", rainUnit: "in/month",
+      manifest: "manifest.en.webmanifest", /* home-screen app opens in English (start_url ./?lang=en) */
       condOrder: ["sleep", "cold", "gut", "bp", "tense", "quiet"],
       canvasFont: '-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif'
     },
