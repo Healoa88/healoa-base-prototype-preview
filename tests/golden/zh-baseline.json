@@ -1271,7 +1271,7 @@
      "跟着做几式太极或八段锦（武当山素来与太极相连）",
      "在露台看云、喝茶、发会儿呆"
     ],
-    "wide": "assets/places/wudang/06-courtyard-class.jpg"
+    "wide": "assets/places/wudang/02-terrace-sunrise.jpg"
    },
    {
     "action": "breath46",
@@ -1404,7 +1404,7 @@
     ],
     "gallery": [
      "assets/places/jpcoast/02-lounge-sea-sunset.jpg",
-     "assets/places/jpcoast/04-lounge-sea-window.jpg"
+     "assets/places/jpcoast/03-shrine-facade.jpg"
     ],
     "id": "seashrine",
     "kind": "海边的安静角落",
@@ -1452,15 +1452,15 @@
      "一杯热奶茶暖手"
     ],
     "gallery": [
-     "assets/places/harbin/01-night-snow-roofs.jpg",
+     "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "assets/places/harbin/05-snow-roofs-icicles.jpg",
      "assets/places/harbin/02-night-lanterns-snowman.jpg",
-     "assets/places/harbin/03-day-milk-tea-village.jpg",
      "assets/places/harbin/04-stairs-street-blue-sky.jpg"
     ],
     "id": "harbin",
     "kind": "安静的雪乡",
     "name": "哈尔滨 · 冰雪",
-    "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+    "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
     "region": "cn",
     "scenes": [
      "snow"
@@ -1469,7 +1469,7 @@
      "白天看雪景，每次在室外别待太久",
      "回到屋里慢慢喝热饮"
     ],
-    "wide": "assets/places/harbin/05-snow-roofs-icicles.jpg"
+    "wide": "assets/places/harbin/06-snow-roofs-pines.jpg"
    },
    {
     "area": "云南",
@@ -1533,7 +1533,7 @@
    "harbin": {
     "intro": "捧一杯热饮，看着窗外，跟着圆圈：变大时慢慢吸气 4 秒，变小时慢慢呼气 6 秒。不憋气。",
     "label": "捧一杯热饮看雪 · 慢呼吸 3 分钟",
-    "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+    "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
     "place": "harbin",
     "practice": "breath46",
     "short": "看雪慢呼吸"
@@ -1576,7 +1576,7 @@
     {
      "intro": "捧一杯热饮，看着窗外，跟着圆圈：变大时慢慢吸气 4 秒，变小时慢慢呼气 6 秒。不憋气。",
      "label": "捧一杯热饮看雪 · 慢呼吸 3 分钟",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "place": "harbin",
      "practice": "breath46",
      "short": "看雪慢呼吸"
@@ -1670,7 +1670,7 @@
     {
      "intro": "像坐在落地窗前：坐着做几个很小的动作，看看海面。",
      "label": "坐在窗边看海 · 3 分钟",
-     "photo": "assets/places/jpcoast/04-lounge-sea-window.jpg",
+     "photo": "assets/places/jpcoast/01-feet-sunset-sea.jpg",
      "place": "seashrine",
      "practice": "sitEasy",
      "short": "窗边坐坐"
@@ -2260,7 +2260,7 @@
    "winter": 20
   },
   "SEASON_WIDE": {
-   "autumn": "assets/practices/05-courtyard-class.jpg",
+   "autumn": "assets/places/wudang/02-terrace-sunrise.jpg",
    "winter": "assets/places/harbin/02-night-lanterns-snowman.jpg"
   },
   "SOLAR_TERMS": [
@@ -6107,7 +6107,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "秋季平均 4.8℃，11 月降到 −6℃，偏冷，血压偏高的人先去暖和、温差小的地方。"
     },
     {
@@ -6205,7 +6205,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "冬季平均 −16.7℃，最冷的月份 −19℃，太冷，进出屋冷热变化大。"
     }
    ],
@@ -6266,7 +6266,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "秋季平均 4.8℃，11 月 −6℃，怕冷的人这个季节先不选。"
     },
     {
@@ -6351,7 +6351,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "冬季平均 −16.7℃，最冷的月份 −19℃，太冷，进出屋冷热变化大。"
     }
    ],
@@ -6430,7 +6430,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "秋季平均 4.8℃，偏冷，肠胃弱的人先选暖一点的地方。"
     },
     {
@@ -6528,7 +6528,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "冬季平均 −16.7℃，最冷的月份 −19℃，太冷，进出屋冷热变化大。"
     }
    ],
@@ -6741,7 +6741,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "秋季平均 4.8℃，11 月已降到 −6℃，早晚冷，夜里更冷。"
     },
     {
@@ -6827,7 +6827,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "冬季平均 −16.7℃，最冷的月份 −19℃，太冷，进出屋冷热变化大。"
     }
    ],
@@ -6980,7 +6980,7 @@
     {
      "id": "harbin",
      "name": "哈尔滨 · 冰雪",
-     "photo": "assets/places/harbin/06-snow-roofs-pines.jpg",
+     "photo": "assets/places/harbin/01-night-snow-roofs.jpg",
      "reason": "冬季平均 −16.7℃，最冷的月份 −19℃，太冷，进出屋冷热变化大。"
     }
    ],

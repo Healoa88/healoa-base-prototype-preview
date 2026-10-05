@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-10-05-a";
+  var VERSION = "v2026-10-05-b";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -124,7 +124,7 @@
     /* hero = best portrait from the audit (phone + 9:16); wide = best landscape for the desktop backdrop (null = none yet). */
     {
       id: "wudang", climate: "wudang",
-      photo: "assets/places/wudang/02-terrace-sunrise.jpg", wide: "assets/places/wudang/06-courtyard-class.jpg",
+      photo: "assets/places/wudang/02-terrace-sunrise.jpg", wide: "assets/places/wudang/02-terrace-sunrise.jpg", /* best hero; courtyard-class has a crowd */
       gallery: ["assets/places/wudang/03-crane-peaks.jpg", "assets/places/wudang/vista/01-cliff-pavilion.jpg", "assets/places/wudang/homestay/01-courtyard-house.jpg", "assets/places/wudang/homestay/02-window-tea-terrace.jpg"],
       attrs: { quiet: 2, nature: 2, hotspring: false, cozy: 1 },
       scenes: ["mountain", "forest"], region: "cn", effort: 2, action: "walk", actionPhoto: "assets/places/wudang/homestay/01-courtyard-house.jpg"
@@ -149,15 +149,15 @@
     {
       id: "seashrine", climate: "jpcoast",
       photo: "assets/places/jpcoast/01-feet-sunset-sea.jpg", wide: "assets/places/jpcoast/03-shrine-facade.jpg",
-      gallery: ["assets/places/jpcoast/02-lounge-sea-sunset.jpg", "assets/places/jpcoast/04-lounge-sea-window.jpg"],
+      gallery: ["assets/places/jpcoast/02-lounge-sea-sunset.jpg", "assets/places/jpcoast/03-shrine-facade.jpg"],
       attrs: { quiet: 1, nature: 2, hotspring: true, cozy: 1 },
       scenes: ["sea"], region: "jp", effort: 1, action: "breath46",
       actionPhoto: "assets/places/jpcoast/01-feet-sunset-sea.jpg"
     },
     {
       id: "harbin", climate: "harbin",
-      photo: "assets/places/harbin/06-snow-roofs-pines.jpg", wide: "assets/places/harbin/05-snow-roofs-icicles.jpg",
-      gallery: ["assets/places/harbin/01-night-snow-roofs.jpg", "assets/places/harbin/02-night-lanterns-snowman.jpg", "assets/places/harbin/03-day-milk-tea-village.jpg", "assets/places/harbin/04-stairs-street-blue-sky.jpg"],
+      photo: "assets/places/harbin/01-night-snow-roofs.jpg", wide: "assets/places/harbin/06-snow-roofs-pines.jpg",
+      gallery: ["assets/places/harbin/06-snow-roofs-pines.jpg", "assets/places/harbin/05-snow-roofs-icicles.jpg", "assets/places/harbin/02-night-lanterns-snowman.jpg", "assets/places/harbin/04-stairs-street-blue-sky.jpg"],
       attrs: { quiet: 1, nature: 1, hotspring: false, cozy: 1 },
       scenes: ["snow"], region: "cn", effort: 1, action: "breath46"
     },
@@ -311,7 +311,7 @@
     wudang: [{ practice: "taiji1", photo: "assets/places/wudang/02-terrace-sunrise.jpg" }, { practice: "baduanjin1", photo: "assets/places/wudang/homestay/02-window-tea-terrace.jpg" }, { practice: "sitEasy", photo: "assets/places/wudang/vista/01-cliff-pavilion.jpg" }],
     pattaya: [{ practice: "walk", photo: "assets/places/thai/sunset/01-pattaya-harbor-dusk.jpg" }, { practice: "sitEasy", photo: "assets/places/thai/pool/03-long-pool-canopy.jpg" }],
     onsen: [{ practice: "walk", photo: "assets/places/onsen/01-hot-spring-field-town.jpg" }, { practice: "sitEasy", photo: "assets/places/onsen/01-hot-spring-field-town.jpg" }],
-    seashrine: [{ practice: "walk", photo: "assets/places/jpcoast/03-shrine-facade.jpg" }, { practice: "sitEasy", photo: "assets/places/jpcoast/04-lounge-sea-window.jpg" }],
+    seashrine: [{ practice: "walk", photo: "assets/places/jpcoast/03-shrine-facade.jpg" }, { practice: "sitEasy", photo: "assets/places/jpcoast/01-feet-sunset-sea.jpg" }],
     harbin: [{ practice: "sitEasy", photo: "assets/places/harbin/06-snow-roofs-pines.jpg" }, { practice: "breathNight", photo: "assets/places/harbin/05-snow-roofs-icicles.jpg" }]
   };
   var PLACE_ACTIVITIES = {};
@@ -336,7 +336,7 @@
     winter: "assets/places/cabin/02-cabin-through-birch.jpg"
   };
   var SEASON_WIDE = {
-    autumn: "assets/practices/05-courtyard-class.jpg",
+    autumn: "assets/places/wudang/02-terrace-sunrise.jpg", /* best autumn hero; not courtyard-with-people */
     winter: "assets/places/harbin/02-night-lanterns-snowman.jpg"
   };
 

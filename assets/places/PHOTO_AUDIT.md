@@ -65,3 +65,11 @@ Cindy’s own Tai Chi / Baduanjin stills in `assets/practices/` (01–06). Prefe
 - **日本海边 · 温泉与神社** (`seashrine`, not 草津): hero = `jpcoast/01-feet-sunset-sea.jpg` (portrait, phone). Wide = shrine facade (architecture kept). Lounge with a TV is gallery only; the program on the TV is not the place. The women-only seating sign was cropped out of `04-lounge-sea-window.jpg` so it is not the subject.
 - **哈尔滨 · 冰雪**: hero = `harbin/06-snow-roofs-pines.jpg` (pine-framed snow roofs). Wide = `harbin/05-snow-roofs-icicles.jpg`. Older Harbin frames stay in the gallery. Phone cover crops the sides of the landscape hero; focal point keeps the roofs.
 - **武当练习**: `practices/07` mountain balance and `08` courtyard in white join the stills. Short muted clips: `clips/plaza-form.mp4` (八段锦), `clips/path-form.mp4` (太极). Posters `09` and `10`.
+
+
+## v2026-10-05-b（队列 2 / 遗留 9·11）
+- **养护卡**：`.care-card .photo` 从 16:9 改回 **4:5**（与 `.card-hero` 一致）。武当日出竖图在卡上不再被切掉约 58%。
+- **武当 wide / 秋 SEASON_WIDE**：改用 `wudang/02-terrace-sunrise`（最好看的主图），不再用 `06-courtyard-class` / `practices/05`（院子里有人群）。
+- **海边·温泉与神社**：gallery 去掉 `jpcoast/04-lounge-sea-window`（1:1 裁掉 56%+）；sitEasy 活动图改用 hero `01-feet-sunset-sea`。gallery 现为 lounge 日落 + 神社正面。
+- **哈尔滨**：hero 改回竖图 `01-night-snow-roofs`（手机 / 9:16）；wide 用最好看的横图 `06-snow-roofs-pines`（桌面虚化）。`06` 仍在 gallery。
+- **体积**：所有仍偏大的 jpg/webp（含 pano）压到 ≤400KB，观感尽量保留；并重跑 `tools/make_sizes.py`。
