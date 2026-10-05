@@ -254,7 +254,7 @@ try {
     p.setDefaultTimeout(8000);
     p.on("pageerror", (e) => pageErrors.push(String(e)));
     await p.goto(url);
-    await p.evaluate(() => localStorage.clear()); await p.reload();
+    await p.evaluate(() => { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); }); await p.reload();
     return { c, p };
   }
   const text = (p) => p.evaluate(() => document.body.innerText);

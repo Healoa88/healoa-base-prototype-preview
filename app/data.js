@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-10-05-b";
+  var VERSION = "v2026-10-05-c";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -343,6 +343,16 @@
   /* Practice bed (v2026-10-03-a). src is a 65s calm excerpt of a purchased track (see assets/audio/SOURCES.md).
    * The practice videos themselves have no audio. Without src, the phone synthesises a soft pad. */
   var MUSIC = { src: "assets/audio/sono-bed.mp3", plannedPath: "assets/audio/sono-bed.mp3" };
+  /* First session (v2026-10-05-c / Cindy 2026-10-04): muted place clip + ~60s of the same SONO bed + one breath.
+   * Reuses practice assets; no new music license. */
+  var FIRST_SESSION = {
+    clip: "assets/practices/clips/plaza-form.mp4",
+    poster: "assets/practices/09-plaza-form-wfull.webp",
+    audio: "assets/audio/sono-bed.mp3",
+    seconds: 60,
+    inhale: 4,
+    exhale: 6
+  };
 
   /* Immersive view per place (v2026-09-27-y).
    * depth = a depth map made ON THIS MACHINE from Cindy's photo (tools/make_depth.py, Depth Anything V2 Small, Apache-2.0);
@@ -371,7 +381,7 @@
 
   root.HEALOA_DATA = {
     VERSION: VERSION, CONDITIONS: CONDITIONS, SEASONS: SEASONS, SOLAR_TERMS: SOLAR_TERMS,
-    CLIMATE: CLIMATE, PLACES: PLACES, CARE: CARE, PRACTICES: PRACTICES,
+    CLIMATE: CLIMATE, PLACES: PLACES, CARE: CARE, PRACTICES: PRACTICES, FIRST_SESSION: FIRST_SESSION,
     PRACTICE_DEFAULT: PRACTICE_DEFAULT, DISCLAIMER: DISCLAIMER, PHOTO_META: PHOTO_META, focal: focal, srcset: srcset, sized: sized,
     HOME_PLAN: HOME_PLAN, QUIZ: QUIZ, SEASON_PHOTO: SEASON_PHOTO, REVEAL_PHOTO: REVEAL_PHOTO, SEASON_WIDE: SEASON_WIDE, MUSIC: MUSIC, IMMERSIVE: IMMERSIVE,
     PLACE_ACTIVITIES: PLACE_ACTIVITIES,

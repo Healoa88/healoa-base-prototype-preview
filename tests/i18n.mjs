@@ -23,12 +23,12 @@ const D = "?date=2026-09-26";
 const pageErrors = [];
 let server, browser;
 try {
-  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-10-05-b (seashrine: no repeated hot-spring line); before that v2026-10-03-a (D-03-01 looping form video, sound default on); before that v2026-10-02-a (D-02-01 revoke Cindy copyright line); before that v2026-10-01-a: 3D hint without zoom, D-28-02; before that v2026-09-28-b: about page gains the World Labs 3D line; before that v2026-09-28-a: solar-term greeting, full-bleed reveal hero, sound chip, stop panel, D-28-01; before that v2026-09-27-y: photo-first redesign, copyright line, 9:16 share, reminder, music, more quiz options, D-27-06) ----------
+  // ---------- 1. zh renders identically to the zh snapshot (intentionally re-captured for v2026-10-05-c (seashrine: no repeated hot-spring line); before that v2026-10-03-a (D-03-01 looping form video, sound default on); before that v2026-10-02-a (D-02-01 revoke Cindy copyright line); before that v2026-10-01-a: 3D hint without zoom, D-28-02; before that v2026-09-28-b: about page gains the World Labs 3D line; before that v2026-09-28-a: solar-term greeting, full-bleed reveal hero, sound chip, stop panel, D-28-01; before that v2026-09-27-y: photo-first redesign, copyright line, 9:16 share, reminder, music, more quiz options, D-27-06) ----------
   const golden = JSON.parse(fs.readFileSync(GOLDEN, "utf8"));
   const now = await captureZh();
   const diff = diffGolden(golden, now);
   const n = (o) => Object.keys(o).length;
-  check(`zh identical to the v2026-10-05-b zh snapshot (intentional update, seashrine hot-spring line de-duplicated; D-28-02 3D hint; D-27-07 about: 3D line; D-28-01 solar-term greeting + reveal hero + sound chip + stop panel; D-27-06 photo-first + copyright + 9:16 share + reminder + music + more options; D-27-05: v4 home + 怎么用, 8-question quiz, flip reveal, 为什么是你, all places, 我的养护记录): home, shared, quiz (8 screens), reveal, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
+  check(`zh identical to the v2026-10-05-c zh snapshot (intentional update, seashrine hot-spring line de-duplicated; D-28-02 3D hint; D-27-07 about: 3D line; D-28-01 solar-term greeting + reveal hero + sound chip + stop panel; D-27-06 photo-first + copyright + 9:16 share + reminder + music + more options; D-27-05: v4 home + 怎么用, 8-question quiz, flip reveal, 为什么是你, all places, 我的养护记录): home, shared, quiz (8 screens), reveal, ${n(golden.result) / 2} results, ${n(golden.place)} place pages, ${n(golden.practice)} practice states + timed cues, ${n(golden.card)} season cards, share texts, private PNG hash, <html lang>, title, data + rule outputs`,
     diff.length === 0, diff.length ? diff.slice(0, 6) : "identical");
   check("key zh screens contain the locked strings", golden.home.includes("这个节气，哪里最适合你？") && now.home === golden.home &&
     CONDITION_LABELS.every((l) => now.quiz.join("|").includes(l)) && now.result["bp/winter"].includes("这个季节先不选") && now.card["bp/autumn"].view.includes("只留给自己") && now.head.lang === "zh-CN");
@@ -46,6 +46,8 @@ try {
     p.on("pageerror", (e) => pageErrors.push(String(e)));
     p.on("console", (m) => { if (m.type() === "error") pageErrors.push(m.text()); });
     await p.goto(url);
+    await p.evaluate(() => { try { localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); } catch (e) {} });
+    await p.reload();
     return { ctx, p };
   }
   const shot = (p) => p.evaluate(() => ({ lang: document.documentElement.lang, app: window.__healoa.lang, title: document.title, text: document.body.innerText, stored: localStorage.getItem("healoa.lang.v1") }));

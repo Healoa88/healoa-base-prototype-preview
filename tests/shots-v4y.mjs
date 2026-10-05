@@ -11,7 +11,7 @@ const D = "?date=2026-09-26";
 async function page(q = "", vp = { width: 390, height: 844 }, locale = "zh-CN") {
   const c = await browser.newContext({ viewport: vp, deviceScaleFactor: 2, locale });
   const p = await c.newPage(); p.on("pageerror", (e) => console.log("pageerror", String(e)));
-  await p.goto(base + D + q); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(500);
+  await p.goto(base + D + q); await p.evaluate(() => { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); }); await p.reload(); await p.waitForTimeout(500);
   return { c, p };
 }
 const shot = async (p, name, full = false) => { await p.waitForTimeout(400); await p.screenshot({ path: path.join(OUT, name), fullPage: full }); console.log(name); };

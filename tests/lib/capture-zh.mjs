@@ -43,8 +43,8 @@ export async function captureZh({ query = "" } = {}) {
     p.setDefaultTimeout(5000);
     if (clock) await p.clock.install();
     await p.goto(url);
-    await p.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
-    await p.goto(url);
+    await p.evaluate(() => { try { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); } catch (e) {} });
+    await p.reload();
     return p;
   }
   const bodyText = (p) => p.evaluate(() => document.body.innerText);

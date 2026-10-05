@@ -41,7 +41,7 @@ try {
     p.setDefaultTimeout(8000);
     p.on("pageerror", (e) => pageErrors.push(String(e)));
     await p.goto(base + "?" + D + q);
-    await p.evaluate(() => localStorage.clear());
+    await p.evaluate(() => { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); });
     await p.reload();
     await p.waitForFunction(() => window.__healoa && window.__healoa.go);
     return { ctx, p };

@@ -79,7 +79,7 @@ try {
   browser = await chromium.launch();
   async function home(date, lang = "") {
     const c = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "zh-CN" });
-    const p = await c.newPage(); await p.goto(`${base}?date=${date}${lang}`); await p.evaluate(() => localStorage.clear()); await p.reload();
+    const p = await c.newPage(); await p.goto(`${base}?date=${date}${lang}`); await p.evaluate(() => { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); }); await p.reload();
     return { c, p };
   }
   const probes = {};
