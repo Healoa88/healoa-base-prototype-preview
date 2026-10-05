@@ -1,10 +1,10 @@
 {
   "name": "healoa-base-prototype-preview",
-  "version": "2026.10.3-a",
+  "version": "2026.10.5-a",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/static-checks.mjs && node tests/match.mjs && node tests/healing-v3.mjs && node tests/i18n.mjs && node tests/merged-plan.mjs && node tests/season.mjs && node tests/world3d.mjs && node tests/rules.mjs",
+    "test": "node tests/static-checks.mjs && node tests/match.mjs && node tests/healing-v3.mjs && node tests/i18n.mjs && node tests/merged-plan.mjs && node tests/season.mjs && node tests/world3d.mjs && node tests/layout.mjs && node tests/rules.mjs",
     "test:rules": "node tests/rules.mjs",
     "test:static": "node tests/static-checks.mjs",
     "test:browser": "node tests/healing-v3.mjs",
@@ -13,6 +13,7 @@
     "test:season": "node tests/season.mjs",
     "test:match": "node tests/match.mjs",
     "test:world3d": "node tests/world3d.mjs",
+    "test:layout": "node tests/layout.mjs",
     "golden:zh": "node tests/lib/capture-zh.mjs",
     "shots": "node tests/shots.mjs",
     "shots:v4y": "node tests/shots-v4y.mjs",
