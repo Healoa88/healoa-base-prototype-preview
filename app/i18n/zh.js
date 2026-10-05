@@ -433,7 +433,9 @@
       "reply.yours": "你写的：",
       "reply.theirs": "对方写的：",
       "date.md": "{month} {d} 日",
-      "draft.badge": "预览草稿"
+      "draft.badge": "预览草稿",
+      /* draft locales only (queue 5): a footer line saying the copy still waits for a native-speaker proofread; zh is not a draft → empty, never shown */
+      "draft.note": ""
     },
     content: {
       /* Words that keep a user-written line from travelling in a shared link (body states). Not shown anywhere.

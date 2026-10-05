@@ -378,6 +378,8 @@
       "practice.openRecords": "ケア記録を見る",
       "date.md": "{month}{d}日",
       "draft.badge": "下書き",
+      /* footer proofread note (queue 5): left empty until the Japanese engineer writes it — empty = not shown */
+      "draft.note": "",
 
       "modal.aria": "画像",
       "modal.imgAlt": "カードの画像",

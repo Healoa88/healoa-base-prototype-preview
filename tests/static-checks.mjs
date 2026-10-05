@@ -134,7 +134,8 @@ function shape(o, pth = "") {
 check("i18n: ja conditionBreaks (button line-break hints) cover the 6 conditions and, without the 「|」 marks, equal the ja labels exactly",
   JA.content.conditionBreaks && Object.keys(JA.content.conditions).every((k) => typeof JA.content.conditionBreaks[k] === "string" && JA.content.conditionBreaks[k].replace(/\|/g, "") === JA.content.conditions[k]));
 // copyright may be "" (D-02-01: Cindy revoked the blanket photo copyright line; key must still exist in every locale).
-const ALLOW_EMPTY = new Set(["copyright"]);
+// draft.note may be "" (queue 5, v2026-10-05-f): footer proofread note for draft locales — zh is not a draft, ja waits for its engineer; en must carry it (tests/i18n.mjs).
+const ALLOW_EMPTY = new Set(["copyright", "draft.note"]);
 for (const [code, Lc] of [["en", EN], ["ja", JA]]) {
   const zk = Object.keys(ZH.strings), lk = Object.keys(Lc.strings);
   const miss = zk.filter((k) => typeof Lc.strings[k] !== "string" || (Lc.strings[k] === "" && !ALLOW_EMPTY.has(k))), extra = lk.filter((k) => !(k in ZH.strings));
