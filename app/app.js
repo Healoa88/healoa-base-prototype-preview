@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-05-a: live health-check fixes (place/reveal hero text back on the photo, desktop backdrop, practice Start no longer covers the cue, draft badge clear of top bar) · v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -468,7 +468,8 @@
     var suits = D.CONDITIONS.filter(function (c) { return p.fit[c.id] && !R.skipReason(p, c.id, state.season); });
     if (suits.length) h += '<div class="block" id="blkSuits"><h3>' + esc(t("place.suitsTitle")) + '</h3><ul>' + suits.map(function (c) { return "<li><b>" + esc(c.label) + esc(t("punct.colon")) + "</b>" + esc(p.fit[c.id]) + "</li>"; }).join("") + "</ul></div>";
     var cautions = p.caution.slice();
-    if (p.attrs.hotspring) cautions.unshift(t("place.hotspringCaution"));
+    /* the generic soak line only when the place has no soak line of its own (seashrine repeated it, v2026-10-05-a) */
+    if (p.attrs.hotspring && !p.caution.some(function (x) { return /41\s*°?\s*[℃C]/.test(x); })) cautions.unshift(t("place.hotspringCaution"));
     h += '<div class="safety" id="blkAvoid"><b>' + esc(t("place.avoidTitle")) + esc(t("punct.colon")) + "</b>" + (skip ? '<p class="skip-now">' + esc(t("place.skipLabel")) + esc(skip) + "</p>" : "") + "<ul>" + cautions.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
     h += '<div class="block"><h3>' + esc(t(skip ? "place.climateSkip" : "place.climateFit", { season: S.label })) + '</h3><ol class="reasons">' + rs.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ol></div>";
     h += '<div class="block"><h3>' + esc(t("place.eatTitle")) + "</h3><ul>" + p.food.map(function (x) { return "<li>· " + esc(x) + "</li>"; }).join("") + "</ul></div>";
@@ -645,6 +646,12 @@
       var x = D.PRACTICES[id];
       return '<button type="button" class="chip' + (id === p.id ? " on" : "") + '" data-action="practiceMode" data-practice="' + id + '">' + esc(x.short) + "</button>";
     }).join("");
+    /* v2026-10-05-a: the row scrolls sideways; bring the chosen practice into view (it was often off the right edge). */
+    var modesRow = $("practiceModes"), onChip = modesRow.querySelector(".chip.on");
+    if (onChip && modesRow.scrollWidth > modesRow.clientWidth) {
+      var rr = modesRow.getBoundingClientRect(), cr = onChip.getBoundingClientRect();
+      modesRow.scrollLeft += (cr.left + cr.width / 2) - (rr.left + rr.width / 2);
+    }
     var here = $("practiceHere");
     if (here) {
       if (p.placeName || (p.place && R.placeById(p.place))) {

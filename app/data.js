@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-10-03-a";
+  var VERSION = "v2026-10-05-a";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */

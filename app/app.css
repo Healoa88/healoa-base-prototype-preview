@@ -637,3 +637,35 @@ body::before {
   font-size: 28px;
   box-shadow: 0 8px 28px rgba(0,0,0,.35);
 }
+
+/* ---------- v2026-10-05-a: live health-check fixes (no new features) ---------- */
+/* The v2026-10-01-a mist layer set the hero text to position: relative, which pushed the place name and the
+ * reveal greeting / title below the photo, where overflow: hidden cut them off. Put them back on the photo. */
+.place-hero .hero-text, .rv-hero-text { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; }
+.rv-hero-img { position: absolute; inset: 0; z-index: 0; }
+/* The season wash (body::before) also replaced the blurred-photo backdrop around the desktop phone frame. */
+@media (min-width: 760px), (orientation: landscape) and (max-height: 540px) {
+  body::before { inset: -40px; background: var(--backdrop, none) center / cover no-repeat, #2a332f; filter: blur(18px) saturate(1.05) brightness(.7); z-index: -1; }
+}
+/* Practice: the big 「开始」 floated at 52% and covered the first line of the cue, the clock, and the 3 / 5 分钟 chips
+ * after a session. It now sits in the column right under the title and intro (still on the picture, still in the first
+ * screen on small phones and in en / ja), and the cue + clock follow it. Same button, same single tap. */
+#vPractice.needs-start .controls { position: static; left: auto; right: auto; top: auto; margin: 12px 0 2px; }
+#vPractice.needs-start .practice-inner > * { order: 3; }
+#vPractice.needs-start .practice-inner > .topbar, #vPractice.needs-start #musicNote, #vPractice.needs-start #practiceModes,
+#vPractice.needs-start #practiceHere, #vPractice.needs-start #practiceTitle, #vPractice.needs-start #practiceIntro { order: 0; }
+#vPractice.needs-start .practice-inner > .controls { order: 1; }
+#vPractice.needs-start #guidedProg, #vPractice.needs-start #breathWrap, #vPractice.needs-start #practiceCue,
+#vPractice.needs-start #practiceClock, #vPractice.needs-start #practiceOpts { order: 2; }
+/* Practice text sits on a moving video / photo: a soft shadow keeps it readable on bright frames. */
+#vPractice .practice-title, #vPractice .practice-intro, #vPractice .music-note, #vPractice .practice-safe,
+#vPractice .wake-note, #vPractice #btnRemind, #vPractice .topbar .back, #guidedProgLabel { text-shadow: 0 1px 6px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.3); }
+/* Wrapped 「在这里 · …」 pill: a softer radius when it runs onto two lines. */
+.here-chip { border-radius: 18px; }
+/* Flip cards: long matches wrap to three lines; start the dark gradient sooner so the gold line stays readable on bright skies. */
+.flip-back .flip-text { background: linear-gradient(transparent, rgba(10,14,12,.5) 44px, rgba(10,14,12,.86)); }
+.flip-back .flip-text > * { text-shadow: 0 1px 4px rgba(0,0,0,.55); }
+/* Draft (en / ja) badge: keep the top-bar controls (back, sound, season switch) and the shared-view brand line clear of the pill. */
+.app:has(> #draftBadge:not(.hidden)) .topbar:not(.over) { margin-top: 30px; }
+.app:has(> #draftBadge:not(.hidden)) .topbar.over { padding-top: 44px; }
+.app:has(> #draftBadge:not(.hidden)) #vShared > .brand { margin-top: 34px; }
