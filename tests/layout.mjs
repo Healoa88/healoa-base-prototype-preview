@@ -1,5 +1,5 @@
 /**
- * Layout regression tests (v2026-10-05-a live health check). Each check is a bug that shipped once and was found on the
+ * Layout regression tests (v2026-10-05-b live health check). Each check is a bug that shipped once and was found on the
  * live site at 390×844 / 1280×800 in zh + en:
  *  1. place page: the place name + area sit ON the hero photo (a later rule had pushed them below it, out of sight);
  *  2. reveal page: the solar-term pill, greeting and title sit on the hero photo;

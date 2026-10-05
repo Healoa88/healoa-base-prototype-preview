@@ -139,7 +139,7 @@ html[lang="ja"] .cond-btn { font-size: 18px; padding: 8px 6px; word-break: keep-
 
 /* Care card */
 .care-card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 6px 20px rgba(60,50,30,.08); margin: 12px 0; }
-.care-card .photo { aspect-ratio: 16 / 9; }
+.care-card .photo { aspect-ratio: 4 / 5; } /* v2026-10-05-b: portrait heroes must not be cut to 16:9 (was ~58% crop) */
 .care-body { padding: 14px 16px 16px; }
 .care-season { font-size: 15px; color: var(--green); font-weight: 700; }
 .care-head { font-size: 22px; font-weight: 800; margin: 2px 0 8px; }
@@ -638,7 +638,7 @@ body::before {
   box-shadow: 0 8px 28px rgba(0,0,0,.35);
 }
 
-/* ---------- v2026-10-05-a: live health-check fixes (no new features) ---------- */
+/* ---------- v2026-10-05-b: photo audit (care-card 4:5, hero/wide picks, compress) · v2026-10-05-a: live health-check fixes (no new features) ---------- */
 /* The v2026-10-01-a mist layer set the hero text to position: relative, which pushed the place name and the
  * reveal greeting / title below the photo, where overflow: hidden cut them off. Put them back on the photo. */
 .place-hero .hero-text, .rv-hero-text { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; }
