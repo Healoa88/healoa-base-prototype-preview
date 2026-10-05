@@ -76,13 +76,16 @@ try {
     const { ctx, p } = await open(base + D + "&lang=" + q);
     const s = await shot(p);
     const b = await p.evaluate(() => { const el = document.getElementById("draftBadge"); return { hidden: el.classList.contains("hidden"), text: el.textContent }; });
+    const note = await p.evaluate(() => { const el = document.getElementById("draftNote"); return { shown: !el.classList.contains("hidden") && el.getBoundingClientRect().height > 0, text: el.textContent, px: parseFloat(getComputedStyle(el).fontSize) }; });
     const sw = await p.evaluate(() => document.getElementById("langSwitch").classList.contains("hidden"));
     await p.goto(base + D); // without ?lang the draft is not remembered
     const after = await shot(p);
-    dr.push({ q, ok: s.app === want && s.lang === want && !b.hidden && b.text === badge && sw && s.stored !== want && after.app === "zh" && after.lang === "zh-CN", app: s.app, badge: b, after: after.app });
+    const noteOk = want === "en" ? note.shown && /draft/i.test(note.text) && /native speaker/.test(note.text) && /proofread/.test(note.text) && note.px >= 17 : true;
+    const afterNote = await p.evaluate(() => document.getElementById("draftNote").classList.contains("hidden"));
+    dr.push({ q, ok: s.app === want && s.lang === want && !b.hidden && b.text === badge && noteOk && afterNote && sw && s.stored !== want && after.app === "zh" && after.lang === "zh-CN", app: s.app, badge: b, note, after: after.app });
     await ctx.close();
   }
-  check("?lang=en / ?lang=ja open the DRAFT locales with a small 「Draft preview」/「下書き」 badge; switcher stays hidden; draft never remembered (next visit without ?lang → zh)", dr.every((x) => x.ok), dr);
+  check("?lang=en / ?lang=ja open the DRAFT locales with a small 「Draft preview」/「下書き」 badge; en footer says the English waits for a native-speaker proofread (待母语审校, ≥17px), zh never shows it; switcher stays hidden; draft never remembered (next visit without ?lang → zh)", dr.every((x) => x.ok), dr);
   {
     // ja draft at 390px (v4): the home start button and every quiz option fit — no overflow, ≤2 lines, no last line of ≤1 character
     const { ctx, p } = await open(base + D + "&lang=ja");

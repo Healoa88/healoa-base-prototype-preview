@@ -10,7 +10,7 @@
   "use strict";
   var C = root.HEALOA_I18N.content();
 
-  var VERSION = "v2026-10-05-e";
+  var VERSION = "v2026-10-05-f";
 
   /* Six body-state / feeling entries (fixed ids). A locale may present them in its own order (meta.condOrder),
    * e.g. the en/ja drafts lead with "Deep rest"; zh keeps the locked order. */
@@ -343,7 +343,7 @@
   /* Practice bed (v2026-10-03-a). src is a 65s calm excerpt of a purchased track (see assets/audio/SOURCES.md).
    * The practice videos themselves have no audio. Without src, the phone synthesises a soft pad. */
   var MUSIC = { src: "assets/audio/sono-bed.mp3", plannedPath: "assets/audio/sono-bed.mp3" };
-  /* First session (v2026-10-05-c, clip lazy as of v2026-10-05-e / Cindy 2026-10-04): muted place clip + ~60s of the same SONO bed + one breath.
+  /* First session (v2026-10-05-c, clip lazy as of v2026-10-05-f / Cindy 2026-10-04): muted place clip + ~60s of the same SONO bed + one breath.
    * Reuses practice assets; no new music license. */
   var FIRST_SESSION = {
     clip: "assets/practices/clips/plaza-form.mp4",

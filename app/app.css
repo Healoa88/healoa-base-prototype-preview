@@ -169,6 +169,7 @@ html[lang="ja"] .cond-btn { font-size: 18px; padding: 8px 6px; word-break: keep-
 
 .site-foot { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 12px; }
 .disclaimer { font-size: 15px; color: var(--muted); text-align: center; margin: 0 0 8px; }
+.draft-note { font-size: 17px; line-height: 1.45; color: var(--warn); text-align: center; margin: 0 0 8px; }
 .about summary { min-height: 44px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; cursor: pointer; }
 .about-body { font-size: 14px; color: var(--muted); }
 .about-body p { margin: 6px 0; }

@@ -1,6 +1,6 @@
 /* HeaLoa · locale: en (US English) — DRAFT, not shipped.
  * Status: draft preview only. Reachable ONLY with ?lang=en (never remembered, never in the public switcher);
- * the page shows a small "Draft preview" badge. meta.complete stays false until Cindy proofreads every line
+ * the page shows a small "Draft preview" badge and a footer line (draft.note) saying the English still waits for a native-speaker proofread (待母语审校). meta.complete stays false until Cindy proofreads every line
  * (she reviews English with her tool, Muse) and the en banned-word list in tests/wording.mjs is confirmed.
  * Voice: natural, warm US English for readers 50+; not a literal translation of zh.
  * Units: °F and inches (meta.tempUnit / meta.rainUnit), with °C beside water temperatures.
@@ -376,6 +376,8 @@
       "practice.openRecords": "Open my care log",
       "date.md": "{month} {d}",
       "draft.badge": "Draft preview",
+      /* queue 5 (待母语审校): shown in the footer of every en screen until Cindy (with Muse) has proofread every line */
+      "draft.note": "This English is a draft — every line is still waiting for a native speaker to proofread it.",
 
       "modal.aria": "Image",
       "modal.imgAlt": "Card image",
