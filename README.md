@@ -1,7 +1,7 @@
 # HeaLoa Base · 顺着季节养（可点原型）
 
 - Live: https://healoa88.github.io/healoa-base-prototype-preview/
-- 版本：**预览 v2026-10-05-c**（v4 Phase 1：配对小测 → 翻牌 → 为什么是你 → 地方 → 放松 → 养护卡 / 我的养护记录，D-27-05）· 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）
+- 版本：**预览 v2026-10-05-d**（v4 Phase 1：配对小测 → 翻牌 → 为什么是你 → 地方 → 放松 → 养护卡 / 我的养护记录，D-27-05）· 创始人规则见 `HEALOA_RULES.md`（机器可读 `rules/healoa-rules.json`）
 - 当前产品定义只看 **[`PRODUCT_CURRENT.md`](PRODUCT_CURRENT.md)**；历史规则与 SUPERSEDED 标记见 **[`DECISIONS.md`](DECISIONS.md)**。
 - 这是可点原型，不是正式 App；纯静态页面（GitHub Pages，main 分支），无后端、无账号、无网络请求。
 
