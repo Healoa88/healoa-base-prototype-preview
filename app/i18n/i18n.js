@@ -89,6 +89,9 @@
     doc.title = t("meta.title", vars);
     var d = doc.querySelector('meta[name="description"]');
     if (d) d.setAttribute("content", t("meta.description", vars));
+    /* v2026-10-05-e: Add to Home Screen opens the same language (en manifest starts at ./?lang=en). */
+    var man = doc.querySelector('link[rel="manifest"]');
+    if (man) man.setAttribute("href", m.manifest || "manifest.webmanifest");
   }
   function setLang(code) {
     code = normCode(code);
