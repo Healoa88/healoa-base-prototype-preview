@@ -30,7 +30,8 @@ async function fresh(url = base + D, opts = {}) {
   p.on("console", (m) => { if (m.type() === "error") pageErrors.push(m.text()); });
   if (opts.clock) await p.clock.install();
   await p.goto(url);
-  await p.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await p.evaluate(() => { try { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); } catch (e) {} });
+  await p.reload();
   return p;
 }
 const visibleView = (p) => p.evaluate(() => [...document.querySelectorAll("[data-view]")].filter((v) => !v.classList.contains("hidden")).map((v) => v.dataset.view).join(","));
@@ -75,6 +76,73 @@ try {
   check("home: no old social/fake elements (1 人在场 / 留一笔 / Scene Seed / bubbles)", !/人在场|留一笔|Scene Seed|场景种子/.test(homeTxt) && (await p.$$(".bubble, .particle, .bubbles, #bubbles, canvas:not(#immCanvas)")).length === 0);
   check("home: no horizontal overflow at 390px", (await overflow(p)) <= 0);
   await p.close();
+
+  // ---------- first session (v2026-10-05-c / D-05-01) ----------
+  {
+    const q = await ctx.newPage();
+    q.on("pageerror", (e) => pageErrors.push(String(e)));
+    await q.goto(base + D);
+    await q.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+    await q.reload();
+    const view = await visibleView(q);
+    check("first visit: opens on first-session screen (not home)", view === "first" && (await q.isVisible("#vFirst")) && (await q.isHidden("#vHome")));
+    check("first session: Start + skip-to-seasonal-places (≥56px), muted video ready", await q.evaluate(() => {
+      const s = document.getElementById("btnFirstStart"), k = document.getElementById("btnFirstSkip"), v = document.getElementById("firstClip");
+      const rs = s.getBoundingClientRect(), rk = k.getBoundingClientRect();
+      return !!s && !!k && !!v && v.muted === true && rs.height >= 56 && rk.height >= 56 && /跳过问题，直接看本季地方/.test(k.textContent);
+    }));
+    check("first session: no points / streak / lock / reward wording", !/积分|打卡|签到|解锁|奖励|邀请/.test(await allText(q)));
+    await q.click("#btnFirstStart");
+    await q.waitForTimeout(700);
+    const playing = await q.evaluate(() => {
+      const v = document.getElementById("firstClip");
+      const f = window.__healoa.first();
+      return { running: f.running, video: !!(v && !v.paused), cue: document.getElementById("firstCue").textContent };
+    });
+    check("first session: Start plays muted place video and breath/move cue", playing.running && playing.video && /吸|呼|肩膀/.test(playing.cue), playing);
+    await q.click("#btnFirstSkip");
+    await q.waitForSelector("#vReveal:not(.hidden)");
+    const top = await q.evaluate(() => window.__healoa.currentMatch().top.map((x) => x.id));
+    const saved = await q.evaluate(() => JSON.parse(localStorage.getItem("healoa.match.v1") || "null"));
+    const seen = await q.evaluate(() => !!JSON.parse(localStorage.getItem("healoa.first.v1") || "null"));
+    check("first session skip → seasonal default reveal (1–3 places) + first marked seen",
+      top.length >= 1 && top.length <= 3 && saved && saved.skippedQuiz === true && seen, { top, saved });
+    await q.close();
+  }
+  {
+    const q = await fresh();
+    check("returning visit (first already seen): home with 「开始配对」", (await q.isVisible("#vHome")) && (await q.isVisible('#btnStart2[data-action="openQuiz"]')));
+    await q.close();
+  }
+
+
+  {
+    const q = await ctx.newPage();
+    await q.goto(base + D + "&lang=en");
+    await q.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+    await q.reload();
+    check("first session en draft: Start + skip path in English", await q.evaluate(() => {
+      const s = document.getElementById("btnFirstStart"), k = document.getElementById("btnFirstSkip");
+      return /Start/i.test(s.textContent) && /Skip questions/i.test(k.textContent) && document.getElementById("vFirst") && !document.getElementById("vFirst").classList.contains("hidden");
+    }));
+    await q.click("#btnFirstStart");
+    await q.waitForTimeout(500);
+    // Force the minute done so 「Next」 appears, then go to quiz
+    await q.evaluate(() => {
+      // stop timer by skipping to places is tested; here leave via mark + openQuiz
+      window.__healoa.markFirstSeen();
+    });
+    // Use skip then back — instead click skip places is already covered; test toQuiz via action after finished
+    await q.evaluate(() => {
+      const btn = document.getElementById("btnFirstQuiz");
+      btn.classList.remove("hidden");
+      document.getElementById("btnFirstStart").classList.add("hidden");
+    });
+    await q.click("#btnFirstQuiz");
+    await q.waitForSelector("#vQuiz:not(.hidden)");
+    check("first session → quiz path (toQuiz)", await q.isVisible("#vQuiz"));
+    await q.close();
+  }
 
   // ---------- home → quiz → flip reveal → 为什么是你 (v4 main line) ----------
   {

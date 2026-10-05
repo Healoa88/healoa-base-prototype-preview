@@ -112,6 +112,18 @@
       "home.records": "我的养护记录",
       "home.moreAria": "更多",
 
+      "first.title": "先在一个地方里，慢慢待一分钟",
+      "first.lead": "画面是静音的。点「开始」后，会放约一分钟安静的歌；跟着慢吸慢呼，或只是轻轻放松肩膀。",
+      "first.ready": "准备好了，就点「开始」",
+      "first.start": "开始",
+      "first.toQuiz": "接下来，答几个小问题",
+      "first.skipPlaces": "跳过问题，直接看本季地方",
+      "first.hint": "不用注册 · 答案只留在你的手机里",
+      "first.inhale": "慢慢吸气 {n}",
+      "first.exhale": "慢慢呼气 {n}",
+      "first.move": "肩膀轻轻放松一下",
+      "first.doneCue": "这一分钟到了。想更准一点，可以答几个小问题；也可以直接看本季地方。",
+
       /* opened from a share link */
       "shared.kicker": "有人把 HeaLoa 分享给了你",
       "shared.headline": "这个节气，哪里最适合你？",

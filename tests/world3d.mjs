@@ -51,6 +51,7 @@ const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=sw
 const pageErrors = [];
 async function open(q, routes) {
   const c = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "zh-CN" });
+  await c.addInitScript(() => { try { localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); } catch (e) {} });
   const p = await c.newPage();
   p.on("pageerror", (e) => pageErrors.push(String(e)));
   if (routes) for (const [pat, fn] of Object.entries(routes)) await p.route(pat, fn);

@@ -46,6 +46,8 @@ try {
     p.on("pageerror", (e) => pageErrors.push(String(e)));
     p.on("console", (m) => { if (m.type() === "error") pageErrors.push(m.text()); });
     await p.goto(url);
+    await p.evaluate(() => { try { localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); } catch (e) {} });
+    await p.reload();
     return { ctx, p };
   }
   const text = (p) => p.evaluate(() => document.body.innerText);
@@ -79,7 +81,7 @@ try {
   // ---------- 2. 留一句: local only, on the user's own card, travels only when it names no body state ----------
   {
     const { ctx, p } = await open(base + "?" + D);
-    await p.evaluate(() => localStorage.clear()); await p.reload();
+    await p.evaluate(() => { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); }); await p.reload();
     await toCard(p, "bp");
     await p.click("#btnOpenLine");
     await p.click('[data-action="saveLine"]');
@@ -125,7 +127,7 @@ try {
     const LINE = "这个秋天，慢一点。", MINE = "我也想慢一点。";
     const url = base + "?s=abc234&l=" + B64(LINE) + "&" + D;
     const { ctx, p } = await open(url);
-    await p.evaluate(() => localStorage.clear()); await p.reload();
+    await p.evaluate(() => { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); }); await p.reload();
     const v = await p.textContent("#sharedLine");
     const beforeGrid = await p.evaluate(() => !!(document.getElementById("sharedLine").compareDocumentPosition(document.getElementById("sharedStart")) & 4));
     check("recipient view shows the sender's line with 「在旁边也写一句」 and 「给自己也配一次」, above the start button", v.includes(LINE) && v.includes("在旁边也写一句") && v.includes("给自己也配一次") && beforeGrid, v);
@@ -164,7 +166,7 @@ try {
       lang: uiLang,
       init: () => { window.__shared = []; Object.defineProperty(navigator, "share", { configurable: true, value: (d) => { window.__shared.push({ title: d.title, text: d.text, url: d.url, files: (d.files || []).map((f) => [f.name, f.type, f.size]) }); return Promise.resolve(); } }); Object.defineProperty(navigator, "canShare", { configurable: true, value: (d) => !!d }); }
     });
-    await p.evaluate(() => localStorage.clear()); await p.reload();
+    await p.evaluate(() => { localStorage.clear(); localStorage.setItem("healoa.first.v1", JSON.stringify({ at: 1 })); }); await p.reload();
     await toCard(p, "cold");
     await openShare(p);
     const share = await p.evaluate(() => window.__healoa.buildShare());

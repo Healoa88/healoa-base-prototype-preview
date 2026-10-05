@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-10-05-b: photo audit — care-card 4:5, place hero/wide picks, ≤400KB · v2026-10-05-a: live health-check fixes (place/reveal hero text back on the photo, desktop backdrop, practice Start no longer covers the cue, draft badge clear of top bar) · v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-05-c: first session = muted place video + ~1 min SONO + one breath; questions after, skippable to seasonal defaults · v2026-10-05-b: photo audit — care-card 4:5, place hero/wide picks, ≤400KB · v2026-10-05-a: live health-check fixes (place/reveal hero text back on the photo, desktop backdrop, practice Start no longer covers the cue, draft badge clear of top bar) · v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -17,6 +17,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var LS_CARD = "healoa.card.v1", LS_EVENTS = "healoa.events.v1", LS_LINE = "healoa.line.v1", LS_REPLIED = "healoa.replied.v1";
   var LS_MATCH = "healoa.match.v1", LS_LOG = "healoa.log.v1"; /* last quiz answers + top places; 我的养护记录 — this phone only */
+  var LS_FIRST = "healoa.first.v1"; /* first quiet minute seen on this phone */
   var LINE_MAX = 60;
   var SHARE_CFG = (window.HEALOA_SHARE && window.HEALOA_SHARE.byLocale[I18N.lang]) || { qr: false, targets: ["copy"] };
   var SHARE_TARGETS = (window.HEALOA_SHARE && window.HEALOA_SHARE.targets) || {};
@@ -31,7 +32,7 @@
    * supplementary event of later plans (card_kept, quiz_done, flip_seen, rematch, place_action_done). v2 names
    * (share_sent / recipient_open / recipient_own_result) are not used. */
   var EVENTS_CORE = ["shared", "opened", "got_own_card", "practice_completed"];
-  var EVENTS_EXTRA = ["card_kept", "quiz_done", "flip_seen", "rematch", "place_action_done"];
+  var EVENTS_EXTRA = ["card_kept", "quiz_done", "flip_seen", "rematch", "place_action_done", "first_shown", "first_start", "first_minute_done", "first_to_quiz", "first_skip_places"];
   function logEvent(name) {
     var ev = lsGet(LS_EVENTS) || [];
     ev.push({ e: name, t: Date.now() });
@@ -84,24 +85,26 @@
   }
 
   /* ---------- navigation (history state only; URL never carries the condition) ---------- */
-  var VIEWS = ["home", "shared", "quiz", "reveal", "result", "careplan", "places", "place", "practice", "card", "records", "remind", "immersive"];
+  var VIEWS = ["first", "home", "shared", "quiz", "reveal", "result", "careplan", "places", "place", "practice", "card", "records", "remind", "immersive"];
   function snapshot() { return { view: state.view, season: state.season, cond: state.cond, answers: state.answers, placeId: state.placeId, practiceId: state.practiceId, actionPlace: state.actionPlace }; }
   function show(view) {
     VIEWS.forEach(function (v) {
       var el = document.querySelector('[data-view="' + v + '"]');
       if (el) el.classList.toggle("hidden", v !== view);
     });
-    document.body.classList.toggle("practicing", view === "practice" || view === "immersive");
+    document.body.classList.toggle("practicing", view === "practice" || view === "immersive" || view === "first");
     try { document.documentElement.setAttribute("data-season", state.season || ""); } catch (e) {}
     if (view !== "immersive" && state.view === "immersive") immStop();
-    if (view !== "practice" && view !== "immersive" && view !== "reveal" && MUS.playing) musicStop();
+    if (view !== "first" && state.view === "first") firstStop();
+    if (view !== "practice" && view !== "immersive" && view !== "reveal" && view !== "first" && MUS.playing) musicStop();
     state.view = view;
     setBackdrop();
     window.scrollTo(0, 0);
   }
   function render() {
     renderSeasonButtons();
-    if (state.view === "home") renderHome();
+    if (state.view === "first") renderFirst();
+    else if (state.view === "home") renderHome();
     else if (state.view === "shared") renderShared();
     else if (state.view === "quiz") renderQuiz();
     else if (state.view === "reveal") renderReveal();
@@ -226,6 +229,98 @@
   function langQuery() { return I18N.lang !== I18N.DEFAULT ? "&lang=" + encodeURIComponent(I18N.lang) : ""; }
   function replyUrl() {
     return location.origin + location.pathname + "?s=" + incoming.id + "&l=" + b64e(incoming.line) + "&r=" + b64e(incoming.mine) + langQuery();
+  }
+
+
+  /* ---------- first session (v2026-10-05-c): muted place video + ~60s SONO + one breath; then quiz (skippable) ---------- */
+  var FIRST = { running: false, finished: false, timer: 0, startedAt: 0, audio: null };
+  function firstSeen() { return !!lsGet(LS_FIRST); }
+  function markFirstSeen() { lsSet(LS_FIRST, { at: Date.now(), v: D.VERSION }); }
+  function firstCfg() { return D.FIRST_SESSION || { clip: "assets/practices/clips/plaza-form.mp4", poster: "assets/practices/09-plaza-form-wfull.webp", audio: "assets/audio/sono-bed.mp3", seconds: 60, inhale: 4, exhale: 6 }; }
+  function firstStop() {
+    FIRST.running = false;
+    if (FIRST.timer) { clearInterval(FIRST.timer); FIRST.timer = 0; }
+    var v = $("firstClip");
+    if (v) { try { v.pause(); } catch (e) {} }
+    if (FIRST.audio) { try { FIRST.audio.pause(); } catch (e) {} }
+  }
+  function renderFirst() {
+    var cfg = firstCfg(), v = $("firstClip");
+    if (v) {
+      if (v.getAttribute("src") !== cfg.clip) { v.setAttribute("src", cfg.clip); v.load(); }
+      if (cfg.poster) v.setAttribute("poster", cfg.poster);
+      v.muted = true; v.loop = true; v.setAttribute("playsinline", "");
+    }
+    $("firstClock").textContent = mmss(cfg.seconds);
+    $("firstCircle").style.transform = "scale(.55)";
+    $("btnFirstStart").classList.toggle("hidden", FIRST.running || FIRST.finished);
+    $("btnFirstQuiz").classList.toggle("hidden", !FIRST.finished);
+    if (!FIRST.running && !FIRST.finished) $("firstCue").textContent = t("first.ready");
+    else if (FIRST.finished) $("firstCue").textContent = t("first.doneCue");
+  }
+  function firstTick() {
+    if (!FIRST.running) return;
+    var cfg = firstCfg(), e = (Date.now() - FIRST.startedAt) / 1000, remain = Math.max(0, cfg.seconds - e);
+    $("firstClock").textContent = mmss(remain);
+    var cycle = (cfg.inhale || 4) + (cfg.exhale || 6), tc = e % cycle, inh = cfg.inhale || 4, exh = cfg.exhale || 6;
+    /* Alternate every other cycle: a soft shoulder cue, then back to breath (one breath or simple movement). */
+    var alt = Math.floor(e / cycle) % 2 === 1;
+    if (alt && tc < 2) {
+      $("firstCue").textContent = t("first.move");
+      $("firstCircle").style.transform = "scale(.7)";
+    } else if (tc < inh) {
+      var k = tc / inh;
+      $("firstCue").textContent = t("first.inhale", { n: Math.max(1, Math.ceil(inh - tc)) });
+      $("firstCircle").style.transform = "scale(" + (0.55 + 0.45 * k).toFixed(3) + ")";
+    } else {
+      var k2 = (tc - inh) / exh;
+      $("firstCue").textContent = t("first.exhale", { n: Math.max(1, Math.ceil(exh - (tc - inh))) });
+      $("firstCircle").style.transform = "scale(" + (1 - 0.45 * k2).toFixed(3) + ")";
+    }
+    if (remain <= 0) {
+      FIRST.running = false; FIRST.finished = true;
+      if (FIRST.timer) { clearInterval(FIRST.timer); FIRST.timer = 0; }
+      if (FIRST.audio) { try { FIRST.audio.pause(); } catch (e2) {} }
+      $("firstCue").textContent = t("first.doneCue");
+      $("btnFirstStart").classList.add("hidden");
+      $("btnFirstQuiz").classList.remove("hidden");
+      $("firstClock").textContent = mmss(0);
+      logEvent("first_minute_done");
+    }
+  }
+  function firstStartSession() {
+    var cfg = firstCfg(), v = $("firstClip");
+    FIRST.finished = false; FIRST.running = true; FIRST.startedAt = Date.now();
+    if (v) {
+      try { v.currentTime = 0; } catch (e) {}
+      var play = v.play(); if (play && play.catch) play.catch(function () {});
+    }
+    if (!FIRST.audio) { FIRST.audio = new Audio(cfg.audio || D.MUSIC.src); FIRST.audio.loop = false; FIRST.audio.volume = 0.55; }
+    else { try { FIRST.audio.pause(); FIRST.audio.currentTime = 0; } catch (e) {} }
+    var ap = FIRST.audio.play(); if (ap && ap.catch) ap.catch(function () {});
+    if (FIRST.timer) clearInterval(FIRST.timer);
+    FIRST.timer = setInterval(firstTick, 200);
+    $("btnFirstStart").classList.add("hidden");
+    $("btnFirstQuiz").classList.add("hidden");
+    $("firstClock").textContent = mmss(cfg.seconds);
+    firstTick();
+    logEvent("first_start");
+  }
+  function finishFirstToQuiz() {
+    markFirstSeen(); firstStop(); FIRST.finished = true;
+    logEvent("first_to_quiz");
+    ACTIONS.openQuiz();
+  }
+  function finishFirstToPlaces() {
+    markFirstSeen(); firstStop(); FIRST.finished = true;
+    /* Empty answers → seasonal default top 3 (climate + diversity only; primaryCond quiet). */
+    state.answers = M.clean({});
+    state.season = contentSeason;
+    var m = currentMatch();
+    lsSet(LS_MATCH, { answers: state.answers, season: state.season, termIndex: termIndex, top: m.top.map(function (x) { return x.id; }), savedAt: Date.now(), skippedQuiz: true });
+    logEvent("first_skip_places");
+    flipped = {};
+    go("reveal", { answers: state.answers, cond: m.primaryCond });
   }
 
   /* ---------- 2-minute matching quiz: one question per screen ---------- */
@@ -1515,6 +1610,9 @@
     },
     back: function () { if (history.state && history.length > 1 && state.view !== "home") history.back(); else go("home", null, true); },
     goHome: function () { go("home"); },
+    firstStart: function () { firstStartSession(); },
+    firstToQuiz: function () { finishFirstToQuiz(); },
+    firstSkipPlaces: function () { finishFirstToPlaces(); },
     openQuiz: function () {
       /* Start again; the last answers (this phone only) are pre-selected so a new solar term takes seconds. */
       var saved = lsGet(LS_MATCH), prev = state.answers || (saved && saved.answers) || {}, picks = {};
@@ -1828,12 +1926,15 @@
 
   /* ---------- boot ---------- */
   var sid = params.get("s");
-  var initial = sid && /^[a-z0-9]{4,16}$/.test(sid) ? "shared" : "home";
+  var initial = sid && /^[a-z0-9]{4,16}$/.test(sid) ? "shared" : (firstSeen() ? "home" : "first");
   if (initial === "shared") {
     logEvent("opened");
     incoming.id = sid;
     incoming.line = b64d(params.get("l"));
     incoming.reply = incoming.line ? b64d(params.get("r")) : "";
+  } else if (initial === "first") {
+    logEvent("opened");
+    logEvent("first_shown");
   }
   I18N.applyDom(document, { version: D.VERSION });
   if (I18N.draft) { $("draftBadge").textContent = t("draft.badge"); $("draftBadge").classList.remove("hidden"); }
@@ -1845,7 +1946,10 @@
   /* deep link straight into a place's immersive view: ?imm=wudang (a place id only; nothing about the person) */
   (function () {
     var q = params.get("imm");
-    if (initial === "home" && q && D.IMMERSIVE[q] && R.placeById(q)) go("immersive", { placeId: q });
+    if ((initial === "home" || initial === "first") && q && D.IMMERSIVE[q] && R.placeById(q)) {
+      if (initial === "first") markFirstSeen();
+      go("immersive", { placeId: q });
+    }
     var any3d = Object.keys(D.IMMERSIVE).some(function (k) { return D.IMMERSIVE[k].world3d && D.IMMERSIVE[k].world3d.spz; });
     if ($("aboutWorld3d")) $("aboutWorld3d").classList.toggle("hidden", !any3d);
   })();
@@ -1866,6 +1970,7 @@
     incoming: incoming, lineTravels: lineTravels,
     cardModel: cardModel, currentMatch: currentMatch, eventNames: { core: EVENTS_CORE, extra: EVENTS_EXTRA }, records: logRows, quiz: function () { return quiz; },
     privatePng: function () { return privatePng(); },
-    lastPrivateText: function () { return lastPrivateText.slice(); }
+    lastPrivateText: function () { return lastPrivateText.slice(); },
+    firstSeen: firstSeen, markFirstSeen: markFirstSeen, first: function () { return { running: FIRST.running, finished: FIRST.finished }; }
   };
 })();
