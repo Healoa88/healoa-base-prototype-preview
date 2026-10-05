@@ -724,3 +724,28 @@ body.practicing #vFirst { /* keep site foot hidden via existing body.practicing 
   #vFirst { min-height: 844px; margin: -16px -18px -24px; }
   .first-stage, .first-panel { min-height: 844px; }
 }
+
+
+/* ---------- v2026-10-05-d: practice text contrast over bright video (queue leftover 10) ----------
+ * Top band covers「背景声」music-note + topbar; bottom band covers safety line + remind link.
+ * Full-screen scrim a touch darker so white text stays readable on sunlit frames. */
+#vPractice .practice-bg::after {
+  background:
+    linear-gradient(to bottom, rgba(10,14,12,.72) 0%, rgba(10,14,12,.28) 18%, rgba(10,14,12,.18) 42%, rgba(10,14,12,.55) 78%, rgba(10,14,12,.82) 100%);
+}
+#vPractice.guided .practice-bg::after {
+  background:
+    linear-gradient(to bottom, rgba(10,14,12,.70) 0%, rgba(10,14,12,.22) 20%, rgba(10,14,12,.12) 45%, rgba(10,14,12,.50) 78%, rgba(10,14,12,.84) 100%);
+}
+#vPractice .music-note {
+  background: rgba(10,14,12,.42);
+  border-radius: 10px;
+  padding: 6px 10px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.75), 0 0 12px rgba(0,0,0,.4);
+}
+#vPractice .practice-safe {
+  background: rgba(10,14,12,.48);
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-shadow: 0 1px 6px rgba(0,0,0,.75), 0 0 12px rgba(0,0,0,.4);
+}

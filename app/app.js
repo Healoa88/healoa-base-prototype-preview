@@ -1,4 +1,4 @@
-/* HeaLoa · app (v2026-10-05-c: first session = muted place video + ~1 min SONO + one breath; questions after, skippable to seasonal defaults · v2026-10-05-b: photo audit — care-card 4:5, place hero/wide picks, ≤400KB · v2026-10-05-a: live health-check fixes (place/reveal hero text back on the photo, desktop backdrop, practice Start no longer covers the cue, draft badge clear of top bar) · v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
+/* HeaLoa · app (v2026-10-05-d: lazy-load 3D / practice+first videos / SONO / QR+draft locales; first screen light on 3G; practice text contrast · leftover 10/12 · v2026-10-05-c: first session = muted place video + ~1 min SONO + one breath; questions after, skippable to seasonal defaults · v2026-10-05-b: photo audit — care-card 4:5, place hero/wide picks, ≤400KB · v2026-10-05-a: live health-check fixes (place/reveal hero text back on the photo, desktop backdrop, practice Start no longer covers the cue, draft badge clear of top bar) · v2026-10-03-a: full Wudang form videos loop + SONO bed (sound on) · v2026-10-02-b: Japan sea shrine + Harbin snow village + muted Wudang practice clips · v2026-10-02-a: revoke consumer Cindy photo credit · v2026-10-01-a: healing polish + care continuity · v2026-09-28-c: 3D framing clamps + slim overlay + photo preview while loading · v2026-09-28-b: Wudang 3D world view (World Labs) · v2026-09-28-a · v4 Phase 1 + Cindy feedback 2026-09-27 + polish 2026-09-28: calmer reveal with pacing, full-bleed heroes,
  *  solar-term greeting, optional ambient sound on the reveal, responsive photos, senior type / tap sizes)
  * Main path (v4, plan §2.1): home (3 steps 「怎么用」, one start button) → 2-minute matching quiz (8 questions, one per
  * screen, multi-select where the plan says, back / skip / progress) → flip reveal of the top 3 places for this season
@@ -233,23 +233,49 @@
 
 
   /* ---------- first session (v2026-10-05-c): muted place video + ~60s SONO + one breath; then quiz (skippable) ---------- */
-  var FIRST = { running: false, finished: false, timer: 0, startedAt: 0, audio: null };
+  var FIRST = { running: false, finished: false, timer: 0, preloadTimer: 0, startedAt: 0, audio: null };
   function firstSeen() { return !!lsGet(LS_FIRST); }
   function markFirstSeen() { lsSet(LS_FIRST, { at: Date.now(), v: D.VERSION }); }
   function firstCfg() { return D.FIRST_SESSION || { clip: "assets/practices/clips/plaza-form.mp4", poster: "assets/practices/09-plaza-form-wfull.webp", audio: "assets/audio/sono-bed.mp3", seconds: 60, inhale: 4, exhale: 6 }; }
   function firstStop() {
     FIRST.running = false;
     if (FIRST.timer) { clearInterval(FIRST.timer); FIRST.timer = 0; }
+    if (FIRST.preloadTimer) { clearTimeout(FIRST.preloadTimer); FIRST.preloadTimer = 0; }
     var v = $("firstClip");
     if (v) { try { v.pause(); } catch (e) {} }
     if (FIRST.audio) { try { FIRST.audio.pause(); } catch (e) {} }
   }
+  /* v2026-10-05-d: do not put the ~11MB place clip on the wire until Start (poster is enough for the ready screen).
+   * Soft-preload after ~1.5s idle so Start feels instant on fast networks without blocking first paint on 3G. */
+  function ensureFirstClip(eager) {
+    var cfg = firstCfg(), v = $("firstClip");
+    if (!v) return;
+    if (cfg.poster) v.setAttribute("poster", cfg.poster);
+    v.muted = true; v.loop = true; v.setAttribute("playsinline", "");
+    v.setAttribute("data-clip", cfg.clip);
+    if (v.getAttribute("src") === cfg.clip) return;
+    v.preload = eager ? "auto" : "metadata";
+    v.setAttribute("src", cfg.clip);
+    try { v.load(); } catch (e) {}
+  }
   function renderFirst() {
     var cfg = firstCfg(), v = $("firstClip");
     if (v) {
-      if (v.getAttribute("src") !== cfg.clip) { v.setAttribute("src", cfg.clip); v.load(); }
       if (cfg.poster) v.setAttribute("poster", cfg.poster);
       v.muted = true; v.loop = true; v.setAttribute("playsinline", "");
+      v.setAttribute("data-clip", cfg.clip);
+      /* Keep src off until Start / soft-preload; clears a prior run if we bounced back. */
+      if (!FIRST.running && v.getAttribute("src") && !FIRST.finished) {
+        try { v.pause(); } catch (e) {}
+        v.removeAttribute("src");
+        try { v.load(); } catch (e2) {}
+      }
+      if (!FIRST.preloadTimer && !FIRST.running && !FIRST.finished) {
+        FIRST.preloadTimer = setTimeout(function () {
+          FIRST.preloadTimer = 0;
+          if (state.view === "first" && !FIRST.running) ensureFirstClip(false);
+        }, 1500);
+      }
     }
     $("firstClock").textContent = mmss(cfg.seconds);
     $("firstCircle").style.transform = "scale(.55)";
@@ -291,6 +317,8 @@
   function firstStartSession() {
     var cfg = firstCfg(), v = $("firstClip");
     FIRST.finished = false; FIRST.running = true; FIRST.startedAt = Date.now();
+    if (FIRST.preloadTimer) { clearTimeout(FIRST.preloadTimer); FIRST.preloadTimer = 0; }
+    ensureFirstClip(true);
     if (v) {
       try { v.currentTime = 0; } catch (e) {}
       var play = v.play(); if (play && play.catch) play.catch(function () {});
@@ -696,9 +724,16 @@
     if (!v) return;
     try { v.pause(); } catch (e) {}
   }
+  /* v2026-10-05-d: practice form videos (~9–11MB) stay off the wire until 「开始」.
+   * Opening the practice view only shows the poster / still (setPracticeBg); Start attaches src + plays. */
   function playPracticeClip() {
     var v = $("practiceClip");
     if (!v || !v.getAttribute("data-clip")) return;
+    var clip = v.getAttribute("data-clip");
+    if (v.getAttribute("src") !== clip) {
+      v.preload = "auto";
+      v.src = clip;
+    }
     v.muted = true;
     v.defaultMuted = true;
     v.loop = true;
@@ -711,17 +746,18 @@
     if (!v || !bg) return;
     if (p && p.clip) {
       if (v.getAttribute("data-clip") !== p.clip) {
+        pausePracticeClip();
         v.setAttribute("data-clip", p.clip);
         v.poster = p.poster ? D.sized(p.poster, 828) : "";
         v.loop = true;
         v.muted = true;
         v.playsInline = true;
-        v.autoplay = true;
-        v.preload = "auto";
-        v.src = p.clip;
+        v.autoplay = false;
+        v.preload = "none";
+        if (v.getAttribute("src")) { v.removeAttribute("src"); try { v.load(); } catch (e) {} }
       }
       bg.classList.add("has-clip");
-      playPracticeClip();
+      /* Do not play / download until timerStart (「开始」). */
     } else {
       bg.classList.remove("has-clip");
       if (v.getAttribute("data-clip")) {
@@ -1162,6 +1198,7 @@
   var lastShareCardText = [];
   function shownLink(url) { return url.replace(/^https?:\/\//, "").replace(/&[lr]=[A-Za-z0-9_-]*/g, ""); }
   function drawQr(ctx, url, qx, qy, size) {
+    if (typeof qrcode !== "function") return;
     var q = qrcode(0, "M"); q.addData(url); q.make();
     var n = q.getModuleCount(), cell = size / n;
     ctx.fillStyle = "#fff"; ctx.fillRect(qx - 12, qy - 12, size + 24, size + 24);
@@ -1243,8 +1280,14 @@
     return new Blob(chunks, { type: type.split(";")[0] });
   }
   function qrSvg(url) {
+    if (typeof qrcode !== "function") return "";
     var q = qrcode(0, "M"); q.addData(url); q.make();
     return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+  }
+  function ensureQrcode() {
+    if (typeof qrcode === "function") return Promise.resolve();
+    if (window.__healoaEnsureQr) return window.__healoaEnsureQr();
+    return Promise.resolve();
   }
   function dataUrlToFile(dataUrl, name) {
     var b = atob(dataUrl.split(",")[1]), arr = new Uint8Array(b.length);
@@ -1300,7 +1343,7 @@
   }
   function sharedImage() {
     if (shareImgData) return Promise.resolve(shareImgData);
-    return storyPng(buildShare()).then(function (u) { shareImgData = u; return u; });
+    return ensureQrcode().then(function () { return storyPng(buildShare()); }).then(function (u) { shareImgData = u; return u; });
   }
   function resetShare() {
     state.shareUrl = null; shareImgData = null; shareVideo = null;
@@ -1309,16 +1352,19 @@
   function refreshSharePanel() {
     var share = buildShare();
     $("shareLink").textContent = share.url;
-    var qrRow = $("shareQr");
-    if (SHARE_CFG.qr) { qrRow.innerHTML = qrSvg(share.url); qrRow.classList.remove("hidden"); } else { qrRow.innerHTML = ""; qrRow.classList.add("hidden"); }
     renderShareTargets(share);
     $("btnSaveVideo").classList.toggle("hidden", !canRecord());
     $("shareNote").classList.add("hidden");
-    return storyPng(share).then(function (url) { shareImgData = url; $("shareImg").src = url; });
+    /* v2026-10-05-d: QR library (~12KB) loads only when a zh share panel actually needs it. */
+    return ensureQrcode().then(function () {
+      var qrRow = $("shareQr");
+      if (SHARE_CFG.qr) { qrRow.innerHTML = qrSvg(share.url); qrRow.classList.remove("hidden"); } else { qrRow.innerHTML = ""; qrRow.classList.add("hidden"); }
+      return storyPng(share);
+    }).then(function (url) { shareImgData = url; $("shareImg").src = url; });
   }
 
   /* ---------- background bed (声音 switch; this preview defaults ON until the user turns it off, R19 / D-03-01) ----------
-   * D.MUSIC.src = purchased calm excerpt. Without it: a soft pad synthesised right here
+   * D.MUSIC.src = calm SONO excerpt (loaded only when sound starts). Without it: a soft pad synthesised right here
    * with WebAudio (sine tones on a slow C / A-minor drift + a quiet filtered-noise "breeze"). No recording, no copyright. */
   var LS_MUSIC = "healoa.music.v1", LS_REMIND = "healoa.remind.v1";
   var MUS = { on: lsGet(LS_MUSIC) !== false, ctx: null, master: null, nodes: [], el: null, timer: 0 };

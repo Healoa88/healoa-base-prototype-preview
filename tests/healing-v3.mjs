@@ -77,7 +77,7 @@ try {
   check("home: no horizontal overflow at 390px", (await overflow(p)) <= 0);
   await p.close();
 
-  // ---------- first session (v2026-10-05-c / D-05-01) ----------
+  // ---------- first session (v2026-10-05-c / D-05-01; clip lazy as of v2026-10-05-d) ----------
   {
     const q = await ctx.newPage();
     q.on("pageerror", (e) => pageErrors.push(String(e)));
